@@ -159,7 +159,7 @@
 
   /* ---------- dock ---------- */
   #dock{
-    position:fixed;z-index:40;
+    position:fixed;z-index:200;
     left:50%;bottom:22px;transform:translate(-50%,140%);
     display:flex;align-items:center;gap:14px;
     padding:9px 9px 9px 20px;
@@ -185,7 +185,7 @@
 
   /* ---------- finale ---------- */
   #finale{
-    position:fixed;inset:0;z-index:50;
+    position:fixed;inset:0;z-index:300;
     display:flex;flex-direction:column;align-items:center;justify-content:center;
     gap:26px;padding:32px 24px;text-align:center;
     background:radial-gradient(120% 90% at 50% 40%, var(--ground-2) 0%, var(--ground) 70%);
@@ -307,6 +307,50 @@
     return a;
   }
 
+  /* ---- every line shows up 2-3 times, shuffled, closer kept for last ---- */
+  function buildDeck(){
+    /* a laptop can carry 2-3 copies of everything; a phone screen drowns in that */
+    var roomy = window.innerWidth >= 900;
+    var base  = roomy ? 2 : 1;
+    var deck = [], i, k, reps;
+    for (i = 0; i < LINES.length; i++){
+      reps = base + Math.floor(Math.random() * 2);
+      for (k = 0; k < reps; k++) deck.push(LINES[i]);
+    }
+
+    var idx = shuffle(deck.length), out = [], i2;
+    for (i2 = 0; i2 < idx.length; i2++) out.push(deck[idx[i2]]);
+
+    /* nudge apart any two copies that landed back to back */
+    var a, b;
+    for (a = 1; a < out.length; a++){
+      if (out[a] !== out[a - 1]) continue;
+      for (b = a + 2; b < out.length; b++){
+        if (out[b] === out[a] || out[b] === out[a - 1]) continue;
+        if (out[b - 1] === out[a] || (out[b + 1] && out[b + 1] === out[a])) continue;
+        var t = out[a]; out[a] = out[b]; out[b] = t;
+        break;
+      }
+    }
+
+    /* the closing line is the last thing she sees */
+    var last = LINES[LINES.length - 1];
+    var at = out.lastIndexOf(last);
+    if (at > -1 && at !== out.length - 1){
+      out.splice(at, 1);
+      out.push(last);
+    }
+    if (out[out.length - 2] === last){
+      for (b = out.length - 3; b >= 0; b--){
+        if (out[b] !== last && out[b - 1] !== last){
+          var t2 = out[out.length - 2]; out[out.length - 2] = out[b]; out[b] = t2;
+          break;
+        }
+      }
+    }
+    return out;
+  }
+
   function place(rec){
     var el = rec.el, cell = order.length ? order[rec.i] : rec.i;
     var vw = window.innerWidth, vh = window.innerHeight;
@@ -325,7 +369,7 @@
     var y = margin + row * cellH + (cellH - h) / 2 + rec.jy * cellH * .6;
 
     x = Math.min(Math.max(x, margin), Math.max(margin, vw - w - margin));
-    y = Math.min(Math.max(y, margin), Math.max(margin, vh - h - dockRoom + 52));
+    y = Math.min(Math.max(y, margin), Math.max(margin, vh - h - dockRoom + 18));
 
     el.style.left = Math.round(x) + "px";
     el.style.top  = Math.round(y) + "px";
@@ -421,10 +465,11 @@
   function closeAll(){
     var live = wins.filter(function(w){ return w.alive; });
     if (!live.length) { endShow(); return; }
+    var step = Math.max(16, Math.round(950 / live.length));
     live.forEach(function(rec, k){
-      later(function(){ close(rec, false); updateCount(); }, k * 55);
+      later(function(){ close(rec, false); updateCount(); }, k * step);
     });
-    later(endShow, live.length * 55 + 340);
+    later(endShow, live.length * step + 340);
   }
 
   function endShow(){
@@ -443,16 +488,26 @@
     wins = [];
     top_z = 100;
 
-    var n = LINES.length;
+    var deck = buildDeck();
+    var n = deck.length;
     order = shuffle(n);
-    LINES.forEach(function(text, i){
+
+    /* gentle at first, then it floods */
+    var delays = [], acc = 0, g;
+    for (var d = 0; d < n; d++){
+      delays.push(Math.round(acc));
+      g = 230 - 165 * (d / Math.max(1, n - 1));
+      acc += reduced ? 40 : g;
+    }
+
+    deck.forEach(function(text, i){
       later(function(){
         var rec = makeWindow(text, i, n);
         wins.push(rec);
         requestAnimationFrame(function(){ rec.el.classList.add("in"); });
         updateCount();
         if (i === 0) later(function(){ dock.classList.add("up"); }, 260);
-      }, reduced ? i * 80 : i * 280);
+      }, delays[i]);
     });
   }
 
