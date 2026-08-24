@@ -109,7 +109,7 @@
   #windows{position:fixed;inset:0;z-index:10;pointer-events:none}
   .win{
     position:absolute;pointer-events:auto;
-    width:clamp(212px,44vw,276px);
+    width:calc(clamp(206px,44vw,276px) * var(--ws,1));
     background:var(--surface);
     border:1.5px solid var(--line);
     border-radius:14px;
@@ -213,9 +213,11 @@
   #again:hover{transform:translateY(-2px);border-color:rgb(var(--h-rose))}
 
   @media (max-width:560px){
-    .msg{padding:16px 15px 18px;font-size:1.05rem}
-    .bar{padding:7px 7px 7px 11px}
-    #dock{bottom:16px;gap:10px;padding-left:16px}
+    .win{width:calc(clamp(188px,50vw,242px) * var(--ws,1))}
+    .msg{padding:13px 14px 15px;font-size:1rem;line-height:1.55}
+    .bar{padding:6px 6px 6px 10px}
+    .bar .name{font-size:.7rem}
+    #dock{bottom:14px;gap:10px;padding-left:16px}
   }
 
   @media (prefers-reduced-motion:reduce){
@@ -227,7 +229,7 @@
 
 <section id="intro">
   <p class="eyebrow">for mandy &#9829;</p>
-  <h1>有 <em>12</em> 句话<br>想一起跳出来找你</h1>
+  <h1>有 <em>17</em> 句话<br>想一起跳出来找你</h1>
   <p class="sub">按一下，它们会挤满整个屏幕。每个都能拖着走，也能一键全部关掉。</p>
   <button id="start" type="button">点我 &#128140;</button>
   <p class="hint">建议在电脑或手机浏览器里打开</p>
@@ -263,6 +265,11 @@
     "我申请完第一件事就是宠老婆",
     "爱你老婆",
     "老婆学习加油",
+    "我将永远听老婆的话",
+    "我是老婆永远的小狗狗",
+    "我喜欢我的老婆",
+    "老婆说话最重要",
+    "我要永远守护老婆",
     "老婆我会永远爱着你"
   ];
   var HUES = ["rose","peach","lilac","mint"];
@@ -277,6 +284,7 @@
   var wins = [];
   var top_z = 100;
   var timers = [];
+  var order = [];
   var running = false;
 
   function clearTimers(){ timers.forEach(clearTimeout); timers = []; }
@@ -288,27 +296,36 @@
     return n;
   }
 
-  /* ---- scatter the windows over a jittered grid so they spread out ---- */
-  function place(el, i, n){
+  /* ---- shuffled cells + heavy jitter: windows land all over, never in reading order ---- */
+  function shuffle(n){
+    var a = [], i, j, t;
+    for (i = 0; i < n; i++) a.push(i);
+    for (i = n - 1; i > 0; i--){
+      j = Math.floor(Math.random() * (i + 1));
+      t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+
+  function place(rec){
+    var el = rec.el, cell = order.length ? order[rec.i] : rec.i;
     var vw = window.innerWidth, vh = window.innerHeight;
     var w  = el.offsetWidth, h = el.offsetHeight;
-    var margin = 10, dockRoom = 92;
+    var margin = 8, dockRoom = 86;
 
-    var cols = Math.max(1, Math.round(vw / (w + 26)));
-    var rows = Math.ceil(n / cols);
-    var col  = i % cols;
-    var row  = Math.floor(i / cols);
+    var cols = Math.max(1, Math.round(vw / (w + 10)));
+    var rows = Math.ceil(rec.n / cols);
+    var col  = cell % cols;
+    var row  = Math.floor(cell / cols);
 
-    var fieldW = vw - margin * 2;
-    var fieldH = vh - margin - dockRoom;
-    var cellW  = fieldW / cols;
-    var cellH  = fieldH / rows;
+    var cellW = (vw - margin * 2) / cols;
+    var cellH = (vh - margin - dockRoom) / rows;
 
-    var x = margin + col * cellW + (cellW - w) / 2 + (Math.random() - .5) * cellW * .62;
-    var y = margin + row * cellH + (cellH - h) / 2 + (Math.random() - .5) * cellH * .34;
+    var x = margin + col * cellW + (cellW - w) / 2 + rec.jx * cellW * .9;
+    var y = margin + row * cellH + (cellH - h) / 2 + rec.jy * cellH * .6;
 
     x = Math.min(Math.max(x, margin), Math.max(margin, vw - w - margin));
-    y = Math.min(Math.max(y, margin), Math.max(margin, vh - h - dockRoom + 46));
+    y = Math.min(Math.max(y, margin), Math.max(margin, vh - h - dockRoom + 52));
 
     el.style.left = Math.round(x) + "px";
     el.style.top  = Math.round(y) + "px";
@@ -318,7 +335,8 @@
     var el = document.createElement("div");
     el.className = "win";
     el.style.setProperty("--h", "var(--h-" + HUES[i % HUES.length] + ")");
-    el.style.setProperty("--rot", (reduced ? 0 : (Math.random() * 7 - 3.5)).toFixed(2) + "deg");
+    el.style.setProperty("--rot", (reduced ? 0 : (Math.random() * 14 - 7)).toFixed(2) + "deg");
+    el.style.setProperty("--ws", (.92 + Math.random() * .2).toFixed(3));
     el.style.zIndex = ++top_z;
 
     var bar = document.createElement("div");
@@ -347,13 +365,13 @@
     el.appendChild(bar); el.appendChild(msg);
     stage.appendChild(el);
 
-    var rec = { el: el, alive: true };
+    var rec = { el: el, alive: true, i: i, n: n, jx: Math.random() - .5, jy: Math.random() - .5 };
 
     x.addEventListener("click", function(ev){ ev.stopPropagation(); close(rec, true); });
     el.addEventListener("pointerdown", function(){ el.style.zIndex = ++top_z; });
     drag(el, bar);
 
-    place(el, i, n);
+    place(rec);
     return rec;
   }
 
@@ -426,6 +444,7 @@
     top_z = 100;
 
     var n = LINES.length;
+    order = shuffle(n);
     LINES.forEach(function(text, i){
       later(function(){
         var rec = makeWindow(text, i, n);
@@ -433,7 +452,7 @@
         requestAnimationFrame(function(){ rec.el.classList.add("in"); });
         updateCount();
         if (i === 0) later(function(){ dock.classList.add("up"); }, 260);
-      }, reduced ? i * 90 : i * 320);
+      }, reduced ? i * 80 : i * 280);
     });
   }
 
@@ -454,8 +473,7 @@
   });
 
   window.addEventListener("resize", function(){
-    var live = wins.filter(function(w){ return w.alive; });
-    live.forEach(function(rec, k){ place(rec.el, k, live.length); });
+    wins.forEach(function(rec){ if (rec.alive) place(rec); });
   });
 
   /* ---- drifting hearts ---- */
