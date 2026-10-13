@@ -11,17 +11,6 @@
     --night-2:#171A3C;
     --glow:255 201 120;
     --glow-deep:255 158 94;
-    --skin:#E8A376;
-    --skin-lit:#F8CA9D;
-    --skin-hi:#FFEEDB;
-    --skin-mid:#D1865C;
-    --skin-shade:#A85C40;
-    --skin-deep:#6D3524;
-    --skin-bounce:#C87A52;
-    --skin-glow:#FFC98A;
-    --line:#5A2A1C;
-    --bg:#0B0D1F;
-    --dots:0;
     --ink:#4A2A1C;
     --text:#EFE2D4;
     --text-soft:#9E9289;
@@ -53,19 +42,41 @@
     width:min(150vmin,1100px);aspect-ratio:1;
     transform:translate(-50%,-50%) scale(var(--halo-s,1));
     background:radial-gradient(circle at 50% 46%,
-      rgb(var(--glow) / calc(.20 * var(--halo-a,1))) 0%,
-      rgb(var(--glow-deep) / calc(.11 * var(--halo-a,1))) 26%,
+      rgb(var(--glow) / calc(.34 * var(--halo-a,1))) 0%,
+      rgb(var(--glow-deep) / calc(.15 * var(--halo-a,1))) 26%,
       rgb(var(--glow-deep) / 0) 62%);
     pointer-events:none;
     will-change:transform;
   }
   #vignette{
     position:fixed;inset:0;z-index:3;pointer-events:none;
-    background:radial-gradient(130% 95% at 50% 46%, rgb(11 13 31 / 0) 42%, rgb(11 13 31 / .72) 100%);
+    background:
+      radial-gradient(118% 88% at 50% 44%, rgb(11 13 31 / 0) 34%, rgb(11 13 31 / .5) 72%, rgb(5 6 16 / .9) 100%);
   }
+
+  /* ---------- the print ---------- */
+  #grain{
+    position:fixed;inset:-120px;z-index:400;pointer-events:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.86' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.52'/%3E%3C/svg%3E");
+    background-repeat:repeat;
+    opacity:.055;
+    mix-blend-mode:overlay;
+    will-change:transform;
+  }
+  #bars{position:fixed;inset:0;z-index:420;pointer-events:none}
+  #bars b{
+    position:absolute;left:0;right:0;height:4.6vh;
+    background:#05060F;
+    transform:scaleY(0);transform-origin:top;
+    transition:transform 1.9s cubic-bezier(.22,1,.36,1);
+  }
+  #bars b.t{top:0}
+  #bars b.b{bottom:0;transform-origin:bottom}
+  #bars.on b{transform:scaleY(1)}
 
   #stage{
     position:fixed;inset:0;z-index:2;
+    will-change:transform;
     display:flex;flex-direction:column;align-items:center;justify-content:center;
     gap:clamp(14px,3.2vh,30px);
     padding:max(18px,env(safe-area-inset-top)) 20px max(18px,env(safe-area-inset-bottom));
@@ -76,18 +87,27 @@
   /* ---------- the hand ---------- */
   #handwrap{
     position:relative;
-    width:min(74vw,340px);
+    width:min(92vw,452px);
     flex:0 0 auto;
     touch-action:none;
-    transform:translateY(var(--jolt-y,0)) rotate(var(--jolt-r,0deg));
+    transform:translateY(var(--jolt-y,0)) rotate(var(--jolt-r,0deg)) scale(var(--push,1));
   }
-  #handwrap svg{display:block;width:100%;height:auto;overflow:visible}
+  #handwrap svg{
+    display:block;width:100%;height:auto;overflow:visible;
+    filter:drop-shadow(0 0 62px rgb(255 196 132 / .34)) drop-shadow(0 16px 30px rgb(0 0 0 / .3));
+    -webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 72%,rgb(0 0 0 / .62) 86%,transparent 99%);
+    mask-image:linear-gradient(to bottom,#000 0%,#000 72%,rgb(0 0 0 / .62) 86%,transparent 99%);
+  }
   #handwrap.grabbable{cursor:grab}
   #handwrap.grabbing{cursor:grabbing}
 
   .ink{
     font-family:var(--brush);
     fill:var(--ink);
+    paint-order:stroke;
+    stroke:rgb(255 236 214 / .34);
+    stroke-width:5;
+    stroke-linejoin:round;
     text-anchor:middle;
     dominant-baseline:central;
     pointer-events:none;
@@ -310,6 +330,8 @@
 </style>
 
 <div id="halo"></div>
+<div id="grain" aria-hidden="true"></div>
+<div id="bars" aria-hidden="true"><b class="t"></b><b class="b"></b></div>
 <canvas id="dust" aria-hidden="true"></canvas>
 <div id="vignette"></div>
 
@@ -321,235 +343,308 @@
          and --thumb (0 = rest, 1 = turned). Every joint angle is a
          calc() off those two. #f-thumb must stay hit-testable.
          ============================================================ -->
-    <svg id="hand" viewBox="0 0 400 560" style="--open:0;--thumb:0" aria-label="一只手">
+    <svg id="hand" class="hand" viewBox="0 0 400 560" style="--open:0;--thumb:0" xmlns="http://www.w3.org/2000/svg" aria-label="一只手">
       <style>
-/* ---- joint rig: transform-box view-box => origins are absolute SVG user units ---- */
-.finger,.finger .seg2,.finger .seg3,#f-thumb,#f-thumb .seg2{transform-box:view-box}
-#f-pinky{transform-origin:259px 308px;transform:rotate(calc(86deg - var(--open) * 73deg))}
-#f-pinky > .seg2{transform-origin:259px 248px;transform:rotate(calc(98deg - var(--open) * 95deg))}
-#f-pinky > .seg2 > .seg3{transform-origin:259px 208px;transform:rotate(calc(64deg - var(--open) * 62deg))}
-#f-ring{transform-origin:223px 286px;transform:rotate(calc(92deg - var(--open) * 86deg))}
-#f-ring > .seg2{transform-origin:223px 206px;transform:rotate(calc(106deg - var(--open) * 104deg))}
-#f-ring > .seg2 > .seg3{transform-origin:223px 156px;transform:rotate(calc(72deg - var(--open) * 71deg))}
-#f-middle{transform-origin:183px 278px;transform:rotate(calc(90deg - var(--open) * 91deg))}
-#f-middle > .seg2{transform-origin:183px 190px;transform:rotate(calc(104deg - var(--open) * 104deg))}
-#f-middle > .seg2 > .seg3{transform-origin:183px 136px;transform:rotate(calc(70deg - var(--open) * 70deg))}
-#f-index{transform-origin:139px 292px;transform:rotate(calc(88deg - var(--open) * 95deg))}
-#f-index > .seg2{transform-origin:139px 210px;transform:rotate(calc(102deg - var(--open) * 105deg))}
-#f-index > .seg2 > .seg3{transform-origin:139px 162px;transform:rotate(calc(68deg - var(--open) * 70deg))}
-#f-thumb{transform-origin:114px 400px;transform:rotate(calc(58deg - var(--open) * 94deg - var(--thumb) * 40deg))}
-#f-thumb > .seg2{transform-origin:114px 336px;transform:rotate(calc(34deg - var(--open) * 44deg))}
-
-/* ---- paint: every colour resolves through a :root custom property ---- */
-.c-hi{stop-color:var(--skin-hi)}
-.c-lit{stop-color:var(--skin-lit)}
-.c-skin{stop-color:var(--skin)}
-.c-mid{stop-color:var(--skin-mid)}
-.c-shade{stop-color:var(--skin-shade)}
-.c-deep{stop-color:var(--skin-deep)}
-.c-bounce{stop-color:var(--skin-bounce)}
-.c-glow{stop-color:var(--skin-glow)}
-.c-bg{stop-color:var(--bg)}
-.wrist{fill:url(#gWrist)}
-.palm{fill:url(#gPalm)}
-.palmedge{fill:url(#gShade);opacity:.55}
-.sg{fill:url(#gSeg)}
-.j{fill:url(#gJoint)}
-.hl{fill:url(#gHi);opacity:.5}
-.pad{fill:url(#gHi);opacity:.42}
-.sh{fill:url(#gShade);opacity:.5}
-.cr{fill:url(#gDeep);opacity:calc(var(--open)*0.4)}
-.thenar{fill:url(#gThenar)}
-.hypo{fill:url(#gShade);opacity:.6}
-.hollow{fill:url(#gShade);opacity:.42}
-.palmhi{fill:url(#gHi);opacity:.4}
-.knuck{fill:url(#gHi);opacity:calc((1 - var(--open))*0.45)}
-.wristshade{fill:url(#gDeep);opacity:.4}
-.web{fill:url(#gDeep);opacity:calc(var(--open)*0.5)}
-.crease{fill:none;stroke:var(--skin-deep);stroke-width:4.5;stroke-linecap:round;opacity:calc(var(--open)*0.26)}
-.rim{fill:none;stroke:var(--skin-glow);stroke-width:3.2;stroke-linecap:round;opacity:.3}
-.fade{fill:url(#gFade)}
+#hand{--bg:#0B0D1F; --candle:#FFC98A;
+  --skin-hi:#FFF0DE; --skin-lit:#FFD7B1; --skin-mid:#F4BC95; --skin-core:#DC9E78;
+  --skin-warmshadow:#9C5F4C; --skin-violet:#5A3B52; --skin-deep:#332845; --skin-deepest:#1A1530;
+  --nail-base:#E8B394; --nail-hi:#FFEBD4; --nail-edge:#FFF4E4; --nail-rim:#B9765C;
+  --line-warm:#FFB877; --line-deep:#3A2C4E;
+  --crease:#9A6354; --contact:#241E42; --skin-glow:#FFC98A;}
+.hand{--open:1; --thumb:0; display:block;}
+.hand *{transform-box:view-box;}
+.sk{fill:url(#gSeg);}
+.pl{fill:url(#gPalm);}
+.f-index,#f-index{transform-origin:170px 262px;
+  transform: translateX(calc((1 - var(--open)) * 6px)) rotate(calc(118deg - var(--open) * 123deg));}
+.f-index > .prox{transform-origin:170px 262px; transform: scaleY(calc(0.22 + var(--open) * 0.78));}
+.f-index > .seg2{transform-origin:170px 200px;
+  transform: translateY(calc((1 - var(--open)) * 48.36px)) rotate(calc(36deg - var(--open) * 33deg));}
+.f-index .mid{transform-origin:170px 200px; transform: scaleY(calc(0.88 + var(--open) * 0.12));}
+.f-index .seg3{transform-origin:170px 162px;
+  transform: translateY(calc((1 - var(--open)) * 4.56px)) rotate(calc(20deg - var(--open) * 16deg));}
+.f-index .dist{transform-origin:170px 162px; transform: scaleY(calc(1.0 + var(--open) * 0.0));}
+.f-middle,#f-middle{transform-origin:215px 252px;
+  transform: translateX(calc((1 - var(--open)) * 1px)) rotate(calc(124deg - var(--open) * 125deg));}
+.f-middle > .prox{transform-origin:215px 252px; transform: scaleY(calc(0.19 + var(--open) * 0.81));}
+.f-middle > .seg2{transform-origin:215px 184px;
+  transform: translateY(calc((1 - var(--open)) * 55.08px)) rotate(calc(38deg - var(--open) * 35deg));}
+.f-middle .mid{transform-origin:215px 184px; transform: scaleY(calc(0.76 + var(--open) * 0.24));}
+.f-middle .seg3{transform-origin:215px 142px;
+  transform: translateY(calc((1 - var(--open)) * 10.08px)) rotate(calc(17deg - var(--open) * 13deg));}
+.f-middle .dist{transform-origin:215px 142px; transform: scaleY(calc(0.95 + var(--open) * 0.05));}
+.f-ring,#f-ring{transform-origin:258px 258px;
+  transform: translateX(calc((1 - var(--open)) * -5px)) rotate(calc(128deg - var(--open) * 124deg));}
+.f-ring > .prox{transform-origin:258px 258px; transform: scaleY(calc(0.27 + var(--open) * 0.73));}
+.f-ring > .seg2{transform-origin:258px 194px;
+  transform: translateY(calc((1 - var(--open)) * 46.72px)) rotate(calc(38deg - var(--open) * 35deg));}
+.f-ring .mid{transform-origin:258px 194px; transform: scaleY(calc(0.76 + var(--open) * 0.24));}
+.f-ring .seg3{transform-origin:258px 154px;
+  transform: translateY(calc((1 - var(--open)) * 9.6px)) rotate(calc(17deg - var(--open) * 13deg));}
+.f-ring .dist{transform-origin:258px 154px; transform: scaleY(calc(0.95 + var(--open) * 0.05));}
+.f-pinky,#f-pinky{transform-origin:295px 282px;
+  transform: translateX(calc((1 - var(--open)) * -11px)) rotate(calc(134deg - var(--open) * 123deg));}
+.f-pinky > .prox{transform-origin:295px 282px; transform: scaleY(calc(0.33 + var(--open) * 0.67));}
+.f-pinky > .seg2{transform-origin:295px 232px;
+  transform: translateY(calc((1 - var(--open)) * 33.5px)) rotate(calc(38deg - var(--open) * 35deg));}
+.f-pinky .mid{transform-origin:295px 232px; transform: scaleY(calc(0.76 + var(--open) * 0.24));}
+.f-pinky .seg3{transform-origin:295px 202px;
+  transform: translateY(calc((1 - var(--open)) * 7.2px)) rotate(calc(17deg - var(--open) * 13deg));}
+.f-pinky .dist{transform-origin:295px 202px; transform: scaleY(calc(0.95 + var(--open) * 0.05));}
+.f-thumb,#f-thumb{transform-origin:134px 344px;
+  transform: rotate(calc(58deg - var(--open) * 100deg - var(--thumb) * 40deg));}
+.f-thumb > .prox{transform-origin:134px 344px; transform: scaleY(calc(0.94 + var(--open) * 0.06));}
+.f-thumb > .seg2{transform-origin:134px 278px;
+  transform: translateY(calc((1 - var(--open)) * 3.96px)) rotate(calc(-11deg - var(--open) * 3deg));}
+.o-open{opacity: var(--open);}
+.o-fist{opacity: calc(1 - var(--open));}
+.o-fist-s{opacity: calc((1 - var(--open)) * 0.72);}
+.o-open-s{opacity: calc(var(--open) * 0.8);}
+.crease{fill:none; stroke:var(--crease); stroke-linecap:round;}
+.rim{fill:none; stroke:var(--line-warm); stroke-linecap:round;}
+.lbl{font-size:12px;opacity:.6;letter-spacing:.08em}
         #ink-fist{opacity:calc(1 - var(--open) * 2.6)}
         #ink-palm{opacity:calc((var(--open) - .62) * 2.7 * var(--palm-ink, 1))}
         #ink-clap{opacity:var(--clap-ink, 0)}
       </style>
 <defs>
-<linearGradient id="gSeg" x1="0" y1="0.04" x2="1" y2="0.52">
-<stop class="c-hi" offset="0"/><stop class="c-lit" offset="0.07"/><stop class="c-skin" offset="0.28"/>
-<stop class="c-mid" offset="0.62"/><stop class="c-shade" offset="0.9"/><stop class="c-bounce" offset="1"/>
-</linearGradient>
-<radialGradient id="gJoint" cx="0.36" cy="0.3" r="0.78">
-<stop class="c-lit" offset="0"/><stop class="c-skin" offset="0.4"/><stop class="c-mid" offset="0.74"/><stop class="c-shade" offset="1"/>
-</radialGradient>
-<linearGradient id="gPalm" x1="0.04" y1="0.1" x2="0.96" y2="0.72">
-<stop class="c-lit" offset="0"/><stop class="c-skin" offset="0.32"/><stop class="c-mid" offset="0.64"/>
-<stop class="c-shade" offset="0.9"/><stop class="c-bounce" offset="1"/>
-</linearGradient>
-<linearGradient id="gWrist" x1="0" y1="0" x2="1" y2="0.18">
-<stop class="c-lit" offset="0"/><stop class="c-skin" offset="0.26"/><stop class="c-mid" offset="0.66"/><stop class="c-shade" offset="1"/>
-</linearGradient>
-<radialGradient id="gHi" cx="0.42" cy="0.34" r="0.64">
-<stop class="c-hi" offset="0" stop-opacity=".92"/><stop class="c-lit" offset="0.52" stop-opacity=".26"/>
-<stop class="c-lit" offset="1" stop-opacity="0"/>
-</radialGradient>
-<radialGradient id="gShade" cx="0.5" cy="0.5" r="0.5">
-<stop class="c-shade" offset="0" stop-opacity=".55"/><stop class="c-shade" offset="0.6" stop-opacity=".3"/>
-<stop class="c-shade" offset="1" stop-opacity="0"/>
-</radialGradient>
-<radialGradient id="gDeep" cx="0.5" cy="0.5" r="0.5">
-<stop class="c-deep" offset="0" stop-opacity=".6"/><stop class="c-deep" offset="1" stop-opacity="0"/>
-</radialGradient>
-<radialGradient id="gThenar" cx="0.4" cy="0.3" r="0.72">
-<stop class="c-hi" offset="0" stop-opacity=".5"/><stop class="c-lit" offset="0.55" stop-opacity=".22"/>
-<stop class="c-lit" offset="1" stop-opacity="0"/>
-</radialGradient>
-<linearGradient id="gFade" x1="0" y1="0" x2="0" y2="1">
-<stop class="c-bg" offset="0" stop-opacity="0"/><stop class="c-bg" offset="0.5" stop-opacity=".45"/><stop class="c-bg" offset="1" stop-opacity="1"/>
-</linearGradient>
-
+ <linearGradient id="gSeg" x1="0" y1="0.12" x2="1" y2="0.72">
+  <stop offset="0"    stop-color="var(--skin-hi)"/>
+  <stop offset="0.22" stop-color="var(--skin-lit)"/>
+  <stop offset="0.58" stop-color="var(--skin-mid)"/>
+  <stop offset="0.86" stop-color="var(--skin-core)"/>
+  <stop offset="1"    stop-color="var(--skin-warmshadow)"/>
+ </linearGradient>
+ <linearGradient id="gSegDim" x1="0" y1="0.1" x2="1" y2="0.8">
+  <stop offset="0"    stop-color="var(--skin-mid)"/>
+  <stop offset="0.5"  stop-color="var(--skin-core)"/>
+  <stop offset="1"    stop-color="var(--skin-violet)"/>
+ </linearGradient>
+ <linearGradient id="gPalm" x1="0.08" y1="0.02" x2="0.86" y2="1">
+  <stop offset="0"    stop-color="var(--skin-lit)"/>
+  <stop offset="0.3"  stop-color="var(--skin-mid)"/>
+  <stop offset="0.62" stop-color="var(--skin-core)"/>
+  <stop offset="0.85" stop-color="var(--skin-warmshadow)"/>
+  <stop offset="1"    stop-color="var(--skin-violet)"/>
+ </linearGradient>
+ <linearGradient id="gThenar" x1="0.1" y1="0" x2="1" y2="0.9">
+  <stop offset="0" stop-color="var(--skin-hi)" stop-opacity="0.85"/>
+  <stop offset="0.55" stop-color="var(--skin-lit)" stop-opacity="0.35"/>
+  <stop offset="1" stop-color="var(--skin-core)" stop-opacity="0"/>
+ </linearGradient>
+ <linearGradient id="gNail" x1="0.1" y1="0" x2="0.95" y2="1">
+  <stop offset="0"    stop-color="var(--nail-hi)"/>
+  <stop offset="0.45" stop-color="var(--nail-base)"/>
+  <stop offset="1"    stop-color="var(--nail-rim)"/>
+ </linearGradient>
+ <linearGradient id="gWrist" x1="0.5" y1="0" x2="0.5" y2="1">
+  <stop offset="0"    stop-color="var(--skin-core)"/>
+  <stop offset="0.4"  stop-color="var(--skin-violet)"/>
+  <stop offset="0.78" stop-color="var(--skin-deep)" stop-opacity="0.55"/>
+  <stop offset="1"    stop-color="var(--skin-deepest)" stop-opacity="0"/>
+ </linearGradient>
+ <radialGradient id="gContact" cx="0.5" cy="0.45" r="0.55">
+  <stop offset="0"   stop-color="var(--contact)" stop-opacity="0.92"/>
+  <stop offset="0.55" stop-color="var(--contact)" stop-opacity="0.5"/>
+  <stop offset="1"   stop-color="var(--contact)" stop-opacity="0"/>
+ </radialGradient>
+ <radialGradient id="gBulge" cx="0.5" cy="0.5" r="0.5">
+  <stop offset="0"   stop-color="var(--skin-hi)" stop-opacity="0.75"/>
+  <stop offset="0.6" stop-color="var(--skin-lit)" stop-opacity="0.3"/>
+  <stop offset="1"   stop-color="var(--skin-lit)" stop-opacity="0"/>
+ </radialGradient>
+ <radialGradient id="gCast" cx="0.5" cy="0.4" r="0.6">
+  <stop offset="0"   stop-color="var(--skin-deepest)" stop-opacity="0.85"/>
+  <stop offset="0.6" stop-color="var(--skin-deep)" stop-opacity="0.5"/>
+  <stop offset="1"   stop-color="var(--skin-deep)" stop-opacity="0"/>
+ </radialGradient>
 </defs>
-<g id="hand-body">
-  <path class="wrist" d="M146 456 C138 488 134 520 136 560 L256 560 C258 520 254 488 246 456 Z"/>
-  <ellipse class="sh" cx="226" cy="512" rx="23" ry="46"/>
-  <rect class="fade" x="118" y="498" width="176" height="64"/>
-  <path class="palm" d="M118 298 C103 318 94 344 92 370 C91 398 94 422 100 442
-    C110 458 126 466 146 470 L244 470 C264 462 280 452 288 438
-    C295 418 297 392 294 366 C291 336 280 312 270 298
-    C252 284 216 270 184 268 C156 266 132 278 118 298 Z"/>
-  <ellipse class="palmedge" cx="274" cy="392" rx="18" ry="70" transform="rotate(4 274 392)"/>
-  <ellipse class="thenar" cx="128" cy="386" rx="31" ry="52" transform="rotate(-9 128 386)"/>
-  <ellipse class="palmhi" cx="156" cy="332" rx="52" ry="42"/>
-  <ellipse class="hypo" cx="269" cy="400" rx="19" ry="56" transform="rotate(4 269 400)"/>
-  <ellipse class="hollow" cx="196" cy="328" rx="68" ry="26"/>
-  <ellipse class="wristshade" cx="194" cy="458" rx="54" ry="20"/>
-  <path class="crease" d="M258 300 C228 320 180 330 138 324"/>
-  <path class="crease" d="M128 300 C110 318 102 334 101 352"/>
-  <ellipse class="web" cx="161" cy="289" rx="13" ry="9"/>
-  <ellipse class="web" cx="203" cy="279" rx="13" ry="9"/>
-  <ellipse class="web" cx="241" cy="289" rx="12" ry="8"/>
-  <ellipse class="web" cx="132" cy="308" rx="14" ry="10"/>
-  <path class="rim" d="M118 298 C103 318 94 344 92 370 C91 398 94 422 100 442"/>
-  <g class="finger" id="f-pinky">
-    <circle class="j" cx="259.0" cy="308.0" r="15.8"/>
-    <path class="sg" d="M243.0 308.0 C243.0 320.5 275.0 320.5 275.0 308.0 C275.9 286.4 274.9 270.8 274.0 248.0 C274.0 233.0 244.0 233.0 244.0 248.0 C243.1 270.8 242.1 286.4 243.0 308.0 Z"/>
-    <ellipse class="hl" cx="253.6" cy="280.4" rx="7.4" ry="21.6"/>
-    <ellipse class="sh" cx="267.0" cy="278.0" rx="6.7" ry="24.0"/>
-    <ellipse class="knuck" cx="255.8" cy="302.6" rx="8.0" ry="5.4"/>
-    <ellipse class="cr" cx="259.0" cy="308.0" rx="12.2" ry="4.8"/>
-    <g class="seg2">
-      <circle class="j" cx="259.0" cy="248.0" r="14.8"/>
-      <path class="sg" d="M244.0 248.0 C244.0 259.7 274.0 259.7 274.0 248.0 C274.9 233.6 273.4 223.2 272.5 208.0 C272.5 194.5 245.5 194.5 245.5 208.0 C244.6 223.2 243.1 233.6 244.0 248.0 Z"/>
-      <ellipse class="hl" cx="253.9" cy="229.6" rx="6.9" ry="14.4"/>
-      <ellipse class="sh" cx="266.5" cy="228.0" rx="6.3" ry="16.0"/>
-      <ellipse class="knuck" cx="256.0" cy="244.4" rx="7.5" ry="5.1"/>
-      <ellipse class="cr" cx="259.0" cy="248.0" rx="11.4" ry="4.5"/>
-      <g class="seg3">
-        <circle class="j" cx="259.0" cy="208.0" r="13.4"/>
-        <path class="sg" d="M245.5 208.0 C245.5 218.5 272.5 218.5 272.5 208.0 C273.4 196.8 271.7 200.0 270.5 189.1 C270.5 173.3 247.5 173.3 247.5 189.1 C246.3 200.0 244.6 196.8 245.5 208.0 Z"/>
-        <ellipse class="hl" cx="254.4" cy="193.7" rx="6.2" ry="11.2"/>
-        <ellipse class="sh" cx="265.8" cy="192.5" rx="5.7" ry="12.4"/>
-        <ellipse class="knuck" cx="256.3" cy="205.2" rx="6.8" ry="4.6"/>
-        <ellipse class="cr" cx="259.0" cy="208.0" rx="10.3" ry="4.0"/>
-        <ellipse class="pad" cx="259.0" cy="194.2" rx="8.3" ry="11.5"/>
-        </g>
-    </g>
+<g class="palm"><path d="M 168 428 C 176 448 186 466 186 492 C 186 520 184 540 184 556 L 292 556 C 292 540 290 518 292 492 C 294 464 302 446 310 424 C 300 444 286 452 262 454 C 234 456 200 452 182 442 Z" fill="url(#gWrist)"/>
+  <path class="pl" d="M 142 276 C 144 262 156 248 170 248 C 182 248 188 258 194 261 C 200 248 206 240 215 240 C 224 240 230 248 236 251 C 241 246 248 245 258 246 C 266 247 272 256 277 261 C 282 269 287 270 295 270 C 304 271 311 279 316 290 C 321 304 324 330 323 356 C 322 382 318 404 311 420 C 305 434 292 443 272 445 C 248 447 214 446 194 442 C 178 439 164 430 155 416 C 147 403 136 384 131 362 C 126 341 127 320 133 306 C 137 294 140 284 142 276 Z"/>
+  <path d="M 306 288 C 316 302 322 326 321 352 C 320 378 314 400 304 416 C 294 430 282 430 278 420 C 274 408 282 388 288 362 C 294 334 296 306 298 290 Z" fill="var(--skin-core)" opacity="0.40"/>
+  <path d="M 150 282 C 142 300 134 324 133 348 C 132 372 140 398 154 416 C 168 430 186 432 196 424 C 206 414 200 392 190 366 C 180 338 176 306 172 286 C 166 276 156 272 150 282 Z" fill="url(#gThenar)" opacity="0.9"/>
+  <path class="rim o-open-s" d="M 172 288 C 164 310 158 338 160 364 C 162 392 172 412 186 424" stroke-width="1.6" opacity="0.30"/>
+  <path d="M 300 292 C 318 312 326 346 322 382 C 318 412 306 436 286 446 C 300 430 312 400 314 364 C 316 326 308 304 300 292 Z" fill="var(--skin-violet)" opacity="0.45"/>
+  <path d="M 196 430 C 228 446 270 446 300 428 C 286 446 254 452 226 450 C 210 448 200 440 196 430 Z" fill="var(--skin-deep)" opacity="0.45"/>
+  <ellipse cx="188" cy="292" rx="62" ry="44" fill="var(--skin-hi)" opacity="0.22"/>
+  <g class="o-fist">
+  <ellipse cx="170" cy="259" rx="19" ry="11" fill="var(--skin-hi)" opacity="0.30"/>
+  <path d="M 152 265 C 160.5 252 179.5 252 188 265 C 181.4 259 158.6 259 152 265 Z" fill="var(--skin-hi)" opacity="0.26"/>
+  <ellipse cx="215" cy="250" rx="20" ry="11" fill="var(--skin-hi)" opacity="0.30"/>
+  <path d="M 196 256 C 205.0 243 225.0 243 234 256 C 227.0 250 203.0 250 196 256 Z" fill="var(--skin-hi)" opacity="0.26"/>
+  <ellipse cx="258" cy="256" rx="18" ry="11" fill="var(--skin-hi)" opacity="0.30"/>
+  <path d="M 241 262 C 249.0 249 267.0 249 275 262 C 268.8 256 247.2 256 241 262 Z" fill="var(--skin-hi)" opacity="0.26"/>
+  <ellipse cx="295" cy="280" rx="16" ry="11" fill="var(--skin-hi)" opacity="0.30"/>
+  <path d="M 280 286 C 287.0 273 303.0 273 310 286 C 304.6 280 285.4 280 280 286 Z" fill="var(--skin-hi)" opacity="0.26"/>
+  <path class="crease" d="M 191 258 Q 194 269 197 278" stroke-width="2.0" opacity="0.5"/>
+  <path class="crease" d="M 233 248 Q 236 259 239 268" stroke-width="2.0" opacity="0.5"/>
+  <path class="crease" d="M 274 258 Q 277 269 280 278" stroke-width="2.0" opacity="0.5"/>
+  <ellipse cx="206" cy="338" rx="23" ry="15" fill="url(#gContact)"/>
+  <ellipse cx="186" cy="327" rx="9" ry="16" fill="url(#gBulge)"/>
+  <ellipse cx="226" cy="327" rx="9" ry="16" fill="url(#gBulge)"/>
+  <path class="rim" d="M 188 335 Q 206 346 224 335" stroke-width="1.6" opacity="0.30"/>
+  <ellipse cx="237" cy="329" rx="24" ry="15" fill="url(#gContact)"/>
+  <ellipse cx="216" cy="318" rx="9" ry="16" fill="url(#gBulge)"/>
+  <ellipse cx="258" cy="318" rx="9" ry="16" fill="url(#gBulge)"/>
+  <path class="rim" d="M 218 326 Q 237 337 256 326" stroke-width="1.6" opacity="0.30"/>
+  <ellipse cx="273" cy="336" rx="22" ry="15" fill="url(#gContact)"/>
+  <ellipse cx="254" cy="325" rx="9" ry="16" fill="url(#gBulge)"/>
+  <ellipse cx="292" cy="325" rx="9" ry="16" fill="url(#gBulge)"/>
+  <path class="rim" d="M 256 333 Q 273 344 290 333" stroke-width="1.6" opacity="0.30"/>
+  <ellipse cx="295" cy="349" rx="20" ry="15" fill="url(#gContact)"/>
+  <ellipse cx="278" cy="338" rx="9" ry="16" fill="url(#gBulge)"/>
+  <ellipse cx="312" cy="338" rx="9" ry="16" fill="url(#gBulge)"/>
+  <path class="rim" d="M 280 346 Q 295 357 310 346" stroke-width="1.6" opacity="0.30"/>
+  <ellipse cx="214" cy="388" rx="78" ry="40" fill="var(--skin-hi)" opacity="0.16"/>
   </g>
-  <g class="finger" id="f-ring">
-    <circle class="j" cx="223.0" cy="286.0" r="18.8"/>
-    <path class="sg" d="M204.0 286.0 C204.0 300.8 242.0 300.8 242.0 286.0 C242.9 257.2 241.4 236.4 240.5 206.0 C240.5 188.5 205.5 188.5 205.5 206.0 C204.6 236.4 203.1 257.2 204.0 286.0 Z"/>
-    <ellipse class="hl" cx="216.5" cy="249.2" rx="8.7" ry="28.8"/>
-    <ellipse class="sh" cx="232.5" cy="246.0" rx="8.0" ry="32.0"/>
-    <ellipse class="knuck" cx="219.2" cy="278.8" rx="9.5" ry="6.5"/>
-    <ellipse class="cr" cx="223.0" cy="286.0" rx="14.4" ry="5.7"/>
-    <g class="seg2">
-      <circle class="j" cx="223.0" cy="206.0" r="17.3"/>
-      <path class="sg" d="M205.5 206.0 C205.5 219.7 240.5 219.7 240.5 206.0 C241.4 188.0 239.4 175.0 238.5 156.0 C238.5 140.5 207.5 140.5 207.5 156.0 C206.6 175.0 204.6 188.0 205.5 206.0 Z"/>
-      <ellipse class="hl" cx="217.1" cy="183.0" rx="8.1" ry="18.0"/>
-      <ellipse class="sh" cx="231.8" cy="181.0" rx="7.3" ry="20.0"/>
-      <ellipse class="knuck" cx="219.5" cy="201.5" rx="8.8" ry="6.0"/>
-      <ellipse class="cr" cx="223.0" cy="206.0" rx="13.3" ry="5.2"/>
-      <g class="seg3">
-        <circle class="j" cx="223.0" cy="156.0" r="15.3"/>
-        <path class="sg" d="M207.5 156.0 C207.5 168.1 238.5 168.1 238.5 156.0 C239.4 142.7 237.7 146.0 236.5 133.2 C236.5 114.7 209.5 114.7 209.5 133.2 C208.3 146.0 206.6 142.7 207.5 156.0 Z"/>
-        <ellipse class="hl" cx="217.7" cy="139.0" rx="7.1" ry="13.3"/>
-        <ellipse class="sh" cx="230.8" cy="137.5" rx="6.5" ry="14.8"/>
-        <ellipse class="knuck" cx="219.9" cy="152.7" rx="7.8" ry="5.3"/>
-        <ellipse class="cr" cx="223.0" cy="156.0" rx="11.8" ry="4.6"/>
-        <ellipse class="pad" cx="223.0" cy="139.2" rx="9.7" ry="13.5"/>
-        </g>
-    </g>
+  <g class="o-open">
+  <path class="crease" d="M 148 292 C 176 282 212 280 248 284 C 268 286 282 292 292 300" stroke-width="2.4" opacity="0.52"/>
+  <path class="crease" d="M 146 312 C 178 306 216 306 252 312 C 274 316 290 324 300 334" stroke-width="2.6" opacity="0.46"/>
+  <path class="crease" d="M 196 276 C 170 296 154 328 154 358 C 154 390 166 412 182 426" stroke-width="2.6" opacity="0.5"/>
+  <path class="crease" d="M 262 420 C 272 404 280 384 282 366" stroke-width="1.8" opacity="0.3"/>
+  <path class="crease" d="M 190 436 C 222 442 258 442 288 434" stroke-width="2.0" opacity="0.35"/>
+  </g></g>
+<g class="finger f-index" id="f-index">
+  <g class="prox">
+  <path class="sk" d="M 151.5 271.0 C 150.0 247.3 151.3 223.7 152.5 200.0 L 187.5 200.0 C 188.7 223.7 190.0 247.3 188.5 271.0 Z"/>
+  <path class="rim o-open-s" d="M 152.7 268.0 C 151.1 231.0 152.1 212.4 153.5 200.0" stroke-width="1.5" opacity="0.5"/>
   </g>
-  <g class="finger" id="f-middle">
-    <circle class="j" cx="183.0" cy="278.0" r="20.3"/>
-    <path class="sg" d="M162.5 278.0 C162.5 294.0 203.5 294.0 203.5 278.0 C204.4 246.3 202.9 223.4 202.0 190.0 C202.0 171.0 164.0 171.0 164.0 190.0 C163.1 223.4 161.6 246.3 162.5 278.0 Z"/>
-    <ellipse class="hl" cx="176.0" cy="237.5" rx="9.4" ry="31.7"/>
-    <ellipse class="sh" cx="193.2" cy="234.0" rx="8.6" ry="35.2"/>
-    <ellipse class="knuck" cx="178.9" cy="270.1" rx="10.2" ry="7.0"/>
-    <ellipse class="cr" cx="183.0" cy="278.0" rx="15.6" ry="6.1"/>
-    <g class="seg2">
-      <circle class="j" cx="183.0" cy="190.0" r="18.8"/>
-      <path class="sg" d="M164.0 190.0 C164.0 204.8 202.0 204.8 202.0 190.0 C202.9 170.6 200.9 156.5 200.0 136.0 C200.0 119.0 166.0 119.0 166.0 136.0 C165.1 156.5 163.1 170.6 164.0 190.0 Z"/>
-      <ellipse class="hl" cx="176.5" cy="165.2" rx="8.7" ry="19.4"/>
-      <ellipse class="sh" cx="192.5" cy="163.0" rx="8.0" ry="21.6"/>
-      <ellipse class="knuck" cx="179.2" cy="185.1" rx="9.5" ry="6.5"/>
-      <ellipse class="cr" cx="183.0" cy="190.0" rx="14.4" ry="5.7"/>
-      <g class="seg3">
-        <circle class="j" cx="183.0" cy="136.0" r="16.8"/>
-        <path class="sg" d="M166.0 136.0 C166.0 149.3 200.0 149.3 200.0 136.0 C200.9 121.6 198.7 125.0 197.5 111.2 C197.5 91.4 168.5 91.4 168.5 111.2 C167.3 125.0 165.1 121.6 166.0 136.0 Z"/>
-        <ellipse class="hl" cx="177.2" cy="117.6" rx="7.8" ry="14.4"/>
-        <ellipse class="sh" cx="191.5" cy="116.0" rx="7.1" ry="16.0"/>
-        <ellipse class="knuck" cx="179.6" cy="132.4" rx="8.5" ry="5.8"/>
-        <ellipse class="cr" cx="183.0" cy="136.0" rx="12.9" ry="5.1"/>
-        <ellipse class="pad" cx="183.0" cy="117.8" rx="10.4" ry="14.5"/>
-        </g>
+  <g class="seg2">
+    <g class="mid">
+    <path class="sk" d="M 152.5 202.0 C 151.5 188.7 152.8 175.3 154.0 162.0 L 186.0 162.0 C 187.2 175.3 188.5 188.7 187.5 202.0 Z"/>
+    <path class="crease o-open" d="M 156.0 202.5 Q 170.0 206.5 184.0 202.5" stroke-width="1.7" opacity="0.65"/>
+    <path class="crease o-open" d="M 158.1 197.5 Q 170.0 201.0 181.9 197.5" stroke-width="1.2" opacity="0.4"/>
+    <path class="o-fist" d="M 154.0 165.0 C 162.0 158.0 178.0 158.0 186.0 165.0 C 179.6 171.0 160.4 171.0 154.0 165.0 Z" fill="var(--skin-hi)" opacity="0" style="opacity:0"/>
     </g>
-  </g>
-  <g class="finger" id="f-index">
-    <circle class="j" cx="139.0" cy="292.0" r="19.8"/>
-    <path class="sg" d="M119.0 292.0 C119.0 307.6 159.0 307.6 159.0 292.0 C159.9 262.5 158.4 241.2 157.5 210.0 C157.5 191.5 120.5 191.5 120.5 210.0 C119.6 241.2 118.1 262.5 119.0 292.0 Z"/>
-    <ellipse class="hl" cx="132.2" cy="254.3" rx="9.2" ry="29.5"/>
-    <ellipse class="sh" cx="149.0" cy="251.0" rx="8.4" ry="32.8"/>
-    <ellipse class="knuck" cx="135.0" cy="284.6" rx="10.0" ry="6.8"/>
-    <ellipse class="cr" cx="139.0" cy="292.0" rx="15.2" ry="6.0"/>
-    <g class="seg2">
-      <circle class="j" cx="139.0" cy="210.0" r="18.3"/>
-      <path class="sg" d="M120.5 210.0 C120.5 224.4 157.5 224.4 157.5 210.0 C158.4 192.7 156.4 180.2 155.5 162.0 C155.5 145.5 122.5 145.5 122.5 162.0 C121.6 180.2 119.6 192.7 120.5 210.0 Z"/>
-      <ellipse class="hl" cx="132.7" cy="187.9" rx="8.5" ry="17.3"/>
-      <ellipse class="sh" cx="148.2" cy="186.0" rx="7.8" ry="19.2"/>
-      <ellipse class="knuck" cx="135.3" cy="205.7" rx="9.2" ry="6.3"/>
-      <ellipse class="cr" cx="139.0" cy="210.0" rx="14.1" ry="5.5"/>
-      <g class="seg3">
-        <circle class="j" cx="139.0" cy="162.0" r="16.3"/>
-        <path class="sg" d="M122.5 162.0 C122.5 174.9 155.5 174.9 155.5 162.0 C156.4 148.0 154.2 151.0 153.0 137.7 C153.0 118.5 125.0 118.5 125.0 137.7 C123.8 151.0 121.6 148.0 122.5 162.0 Z"/>
-        <ellipse class="hl" cx="133.4" cy="144.1" rx="7.6" ry="14.0"/>
-        <ellipse class="sh" cx="147.2" cy="142.5" rx="6.9" ry="15.6"/>
-        <ellipse class="knuck" cx="135.7" cy="158.5" rx="8.2" ry="5.6"/>
-        <ellipse class="cr" cx="139.0" cy="162.0" rx="12.5" ry="5.0"/>
-        <ellipse class="pad" cx="139.0" cy="144.0" rx="10.1" ry="14.0"/>
-        </g>
-    </g>
-  </g>
-  <g class="finger" id="f-thumb">
-    <circle class="j" cx="114.0" cy="400.0" r="24.8"/>
-    <path class="sg" d="M89.0 400.0 C89.0 419.5 139.0 419.5 139.0 400.0 C139.9 377.0 135.9 360.3 135.0 336.0 C135.0 315.0 93.0 315.0 93.0 336.0 C92.1 360.3 88.1 377.0 89.0 400.0 Z"/>
-    <ellipse class="hl" cx="105.5" cy="370.6" rx="11.5" ry="23.0"/>
-    <ellipse class="sh" cx="126.5" cy="368.0" rx="10.5" ry="25.6"/>
-    <ellipse class="knuck" cx="109.0" cy="394.2" rx="12.5" ry="8.5"/>
-    <ellipse class="cr" cx="114.0" cy="400.0" rx="19.0" ry="7.5"/>
-    <g class="seg2">
-      <circle class="j" cx="114.0" cy="336.0" r="20.8"/>
-      <path class="sg" d="M93.0 336.0 C93.0 352.4 135.0 352.4 135.0 336.0 C135.9 318.0 132.7 321.0 131.5 304.4 C131.5 280.4 96.5 280.4 96.5 304.4 C95.3 321.0 92.1 318.0 93.0 336.0 Z"/>
-      <ellipse class="hl" cx="106.9" cy="313.0" rx="9.7" ry="18.0"/>
-      <ellipse class="sh" cx="124.5" cy="311.0" rx="8.8" ry="20.0"/>
-      <ellipse class="knuck" cx="109.8" cy="331.5" rx="10.5" ry="7.1"/>
-      <ellipse class="cr" cx="114.0" cy="336.0" rx="16.0" ry="6.3"/>
-      <ellipse class="pad" cx="114.0" cy="312.2" rx="12.6" ry="17.5"/>
+    <g class="seg3">
+      <g class="dist">
+      <path class="sk" d="M 154.0 164.0 C 153.2 149.6 154.7 135.0 155.5 132.0 C 155.5 129.0 162.0 127.5 170.0 127.5 C 178.0 127.5 184.5 129.0 184.5 132.0 C 185.3 135.0 186.8 149.6 186.0 164.0 Z"/>
+      <path class="crease o-open" d="M 157.5 163.5 Q 170.0 167.0 182.5 163.5" stroke-width="1.5" opacity="0.6"/>
+      <g class="pad o-open">
+        <path d="M 157.5 169.4 C 156.7 153.0 157.6 136.0 158.4 133.0 C 158.4 130.9 163.6 129.4 170.0 129.4 C 176.4 129.4 181.6 130.9 181.6 133.0 C 182.4 136.0 183.3 153.0 182.5 169.4 Z" fill="var(--skin-lit)" opacity="0.4"/>
+        <path class="crease" d="M 161.0 141.0 Q 170.0 137.4 179.0 141.0" stroke-width="1.1" opacity="0.45"/>
       </g>
+      <g class="nailgrp o-fist">
+        <path d="M 160.9 156.7 C 160.3 145.8 161.2 138.1 163.6 131.9 C 167.3 130.1 172.7 130.1 176.4 131.9 C 178.8 138.1 179.7 145.8 179.1 156.7 C 174.6 158.7 165.4 158.7 160.9 156.7 Z" fill="url(#gNail)" stroke="var(--nail-rim)" stroke-width="0.8" stroke-opacity="0.5"/>
+        <path d="M 164.3 159.7 C 163.7 151.0 164.6 144.9 166.0 140.0 C 168.3 138.2 171.7 138.2 174.0 140.0 C 175.4 144.9 176.3 151.0 175.7 159.7 C 172.8 161.7 167.2 161.7 164.3 159.7 Z" fill="var(--nail-hi)" opacity="0.5"/>
+        <path class="rim" d="M 163.6 130.1 Q 170.0 126.9 176.4 130.1" stroke="var(--nail-edge)" stroke-width="1.5" opacity="0.9"/>
+      </g>
+      </g>
+    </g>
   </g>
 </g>
-      <text id="ink-fist" class="ink" x="212" y="404" font-size="44">拉开他</text>
-      <text id="ink-palm" class="ink" x="200" y="392" font-size="38">转动大拇指</text>
-      <text id="ink-clap" class="ink" x="200" y="392" font-size="38">拍一下手掌</text>
+<g class="finger f-middle" id="f-middle">
+  <g class="prox">
+  <path class="sk" d="M 196.0 261.0 C 194.5 235.3 195.8 209.7 197.0 184.0 L 233.0 184.0 C 234.2 209.7 235.5 235.3 234.0 261.0 Z"/>
+  <path class="rim o-open-s" d="M 197.2 258.0 C 195.6 218.0 196.6 197.6 198.0 184.0" stroke-width="1.5" opacity="0.5"/>
+  </g>
+  <g class="seg2">
+    <g class="mid">
+    <path class="sk" d="M 197.0 186.0 C 196.0 171.3 197.2 156.7 198.5 142.0 L 231.5 142.0 C 232.8 156.7 234.0 171.3 233.0 186.0 Z"/>
+    <path class="crease o-open" d="M 200.6 186.5 Q 215.0 190.5 229.4 186.5" stroke-width="1.7" opacity="0.65"/>
+    <path class="crease o-open" d="M 202.8 181.5 Q 215.0 185.0 227.2 181.5" stroke-width="1.2" opacity="0.4"/>
+    <path class="o-fist" d="M 198.5 145.0 C 206.8 138.0 223.2 138.0 231.5 145.0 C 224.9 151.0 205.1 151.0 198.5 145.0 Z" fill="var(--skin-hi)" opacity="0" style="opacity:0"/>
+    </g>
+    <g class="seg3">
+      <g class="dist">
+      <path class="sk" d="M 198.5 144.0 C 197.7 128.7 199.2 113.0 200.0 110.0 C 200.0 106.5 206.8 105.0 215.0 105.0 C 223.2 105.0 230.0 106.5 230.0 110.0 C 230.8 113.0 232.3 128.7 231.5 144.0 Z"/>
+      <path class="crease o-open" d="M 202.1 143.5 Q 215.0 147.0 227.9 143.5" stroke-width="1.5" opacity="0.6"/>
+      <g class="pad o-open">
+        <path d="M 202.1 149.8 C 201.3 132.3 202.2 114.0 203.0 111.0 C 203.0 108.5 208.4 107.0 215.0 107.0 C 221.6 107.0 227.0 108.5 227.0 111.0 C 227.8 114.0 228.7 132.3 227.9 149.8 Z" fill="var(--skin-lit)" opacity="0.4"/>
+        <path class="crease" d="M 205.7 119.6 Q 215.0 115.8 224.3 119.6" stroke-width="1.1" opacity="0.45"/>
+      </g>
+      <g class="nailgrp o-fist">
+        <path d="M 205.6 136.2 C 205.0 124.5 205.9 116.3 208.4 109.7 C 212.2 107.9 217.8 107.9 221.6 109.7 C 224.1 116.3 225.0 124.5 224.4 136.2 C 219.7 138.2 210.3 138.2 205.6 136.2 Z" fill="url(#gNail)" stroke="var(--nail-rim)" stroke-width="0.8" stroke-opacity="0.5"/>
+        <path d="M 209.1 139.4 C 208.5 130.1 209.4 123.6 210.9 118.3 C 213.2 116.5 216.8 116.5 219.1 118.3 C 220.6 123.6 221.5 130.1 220.9 139.4 C 217.9 141.4 212.1 141.4 209.1 139.4 Z" fill="var(--nail-hi)" opacity="0.5"/>
+        <path class="rim" d="M 208.4 107.7 Q 215.0 104.4 221.6 107.7" stroke="var(--nail-edge)" stroke-width="1.5" opacity="0.9"/>
+      </g>
+      </g>
+    </g>
+  </g>
+</g>
+<g class="finger f-ring" id="f-ring">
+  <g class="prox">
+  <path class="sk" d="M 240.5 267.0 C 239.0 242.7 240.3 218.3 241.5 194.0 L 274.5 194.0 C 275.7 218.3 277.0 242.7 275.5 267.0 Z"/>
+  <path class="rim o-open-s" d="M 241.7 264.0 C 240.1 226.0 241.1 206.8 242.5 194.0" stroke-width="1.5" opacity="0.5"/>
+  </g>
+  <g class="seg2">
+    <g class="mid">
+    <path class="sk" d="M 241.5 196.0 C 240.5 182.0 241.8 168.0 243.0 154.0 L 273.0 154.0 C 274.2 168.0 275.5 182.0 274.5 196.0 Z"/>
+    <path class="crease o-open" d="M 244.8 196.5 Q 258.0 200.5 271.2 196.5" stroke-width="1.7" opacity="0.65"/>
+    <path class="crease o-open" d="M 246.8 191.5 Q 258.0 195.0 269.2 191.5" stroke-width="1.2" opacity="0.4"/>
+    <path class="o-fist" d="M 243.0 157.0 C 250.5 150.0 265.5 150.0 273.0 157.0 C 267.0 163.0 249.0 163.0 243.0 157.0 Z" fill="var(--skin-hi)" opacity="0" style="opacity:0"/>
+    </g>
+    <g class="seg3">
+      <g class="dist">
+      <path class="sk" d="M 243.0 156.0 C 242.2 141.6 243.7 127.0 244.5 124.0 C 244.5 121.0 250.6 119.5 258.0 119.5 C 265.4 119.5 271.5 121.0 271.5 124.0 C 272.3 127.0 273.8 141.6 273.0 156.0 Z"/>
+      <path class="crease o-open" d="M 246.3 155.5 Q 258.0 159.0 269.7 155.5" stroke-width="1.5" opacity="0.6"/>
+      <g class="pad o-open">
+        <path d="M 246.3 161.4 C 245.5 145.0 246.4 128.0 247.2 125.0 C 247.2 122.9 252.1 121.4 258.0 121.4 C 263.9 121.4 268.8 122.9 268.8 125.0 C 269.6 128.0 270.5 145.0 269.7 161.4 Z" fill="var(--skin-lit)" opacity="0.4"/>
+        <path class="crease" d="M 249.6 133.0 Q 258.0 129.4 266.4 133.0" stroke-width="1.1" opacity="0.45"/>
+      </g>
+      <g class="nailgrp o-fist">
+        <path d="M 249.5 148.7 C 248.9 137.8 249.8 130.1 252.0 123.9 C 255.4 122.1 260.6 122.1 264.0 123.9 C 266.2 130.1 267.1 137.8 266.5 148.7 C 262.3 150.7 253.7 150.7 249.5 148.7 Z" fill="url(#gNail)" stroke="var(--nail-rim)" stroke-width="0.8" stroke-opacity="0.5"/>
+        <path d="M 252.7 151.7 C 252.1 143.0 252.9 136.9 254.3 132.0 C 256.4 130.2 259.6 130.2 261.7 132.0 C 263.1 136.9 263.9 143.0 263.3 151.7 C 260.6 153.7 255.4 153.7 252.7 151.7 Z" fill="var(--nail-hi)" opacity="0.5"/>
+        <path class="rim" d="M 252.1 122.0 Q 258.0 118.9 263.9 122.0" stroke="var(--nail-edge)" stroke-width="1.5" opacity="0.9"/>
+      </g>
+      </g>
+    </g>
+  </g>
+</g>
+<g class="finger f-pinky" id="f-pinky">
+  <g class="prox">
+  <path class="sk" d="M 280.0 291.0 C 278.5 271.3 279.8 251.7 281.0 232.0 L 309.0 232.0 C 310.2 251.7 311.5 271.3 310.0 291.0 Z"/>
+  <path class="rim o-open-s" d="M 281.2 288.0 C 279.6 257.0 280.6 242.0 282.0 232.0" stroke-width="1.5" opacity="0.5"/>
+  </g>
+  <g class="seg2">
+    <g class="mid">
+    <path class="sk" d="M 281.0 234.0 C 279.8 223.3 280.9 212.7 282.0 202.0 L 308.0 202.0 C 309.1 212.7 310.2 223.3 309.0 234.0 Z"/>
+    <path class="crease o-open" d="M 283.8 234.5 Q 295.0 238.5 306.2 234.5" stroke-width="1.7" opacity="0.65"/>
+    <path class="crease o-open" d="M 285.5 229.5 Q 295.0 233.0 304.5 229.5" stroke-width="1.2" opacity="0.4"/>
+    <path class="o-fist" d="M 282.0 205.0 C 288.5 198.0 301.5 198.0 308.0 205.0 C 302.8 211.0 287.2 211.0 282.0 205.0 Z" fill="var(--skin-hi)" opacity="0" style="opacity:0"/>
+    </g>
+    <g class="seg3">
+      <g class="dist">
+      <path class="sk" d="M 282.0 204.0 C 281.2 191.4 282.7 179.0 283.5 176.0 C 283.5 173.5 288.7 172.0 295.0 172.0 C 301.3 172.0 306.5 173.5 306.5 176.0 C 307.3 179.0 308.8 191.4 308.0 204.0 Z"/>
+      <path class="crease o-open" d="M 284.9 203.5 Q 295.0 207.0 305.1 203.5" stroke-width="1.5" opacity="0.6"/>
+      <g class="pad o-open">
+        <path d="M 284.9 208.7 C 284.1 194.4 285.0 180.0 285.8 177.0 C 285.8 175.3 289.9 173.8 295.0 173.8 C 300.1 173.8 304.2 175.3 304.2 177.0 C 305.0 180.0 305.9 194.4 305.1 208.7 Z" fill="var(--skin-lit)" opacity="0.4"/>
+        <path class="crease" d="M 287.9 183.8 Q 295.0 180.7 302.1 183.8" stroke-width="1.1" opacity="0.45"/>
+      </g>
+      <g class="nailgrp o-fist">
+        <path d="M 287.8 197.6 C 287.2 188.0 288.0 181.3 289.9 175.8 C 292.8 174.0 297.2 174.0 300.1 175.8 C 302.0 181.3 302.8 188.0 302.2 197.6 C 298.6 199.6 291.4 199.6 287.8 197.6 Z" fill="url(#gNail)" stroke="var(--nail-rim)" stroke-width="0.8" stroke-opacity="0.5"/>
+        <path d="M 290.5 200.2 C 289.9 192.6 290.7 187.2 291.9 182.9 C 293.7 181.1 296.3 181.1 298.1 182.9 C 299.3 187.2 300.1 192.6 299.5 200.2 C 297.2 202.2 292.8 202.2 290.5 200.2 Z" fill="var(--nail-hi)" opacity="0.5"/>
+        <path class="rim" d="M 289.9 174.2 Q 295.0 171.4 300.1 174.2" stroke="var(--nail-edge)" stroke-width="1.5" opacity="0.9"/>
+      </g>
+      </g>
+    </g>
+  </g>
+</g>
+<g class="finger f-thumb" id="f-thumb">
+  <path class="cast o-fist" d="M 101.0 366.0 C 97.0 314.0 104.0 284.0 134.0 218.0 C 170.0 272.0 175.0 324.0 169.0 368.0 Z" fill="url(#gCast)" opacity="0" style="opacity:0"/>
+  <g class="prox">
+  <path class="sk" d="M 111.0 360.0 C 109.6 332.7 111.8 305.3 114.0 278.0 L 154.0 278.0 C 156.2 305.3 158.4 332.7 157.0 360.0 Z"/>
+  <path class="rim" d="M 113.0 356.0 C 110.0 318.0 113.0 294.0 115.0 279.0" stroke-width="1.8" opacity="0.55"/>
+  <path d="M 151.0 358.0 C 155.0 320.0 152.0 292.0 154.5 278.0 L 154.0 280.0 C 147.0 296.0 145.0 322.0 144.0 358.0 Z" fill="var(--skin-warmshadow)" opacity="0.33"/>
+  </g>
+  <g class="seg2">
+    <g class="dist">
+    <path class="sk" d="M 114.0 280.0 C 113.2 256.6 116.2 231.0 117.0 228.0 C 117.0 223.5 124.7 222.0 134.0 222.0 C 143.3 222.0 151.0 223.5 151.0 228.0 C 151.8 231.0 154.8 256.6 154.0 280.0 Z"/>
+    <path class="crease o-open" d="M 118.0 281.0 Q 134.0 286.0 150.0 281.0" stroke-width="1.9" opacity="0.6"/>
+    <g class="pad o-open">
+      <path d="M 118.8 290.0 C 118.0 262.6 119.6 232.0 120.4 229.0 C 120.4 225.7 126.5 224.2 134.0 224.2 C 141.5 224.2 147.6 225.7 147.6 229.0 C 148.4 232.0 150.0 262.6 149.2 290.0 Z" fill="var(--skin-lit)" opacity="0.38"/>
+    </g>
+    <g class="nailgrp o-fist">
+      <path d="M 122.6 268.4 C 122.0 251.0 123.1 238.8 126.1 229.0 C 130.6 227.2 137.4 227.2 141.9 229.0 C 144.9 238.8 146.0 251.0 145.4 268.4 C 139.7 270.4 128.3 270.4 122.6 268.4 Z" fill="url(#gNail)" stroke="var(--nail-rim)" stroke-width="0.9" stroke-opacity="0.5"/>
+      <path d="M 126.9 273.0 C 126.3 259.5 127.2 250.1 129.1 242.4 C 131.9 240.6 136.1 240.6 138.9 242.4 C 140.8 250.1 141.7 259.5 141.1 273.0 C 137.5 275.0 130.5 275.0 126.9 273.0 Z" fill="var(--nail-hi)" opacity="0.5"/>
+      <path class="rim" d="M 125.8 226.0 Q 134.0 221.2 142.2 226.0" stroke="var(--nail-edge)" stroke-width="1.6" opacity="0.9"/>
+    </g>
+    </g>
+  </g>
+</g>
+      <text id="ink-fist" class="ink" x="248" y="432" font-size="42">拉开他</text>
+      <text id="ink-palm" class="ink" x="236" y="396" font-size="36">转动大拇指</text>
+      <text id="ink-clap" class="ink" x="236" y="396" font-size="36">拍一下手掌</text>
     </svg>
   </div>
 
@@ -564,7 +659,771 @@
 <div id="flight" aria-hidden="true">
   <canvas id="streaks"></canvas>
   <div id="cam">
-    <div class="vision stub" id="v-kings" data-shot="kings">王者</div>
+    <div class="vision" id="v-kings" data-shot="kings">
+<svg class="memory-art" viewBox="0 0 900 600" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" preserveAspectRatio="xMidYMid meet">
+<style>#v-kings /* ===================================================================
+   RE-SKIN BLOCK — every colour in this illustration comes from here.
+   Scoped to the .memory-art element itself (no :root), #v-kings so several
+   copies can live on one page and be themed independently.
+   =================================================================== */
+.memory-art{--mem-night:        #0B0D1F;  /* the dark the memory sits in        */
+  --mem-ink:          #110E1E;  /* deepest form shadow                */
+  --mem-shadow:       #05060D;  /* cast shadow on the ground          */
+  --mem-glow-core:    #FFE9CC;  /* heart of the light ahead           */
+  --mem-glow:         #FFC98A;  /* candle amber, the key light        */
+  --mem-glow-deep:    #FF9E5E;  /* amber falling off into the dark    */
+  --mem-rim:          #FFD6A3;  /* rim light on turning edges         */
+  --mem-rim-hot:      #FFF6E8;  /* hottest specular edge              */
+  --mem-crimson:      #6E1A2A;  /* archer's robe, lit mass            */
+  --mem-crimson-deep: #3B0F1C;  /* archer's robe, core shadow         */
+  --mem-crimson-lit:  #B4383A;  /* archer's robe, fold catching light */
+  --mem-gold:         #F2BE72;  /* trim, sash edge, bow gilding       */
+  --mem-gold-deep:    #A86C2C;  /* trim in shadow                     */
+  --mem-sage:         #5E7D6C;  /* healer's robe, lit mass            */
+  --mem-sage-deep:    #1D2B29;  /* healer's robe, core shadow         */
+  --mem-sage-lit:     #A9C3A6;  /* healer's robe, pale outer layer    */
+  --mem-pearl:        #EFE9D8;  /* white under-layer, blossoms        */
+  --mem-hair:         #3B2630;  /* hair mass                          */
+  --mem-hair-deep:    #191320;  /* hair, deepest                      */
+  --mem-hair-lit:     #7A4E33;  /* hair, light passing through        */
+  --mem-deer-top:     #E6CEAC;  /* white deer, sunward flank          */
+  --mem-deer:         #C9A981;  /* white deer, mid                    */
+  --mem-deer-deep:    #44332D;  /* white deer, underside              */
+  --mem-deer-lit:     #FFF3E0;  /* white deer, catchlight             */
+  --mem-skin:         #7E4A33;  /* skin in shadow                     */
+  --mem-skin-lit:     #E9AA7B;  /* skin catching the glow             */
+  --mem-petal:        #FFD3A8;  /* drifting petals                    */
+  --mem-mask-on:      #FFFFFF;  /* mask luminance: keep               */
+  --mem-mask-off:     #000000;  /* mask luminance: drop               */}
+#v-kings /* ---- flat fills ---- */
+.memory-art .f-ink{fill:var(--mem-ink)}
+#v-kings .memory-art .f-shadow{fill:var(--mem-shadow)}
+#v-kings .memory-art .f-glow{fill:var(--mem-glow)}
+#v-kings .memory-art .f-glow-deep{fill:var(--mem-glow-deep)}
+#v-kings .memory-art .f-core{fill:var(--mem-glow-core)}
+#v-kings .memory-art .f-rim{fill:var(--mem-rim)}
+#v-kings .memory-art .f-hot{fill:var(--mem-rim-hot)}
+#v-kings .memory-art .f-crim{fill:var(--mem-crimson)}
+#v-kings .memory-art .f-crim-deep{fill:var(--mem-crimson-deep)}
+#v-kings .memory-art .f-crim-lit{fill:var(--mem-crimson-lit)}
+#v-kings .memory-art .f-gold{fill:var(--mem-gold)}
+#v-kings .memory-art .f-gold-deep{fill:var(--mem-gold-deep)}
+#v-kings .memory-art .f-sage{fill:var(--mem-sage)}
+#v-kings .memory-art .f-sage-deep{fill:var(--mem-sage-deep)}
+#v-kings .memory-art .f-sage-lit{fill:var(--mem-sage-lit)}
+#v-kings .memory-art .f-pearl{fill:var(--mem-pearl)}
+#v-kings .memory-art .f-hair{fill:var(--mem-hair)}
+#v-kings .memory-art .f-hair-deep{fill:var(--mem-hair-deep)}
+#v-kings .memory-art .f-deer-lit{fill:var(--mem-deer-lit)}
+#v-kings .memory-art .f-deer-deep{fill:var(--mem-deer-deep)}
+#v-kings .memory-art .f-skin{fill:var(--mem-skin)}
+#v-kings .memory-art .f-skin-lit{fill:var(--mem-skin-lit)}
+#v-kings .memory-art .f-petal{fill:var(--mem-petal)}
+#v-kings .memory-art .f-mask-on{fill:var(--mem-mask-on)}
+#v-kings .memory-art .f-mask-off{fill:var(--mem-mask-off)}
+#v-kings /* ---- strokes ---- */
+.memory-art .s-rim{fill:none;stroke:var(--mem-rim);stroke-linecap:round;stroke-linejoin:round}
+#v-kings .memory-art .s-hot{fill:none;stroke:var(--mem-rim-hot);stroke-linecap:round;stroke-linejoin:round}
+#v-kings .memory-art .s-glow{fill:none;stroke:var(--mem-glow);stroke-linecap:round;stroke-linejoin:round}
+#v-kings .memory-art .s-gold{fill:none;stroke:var(--mem-gold);stroke-linecap:round;stroke-linejoin:round}
+#v-kings .memory-art .s-gold-deep{fill:none;stroke:var(--mem-gold-deep);stroke-linecap:round;stroke-linejoin:round}
+#v-kings .memory-art .s-ink{fill:none;stroke:var(--mem-ink);stroke-linecap:round;stroke-linejoin:round}
+#v-kings .memory-art .s-deer{fill:none;stroke:var(--mem-deer-lit);stroke-linecap:round;stroke-linejoin:round}
+#v-kings .memory-art .s-skin{fill:none;stroke:var(--mem-skin-lit);stroke-linecap:round;stroke-linejoin:round}
+#v-kings .memory-art .s-pearl{fill:none;stroke:var(--mem-pearl);stroke-linecap:round;stroke-linejoin:round}
+#v-kings /* ---- gradient stops ---- */
+.memory-art .st-ink{stop-color:var(--mem-ink)}
+#v-kings .memory-art .st-shadow{stop-color:var(--mem-shadow)}
+#v-kings .memory-art .st-glow{stop-color:var(--mem-glow)}
+#v-kings .memory-art .st-deep{stop-color:var(--mem-glow-deep)}
+#v-kings .memory-art .st-core{stop-color:var(--mem-glow-core)}
+#v-kings .memory-art .st-hot{stop-color:var(--mem-rim-hot)}
+#v-kings .memory-art .st-rim{stop-color:var(--mem-rim)}
+#v-kings .memory-art .st-crim{stop-color:var(--mem-crimson)}
+#v-kings .memory-art .st-crim-deep{stop-color:var(--mem-crimson-deep)}
+#v-kings .memory-art .st-crim-lit{stop-color:var(--mem-crimson-lit)}
+#v-kings .memory-art .st-gold{stop-color:var(--mem-gold)}
+#v-kings .memory-art .st-sage{stop-color:var(--mem-sage)}
+#v-kings .memory-art .st-sage-deep{stop-color:var(--mem-sage-deep)}
+#v-kings .memory-art .st-sage-lit{stop-color:var(--mem-sage-lit)}
+#v-kings .memory-art .st-pearl{stop-color:var(--mem-pearl)}
+#v-kings .memory-art .st-hair{stop-color:var(--mem-hair)}
+#v-kings .memory-art .st-hair-deep{stop-color:var(--mem-hair-deep)}
+#v-kings .memory-art .st-hair-lit{stop-color:var(--mem-hair-lit)}
+#v-kings .memory-art .st-deer-top{stop-color:var(--mem-deer-top)}
+#v-kings .memory-art .st-deer{stop-color:var(--mem-deer)}
+#v-kings .memory-art .st-deer-deep{stop-color:var(--mem-deer-deep)}
+#v-kings .memory-art .st-skin{stop-color:var(--mem-skin)}
+#v-kings .memory-art .st-skin-lit{stop-color:var(--mem-skin-lit)}
+#v-kings .memory-art .st-on{stop-color:var(--mem-mask-on)}
+#v-kings .memory-art .st-off{stop-color:var(--mem-mask-off)}</style>
+
+<defs>
+  <!-- ========== LIGHT ========== -->
+  <radialGradient id="k_g-ambient" gradientUnits="userSpaceOnUse" cx="0" cy="0" r="1"
+      gradientTransform="translate(462 332) scale(438 338)">
+    <stop offset="0"    class="st-core" stop-opacity=".80"/>
+    <stop offset=".20"  class="st-glow" stop-opacity=".58"/>
+    <stop offset=".44"  class="st-deep" stop-opacity=".30"/>
+    <stop offset=".72"  class="st-deep" stop-opacity=".10"/>
+    <stop offset="1"    class="st-deep" stop-opacity="0"/>
+  </radialGradient>
+
+  <radialGradient id="k_g-core" gradientUnits="userSpaceOnUse" cx="0" cy="0" r="1"
+      gradientTransform="translate(461 356) scale(172 186)">
+    <stop offset="0"    class="st-hot"  stop-opacity=".92"/>
+    <stop offset=".30"  class="st-core" stop-opacity=".58"/>
+    <stop offset=".66"  class="st-glow" stop-opacity=".22"/>
+    <stop offset="1"    class="st-glow" stop-opacity="0"/>
+  </radialGradient>
+
+  <radialGradient id="k_g-ground" gradientUnits="userSpaceOnUse" cx="0" cy="0" r="1"
+      gradientTransform="translate(470 508) scale(404 116)">
+    <stop offset="0"    class="st-core" stop-opacity=".60"/>
+    <stop offset=".30"  class="st-glow" stop-opacity=".38"/>
+    <stop offset=".62"  class="st-deep" stop-opacity=".15"/>
+    <stop offset="1"    class="st-deep" stop-opacity="0"/>
+  </radialGradient>
+
+  <radialGradient id="k_g-haze" gradientUnits="userSpaceOnUse" cx="0" cy="0" r="1"
+      gradientTransform="translate(468 472) scale(336 42)">
+    <stop offset="0"    class="st-hot"  stop-opacity=".46"/>
+    <stop offset=".48"  class="st-glow" stop-opacity=".20"/>
+    <stop offset="1"    class="st-glow" stop-opacity="0"/>
+  </radialGradient>
+
+  <radialGradient id="k_g-haze-front" gradientUnits="userSpaceOnUse" cx="0" cy="0" r="1"
+      gradientTransform="translate(462 516) scale(360 34)">
+    <stop offset="0"    class="st-glow" stop-opacity=".22"/>
+    <stop offset="1"    class="st-glow" stop-opacity="0"/>
+  </radialGradient>
+
+  <radialGradient id="k_g-bokeh" gradientUnits="userSpaceOnUse" cx="0" cy="0" r="1"
+      gradientTransform="scale(1)">
+    <stop offset="0"   class="st-glow" stop-opacity=".55"/>
+    <stop offset=".62" class="st-glow" stop-opacity=".22"/>
+    <stop offset="1"   class="st-deep" stop-opacity="0"/>
+  </radialGradient>
+
+  <!-- ========== FIGURE FORM ========== -->
+  <linearGradient id="k_g-arch" gradientUnits="userSpaceOnUse" x1="364" y1="186" x2="348" y2="532">
+    <stop offset="0"   class="st-crim"/>
+    <stop offset=".40" class="st-crim-deep"/>
+    <stop offset="1"   class="st-ink"/>
+  </linearGradient>
+  <linearGradient id="k_g-arch-warm" gradientUnits="userSpaceOnUse" x1="318" y1="0" x2="418" y2="0">
+    <stop offset="0"   class="st-deep" stop-opacity="0"/>
+    <stop offset=".60" class="st-deep" stop-opacity=".16"/>
+    <stop offset="1"   class="st-glow" stop-opacity=".50"/>
+  </linearGradient>
+  <linearGradient id="k_g-arch-sleeve" gradientUnits="userSpaceOnUse" x1="296" y1="200" x2="322" y2="330">
+    <stop offset="0"   class="st-crim"/>
+    <stop offset=".55" class="st-crim-deep"/>
+    <stop offset="1"   class="st-ink"/>
+  </linearGradient>
+  <linearGradient id="k_g-ribbon" gradientUnits="userSpaceOnUse" x1="350" y1="120" x2="190" y2="180">
+    <stop offset="0"   class="st-crim"/>
+    <stop offset=".55" class="st-crim-deep"/>
+    <stop offset="1"   class="st-ink"/>
+  </linearGradient>
+  <linearGradient id="k_g-train" gradientUnits="userSpaceOnUse" x1="300" y1="430" x2="212" y2="528">
+    <stop offset="0"   class="st-crim-deep"/>
+    <stop offset="1"   class="st-ink"/>
+  </linearGradient>
+
+  <linearGradient id="k_g-heal" gradientUnits="userSpaceOnUse" x1="549" y1="194" x2="549" y2="520">
+    <stop offset="0"   class="st-sage"/>
+    <stop offset=".40" class="st-sage-deep"/>
+    <stop offset="1"   class="st-ink"/>
+  </linearGradient>
+  <linearGradient id="k_g-heal-warm" gradientUnits="userSpaceOnUse" x1="606" y1="0" x2="508" y2="0">
+    <stop offset="0"   class="st-deep" stop-opacity="0"/>
+    <stop offset=".58" class="st-deep" stop-opacity=".16"/>
+    <stop offset="1"   class="st-glow" stop-opacity=".52"/>
+  </linearGradient>
+  <linearGradient id="k_g-hair" gradientUnits="userSpaceOnUse" x1="549" y1="138" x2="549" y2="444">
+    <stop offset="0"   class="st-hair-lit"/>
+    <stop offset=".26" class="st-hair"/>
+    <stop offset="1"   class="st-hair-deep"/>
+  </linearGradient>
+  <linearGradient id="k_g-veil" gradientUnits="userSpaceOnUse" x1="534" y1="216" x2="430" y2="340">
+    <stop offset="0"   class="st-core" stop-opacity=".40"/>
+    <stop offset=".45" class="st-glow" stop-opacity=".20"/>
+    <stop offset="1"   class="st-glow" stop-opacity="0"/>
+  </linearGradient>
+  <linearGradient id="k_g-underskirt" gradientUnits="userSpaceOnUse" x1="549" y1="458" x2="549" y2="506">
+    <stop offset="0"   class="st-pearl" stop-opacity=".46"/>
+    <stop offset="1"   class="st-sage-lit" stop-opacity=".06"/>
+  </linearGradient>
+
+  <linearGradient id="k_g-deer" gradientUnits="userSpaceOnUse" x1="668" y1="310" x2="660" y2="504">
+    <stop offset="0"   class="st-deer-top"/>
+    <stop offset=".34" class="st-deer"/>
+    <stop offset="1"   class="st-deer-deep"/>
+  </linearGradient>
+  <linearGradient id="k_g-deer-leg" gradientUnits="userSpaceOnUse" x1="668" y1="396" x2="668" y2="504">
+    <stop offset="0"   class="st-deer"/>
+    <stop offset="1"   class="st-deer-deep"/>
+  </linearGradient>
+
+  <!-- ========== RIM MASKS: light only on the edges turned to the glow ===== -->
+  <linearGradient id="k_g-rim-arch" gradientUnits="userSpaceOnUse" x1="300" y1="0" x2="414" y2="0">
+    <stop offset="0"   class="st-on" stop-opacity=".10"/>
+    <stop offset=".46" class="st-on" stop-opacity=".26"/>
+    <stop offset="1"   class="st-on" stop-opacity="1"/>
+  </linearGradient>
+  <mask id="k_m-rim-arch" maskUnits="userSpaceOnUse" x="150" y="60" width="360" height="520">
+    <rect x="150" y="60" width="360" height="520" fill="url(#k_g-rim-arch)"/>
+  </mask>
+
+  <linearGradient id="k_g-rim-heal" gradientUnits="userSpaceOnUse" x1="614" y1="0" x2="506" y2="0">
+    <stop offset="0"   class="st-on" stop-opacity=".09"/>
+    <stop offset=".46" class="st-on" stop-opacity=".26"/>
+    <stop offset="1"   class="st-on" stop-opacity="1"/>
+  </linearGradient>
+  <mask id="k_m-rim-heal" maskUnits="userSpaceOnUse" x="470" y="100" width="260" height="470">
+    <rect x="470" y="100" width="260" height="470" fill="url(#k_g-rim-heal)"/>
+  </mask>
+
+  <linearGradient id="k_g-rim-deer" gradientUnits="userSpaceOnUse" x1="724" y1="0" x2="606" y2="0">
+    <stop offset="0"   class="st-on" stop-opacity=".12"/>
+    <stop offset=".50" class="st-on" stop-opacity=".40"/>
+    <stop offset="1"   class="st-on" stop-opacity="1"/>
+  </linearGradient>
+  <mask id="k_m-rim-deer" maskUnits="userSpaceOnUse" x="560" y="180" width="220" height="360">
+    <rect x="560" y="180" width="220" height="360" fill="url(#k_g-rim-deer)"/>
+  </mask>
+
+  <!-- ground mask: shadows exist only where there is light to block ======= -->
+  <radialGradient id="k_g-groundmask" gradientUnits="userSpaceOnUse" cx="0" cy="0" r="1"
+      gradientTransform="translate(470 512) scale(400 150)">
+    <stop offset="0"   class="st-on"/>
+    <stop offset=".52" class="st-on" stop-opacity=".92"/>
+    <stop offset="1"   class="st-on" stop-opacity="0"/>
+  </radialGradient>
+  <mask id="k_m-ground" maskUnits="userSpaceOnUse" x="0" y="380" width="900" height="220">
+    <rect x="0" y="380" width="900" height="220" fill="url(#k_g-groundmask)"/>
+  </mask>
+
+  <!-- the whole memory dissolves at its edges ============================= -->
+  <radialGradient id="k_g-vignette" gradientUnits="userSpaceOnUse" cx="0" cy="0" r="1"
+      gradientTransform="translate(456 318) scale(506 396)">
+    <stop offset="0"   class="st-on"/>
+    <stop offset=".50" class="st-on"/>
+    <stop offset=".78" class="st-on" stop-opacity=".60"/>
+    <stop offset="1"   class="st-on" stop-opacity="0"/>
+  </radialGradient>
+  <mask id="k_m-vignette" maskUnits="userSpaceOnUse" x="0" y="0" width="900" height="600">
+    <rect x="0" y="0" width="900" height="600" fill="url(#k_g-vignette)"/>
+  </mask>
+
+  <!-- ========== BLURS ========== -->
+  <filter id="k_f-soft" x="-40%" y="-40%" width="180%" height="180%">
+    <feGaussianBlur stdDeviation="6"/>
+  </filter>
+  <filter id="k_f-softer" x="-50%" y="-50%" width="200%" height="200%">
+    <feGaussianBlur stdDeviation="15"/>
+  </filter>
+  <filter id="k_f-haze" x="-60%" y="-60%" width="220%" height="220%">
+    <feGaussianBlur stdDeviation="26"/>
+  </filter>
+  <filter id="k_f-bloom" x="-50%" y="-50%" width="200%" height="200%">
+    <feGaussianBlur stdDeviation="4"/>
+  </filter>
+  <filter id="k_f-bloom-wide" x="-60%" y="-60%" width="220%" height="220%">
+    <feGaussianBlur stdDeviation="11"/>
+  </filter>
+  <filter id="k_f-dot" x="-300%" y="-300%" width="700%" height="700%">
+    <feGaussianBlur stdDeviation="3.2" result="b"/>
+    <feMerge>
+      <feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/>
+    </feMerge>
+  </filter>
+</defs>
+
+<!-- =====================================================================
+     EVERYTHING lives inside the vignette mask, so the memory has no
+     rectangle: it simply stops existing toward the frame.
+     ===================================================================== -->
+<g mask="url(#k_m-vignette)">
+
+  <!-- ========== 1. the light they are walking into ========== -->
+  <ellipse cx="462" cy="332" rx="438" ry="338" fill="url(#k_g-ambient)"/>
+  <ellipse cx="470" cy="508" rx="404" ry="116" fill="url(#k_g-ground)"/>
+  <ellipse cx="461" cy="356" rx="172" ry="186" fill="url(#k_g-core)"/>
+
+  <!-- soft bokeh, depth behind the figures -->
+  <g filter="url(#k_f-haze)" opacity=".55">
+    <circle cx="258" cy="252" r="26" fill="url(#k_g-bokeh)"/>
+    <circle cx="690" cy="236" r="22" fill="url(#k_g-bokeh)"/>
+    <circle cx="760" cy="330" r="30" fill="url(#k_g-bokeh)"/>
+    <circle cx="186" cy="356" r="20" fill="url(#k_g-bokeh)"/>
+    <circle cx="470" cy="190" r="34" fill="url(#k_g-bokeh)"/>
+  </g>
+
+  <!-- ========== 2. the ground ========== -->
+  <ellipse cx="468" cy="472" rx="336" ry="42" fill="url(#k_g-haze)"/>
+  <g filter="url(#k_f-soft)" opacity=".5">
+    <ellipse cx="392" cy="494" rx="132" ry="5" class="f-glow" opacity=".30"/>
+    <ellipse cx="596" cy="486" rx="104" ry="4" class="f-core" opacity=".26"/>
+    <ellipse cx="300" cy="520" rx="96"  ry="4" class="f-glow-deep" opacity=".22"/>
+    <ellipse cx="664" cy="520" rx="110" ry="5" class="f-glow" opacity=".18"/>
+    <ellipse cx="470" cy="540" rx="180" ry="6" class="f-glow-deep" opacity=".14"/>
+  </g>
+
+  <!-- ========== 3. long shadows reaching toward the viewer ========== -->
+  <g mask="url(#k_m-ground)">
+    <g filter="url(#k_f-softer)" opacity=".85">
+      <path class="f-shadow" d="M 310 506 C 340 502 366 508 374 518 C 358 550 322 582 272 600 L 184 600 C 238 572 286 540 310 506 Z"/>
+      <path class="f-shadow" d="M 522 490 C 548 486 574 490 582 500 C 588 532 598 566 616 600 L 538 600 C 526 562 520 526 522 490 Z"/>
+      <path class="f-shadow" d="M 634 492 C 664 488 698 490 708 500 C 724 530 748 564 778 596 L 692 600 C 668 564 646 526 634 492 Z"/>
+      <path class="f-shadow" d="M 246 514 C 268 512 286 516 290 524 C 272 544 244 562 212 574 L 150 566 C 192 548 226 532 246 514 Z" opacity=".7"/>
+    </g>
+    <!-- contact shadows: the bit that makes them actually touch the ground -->
+    <g filter="url(#k_f-soft)" opacity=".8">
+      <ellipse cx="346" cy="518" rx="62" ry="11" class="f-shadow"/>
+      <ellipse cx="549" cy="500" rx="52" ry="9"  class="f-shadow"/>
+      <ellipse cx="668" cy="500" rx="48" ry="8"  class="f-shadow"/>
+    </g>
+  </g>
+
+  <!-- ========== 4. petals drifting behind them ========== -->
+  <g class="f-petal">
+    <ellipse cx="152" cy="252" rx="6"   ry="3"   opacity=".26" transform="rotate(-24 152 252)"/>
+    <ellipse cx="206" cy="416" rx="5"   ry="2.4" opacity=".22" transform="rotate(32 206 416)"/>
+    <ellipse cx="268" cy="188" rx="5.4" ry="2.6" opacity=".30" transform="rotate(-12 268 188)"/>
+    <ellipse cx="316" cy="124" rx="4.6" ry="2.2" opacity=".26" transform="rotate(44 316 124)"/>
+    <ellipse cx="430" cy="146" rx="6.2" ry="3"   opacity=".46" transform="rotate(-30 430 146)"/>
+    <ellipse cx="468" cy="110" rx="5"   ry="2.4" opacity=".34" transform="rotate(18 468 110)"/>
+    <ellipse cx="438" cy="236" rx="6.6" ry="3.2" opacity=".62" transform="rotate(-48 438 236)"/>
+    <ellipse cx="490" cy="300" rx="5.6" ry="2.8" opacity=".58" transform="rotate(26 490 300)"/>
+    <ellipse cx="452" cy="404" rx="7"   ry="3.4" opacity=".54" transform="rotate(-16 452 404)"/>
+    <ellipse cx="424" cy="330" rx="4.8" ry="2.3" opacity=".48" transform="rotate(60 424 330)"/>
+    <ellipse cx="636" cy="152" rx="5.8" ry="2.8" opacity=".30" transform="rotate(-36 636 152)"/>
+    <ellipse cx="716" cy="206" rx="5"   ry="2.4" opacity=".26" transform="rotate(22 716 206)"/>
+    <ellipse cx="770" cy="276" rx="6.4" ry="3.1" opacity=".24" transform="rotate(-20 770 276)"/>
+    <ellipse cx="812" cy="348" rx="5.2" ry="2.5" opacity=".18" transform="rotate(40 812 348)"/>
+    <ellipse cx="744" cy="412" rx="6"   ry="2.9" opacity=".22" transform="rotate(-8 744 412)"/>
+    <ellipse cx="796" cy="462" rx="5.4" ry="2.6" opacity=".16" transform="rotate(34 796 462)"/>
+    <ellipse cx="118" cy="360" rx="5.6" ry="2.7" opacity=".18" transform="rotate(-42 118 360)"/>
+    <ellipse cx="226" cy="498" rx="6"   ry="2.9" opacity=".20" transform="rotate(14 226 498)"/>
+    <ellipse cx="352" cy="92"  rx="4.4" ry="2.1" opacity=".22" transform="rotate(-52 352 92)"/>
+    <ellipse cx="560" cy="106" rx="5"   ry="2.4" opacity=".24" transform="rotate(28 560 106)"/>
+  </g>
+
+  <!-- ===================================================================
+       5. THE WHITE DEER — pressed against the healer's side
+       =================================================================== -->
+  <g>
+    <!-- backlight leaking round the silhouette -->
+    <g filter="url(#k_f-bloom-wide)" opacity=".55" transform="translate(-9 -5)">
+      <path class="f-glow-deep" d="M 632 352 C 629 335 641 323 659 320 C 681 317 699 326 707 340 C 713 353 713 371 708 389 C 702 405 692 415 676 417 C 654 419 636 410 630 395 C 625 381 630 364 632 352 Z"/>
+      <path class="f-glow-deep" d="M 638 346 C 630 328 626 308 624 290 L 644 283 C 648 302 653 320 661 334 Z"/>
+      <path class="f-glow-deep" d="M 637 277 C 624 277 611 286 605 295 C 600 302 605 309 614 308 C 627 306 639 296 644 286 C 646 280 643 276 637 277 Z"/>
+    </g>
+
+    <!-- far legs first -->
+    <g fill="url(#k_g-deer-leg)" opacity=".62">
+      <path d="M 654 398 L 663 397 C 662 418 660 434 660 446 C 664 462 665 480 664 500 L 655 500 C 655 480 653 463 650 448 C 652 434 653 416 654 398 Z"/>
+      <path d="M 678 402 L 686 401 C 684 418 680 430 677 440 C 682 456 685 476 684 498 L 676 498 C 677 476 673 459 669 446 C 673 432 676 418 678 402 Z"/>
+    </g>
+    <!-- near legs -->
+    <g fill="url(#k_g-deer-leg)">
+      <path d="M 636 396 L 649 395 C 647 416 645 432 644 444 C 649 462 651 480 649 502 L 636 502 C 638 480 636 462 631 446 C 633 432 634 414 636 396 Z"/>
+      <path d="M 690 399 L 703 397 C 701 416 695 430 691 442 C 697 459 701 478 700 501 L 687 501 C 688 478 684 460 679 446 C 684 432 688 416 690 399 Z"/>
+    </g>
+    <g class="f-deer-deep">
+      <ellipse cx="642" cy="503" rx="7" ry="3.4"/>
+      <ellipse cx="694" cy="502" rx="7" ry="3.4"/>
+    </g>
+
+    <!-- body, neck, head -->
+    <path fill="url(#k_g-deer)" d="M 632 352 C 629 335 641 323 659 320 C 681 317 699 326 707 340 C 713 353 713 371 708 389 C 702 405 692 415 676 417 C 654 419 636 410 630 395 C 625 381 630 364 632 352 Z"/>
+    <path fill="url(#k_g-deer)" d="M 638 346 C 630 328 626 308 624 290 L 644 283 C 648 302 653 320 661 334 Z"/>
+    <path fill="url(#k_g-deer)" d="M 637 277 C 624 277 611 286 605 295 C 600 302 605 309 614 308 C 627 306 639 296 644 286 C 646 280 643 276 637 277 Z"/>
+    <path fill="url(#k_g-deer)" d="M 641 272 C 649 265 659 265 664 271 C 659 280 648 282 641 279 Z"/>
+    <!-- tail -->
+    <path fill="url(#k_g-deer)" d="M 706 344 C 715 341 719 350 717 358 C 713 365 706 364 701 358 Z"/>
+    <!-- underside shade -->
+    <g class="f-deer-deep" opacity=".5" filter="url(#k_f-soft)">
+      <ellipse cx="668" cy="404" rx="40" ry="13"/>
+    </g>
+    <!-- gentle antlers -->
+    <g class="s-deer" stroke-width="3.4" opacity=".92">
+      <path d="M 633 271 C 627 257 621 242 623 226"/>
+      <path d="M 625 248 C 617 242 609 240 602 242"/>
+      <path d="M 623 234 C 617 226 613 218 612 210"/>
+      <path d="M 645 271 C 649 257 653 244 659 232"/>
+      <path d="M 650 250 C 658 244 666 242 673 244"/>
+      <path d="M 656 240 C 660 232 663 224 664 216"/>
+    </g>
+    <g class="s-deer" stroke-width="7" opacity=".16" filter="url(#k_f-bloom)">
+      <path d="M 633 271 C 627 257 621 242 623 226"/>
+      <path d="M 645 271 C 649 257 653 244 659 232"/>
+    </g>
+
+    <!-- blossoms dusted along its back -->
+    <g class="f-pearl">
+      <g opacity=".92"><circle cx="639" cy="325" r="2.6"/><circle cx="643" cy="322" r="2.6"/><circle cx="644" cy="327" r="2.6"/><circle cx="640" cy="330" r="2.4"/><circle cx="637" cy="323" r="2.2"/></g>
+      <g opacity=".85"><circle cx="657" cy="319" r="2.6"/><circle cx="661" cy="317" r="2.5"/><circle cx="662" cy="322" r="2.5"/><circle cx="658" cy="324" r="2.3"/></g>
+      <g opacity=".8"><circle cx="676" cy="321" r="2.5"/><circle cx="680" cy="319" r="2.4"/><circle cx="681" cy="324" r="2.4"/><circle cx="677" cy="326" r="2.2"/></g>
+      <g opacity=".6"><circle cx="696" cy="331" r="2.3"/><circle cx="700" cy="330" r="2.2"/><circle cx="699" cy="335" r="2.1"/></g>
+      <g opacity=".5"><circle cx="667" cy="336" r="2"/><circle cx="687" cy="340" r="1.8"/><circle cx="650" cy="336" r="1.8"/></g>
+    </g>
+
+    <!-- rim: the sun-ward edge of a white animal -->
+    <g mask="url(#k_m-rim-deer)">
+      <g class="s-glow" stroke-width="7" opacity=".3" filter="url(#k_f-bloom)">
+        <path d="M 630 352 C 627 334 641 322 659 319 C 681 316 700 326 708 341"/>
+        <path d="M 624 290 C 626 309 632 330 640 345"/>
+        <path d="M 637 277 C 624 277 611 286 605 295"/>
+      </g>
+      <g class="s-deer" stroke-width="2.6">
+        <path d="M 630 352 C 627 334 641 322 659 319 C 681 316 700 326 708 341"/>
+        <path d="M 624 290 C 626 309 632 330 640 345"/>
+        <path d="M 637 277 C 624 277 611 286 605 295" stroke-width="2"/>
+        <path d="M 641 272 C 649 265 659 265 664 271" stroke-width="1.7" opacity=".8"/>
+        <path d="M 636 396 C 634 414 633 432 631 446" stroke-width="1.8" opacity=".55"/>
+        <path d="M 690 399 C 688 416 684 432 679 446" stroke-width="1.6" opacity=".4"/>
+        <path d="M 707 345 C 712 356 713 372 708 389" stroke-width="1.6" opacity=".3"/>
+      </g>
+      <!-- eye-line kept to a single soft catchlight, no detail to go to mush -->
+      <circle cx="623" cy="291" r="1.6" class="f-deer-lit" opacity=".5"/>
+    </g>
+  </g>
+
+  <!-- ===================================================================
+       6. THE HEALER — long loose hair, flower crown, pale layered robes
+       =================================================================== -->
+  <g>
+    <!-- backlight bloom behind her -->
+    <g filter="url(#k_f-bloom-wide)" opacity=".6" transform="translate(-10 -4)">
+      <path class="f-glow-deep" d="M 524 206 C 517 220 515 236 518 252 C 520 264 525 269 531 275 C 524 289 521 297 522 310 C 518 340 512 372 506 408 C 500 444 496 472 494 494 C 512 503 540 505 566 501 C 588 498 601 493 607 487 C 601 452 593 410 587 370 C 581 336 577 320 576 308 C 576 296 572 288 567 275 C 572 266 576 258 578 246 C 581 230 579 218 574 206 C 560 199 538 199 524 206 Z"/>
+      <path class="f-glow-deep" d="M 531 158 C 526 146 538 137 549 137 C 562 137 573 146 569 158 C 578 172 584 196 586 222 C 589 256 589 290 586 320 C 583 352 579 382 573 412 C 569 428 565 440 560 450 C 554 436 550 418 548 398 C 545 418 541 436 535 450 C 528 438 523 422 519 402 C 513 372 510 338 511 306 C 512 268 516 228 524 194 Z"/>
+    </g>
+
+    <!-- robe mass -->
+    <path fill="url(#k_g-heal)" d="M 524 206 C 517 220 515 236 518 252 C 520 264 525 269 531 275 C 524 289 521 297 522 310 C 518 340 512 372 506 408 C 500 444 496 472 494 494 C 512 503 540 505 566 501 C 588 498 601 493 607 487 C 601 452 593 410 587 370 C 581 336 577 320 576 308 C 576 296 572 288 567 275 C 572 266 576 258 578 246 C 581 230 579 218 574 206 C 560 199 538 199 524 206 Z"/>
+    <path fill="url(#k_g-heal-warm)" d="M 524 206 C 517 220 515 236 518 252 C 520 264 525 269 531 275 C 524 289 521 297 522 310 C 518 340 512 372 506 408 C 500 444 496 472 494 494 C 512 503 540 505 566 501 C 588 498 601 493 607 487 C 601 452 593 410 587 370 C 581 336 577 320 576 308 C 576 296 572 288 567 275 C 572 266 576 258 578 246 C 581 230 579 218 574 206 C 560 199 538 199 524 206 Z"/>
+
+    <!-- pale sheer under-layer at the hem, so the robes read as layered -->
+    <path fill="url(#k_g-underskirt)" d="M 500 470 C 528 481 566 479 600 466 C 599 478 597 486 594 492 C 560 503 524 502 496 493 C 497 485 498 477 500 470 Z"/>
+    <path class="f-pearl" opacity=".14" d="M 504 440 C 530 450 566 449 594 438 C 594 446 594 452 595 458 C 564 470 528 470 502 459 C 503 452 503 446 504 440 Z"/>
+
+    <!-- bare feet stepping out from under the hem -->
+    <g>
+      <path class="f-skin" d="M 560 489 C 568 489 574 493 575 498 C 576 503 571 506 564 505 C 557 504 553 499 554 494 C 555 490 557 489 560 489 Z" opacity=".75"/>
+      <path class="f-skin" d="M 528 487 C 535 486 541 491 542 497 C 543 503 538 507 530 506 C 522 505 518 500 519 494 C 520 489 523 487 528 487 Z"/>
+      <path class="s-skin" stroke-width="1.5" opacity=".75" d="M 519 494 C 521 489 525 486 530 487"/>
+    </g>
+
+    <!-- knee pushing the fabric: the robe has a body under it -->
+    <g class="f-sage-lit" opacity=".10" filter="url(#k_f-soft)">
+      <ellipse cx="528" cy="398" rx="15" ry="34" transform="rotate(6 528 398)"/>
+      <ellipse cx="562" cy="372" rx="12" ry="30" transform="rotate(-5 562 372)"/>
+    </g>
+    <!-- vertical folds -->
+    <g class="f-sage-lit" opacity=".13">
+      <path d="M 540 300 C 534 358 528 424 522 494 L 530 496 C 536 424 542 358 548 300 Z"/>
+      <path d="M 566 300 C 568 356 572 420 578 490 L 570 492 C 564 420 560 356 558 300 Z"/>
+    </g>
+    <g class="f-ink" opacity=".3">
+      <path d="M 552 302 C 550 360 548 424 548 492 L 556 492 C 556 424 558 360 560 302 Z"/>
+      <path d="M 524 316 C 518 370 512 428 506 486 L 512 490 C 518 430 524 372 530 318 Z"/>
+    </g>
+
+    <!-- hair: the biggest shape she owns -->
+    <path fill="url(#k_g-hair)" d="M 531 158 C 526 146 538 137 549 137 C 562 137 573 146 569 158 C 578 172 584 196 586 222 C 589 256 589 290 586 320 C 583 352 579 382 573 412 C 569 428 565 440 560 450 C 554 436 550 418 548 398 C 545 418 541 436 535 450 C 528 438 523 422 519 402 C 513 372 510 338 511 306 C 512 268 516 228 524 194 Z"/>
+    <!-- loose locks lifting on the still air -->
+    <g fill="url(#k_g-hair)" opacity=".9">
+      <path d="M 584 230 C 598 254 606 282 606 310 C 606 334 601 354 594 370 C 596 346 595 320 590 294 C 586 272 582 250 580 234 Z"/>
+      <path d="M 514 236 C 503 262 498 290 500 316 C 502 338 508 356 516 370 C 512 346 510 320 512 296 C 514 274 516 254 518 240 Z"/>
+    </g>
+    <g class="f-hair-deep" opacity=".55">
+      <path d="M 549 190 C 546 250 545 320 548 392 L 556 392 C 553 320 554 250 557 190 Z"/>
+    </g>
+
+    <!-- a sliver of cheek and jaw, turned down toward the deer -->
+    <path class="f-skin" d="M 566 166 C 575 169 580 178 578 188 C 576 196 568 199 563 194 C 559 188 560 172 566 166 Z"/>
+    <path class="s-skin" stroke-width="1.5" opacity=".42" d="M 575 170 C 580 177 580 185 577 191 C 574 196 568 198 564 195"/>
+
+    <!-- arms -->
+    <!-- inner arm, nearest the archer: the lit one -->
+    <path fill="url(#k_g-heal)" d="M 526 208 C 513 222 507 248 507 274 C 507 292 511 306 517 317 L 531 313 C 525 301 521 287 521 268 C 521 244 527 222 535 210 Z"/>
+    <path fill="url(#k_g-heal-warm)" d="M 526 208 C 513 222 507 248 507 274 C 507 292 511 306 517 317 L 531 313 C 525 301 521 287 521 268 C 521 244 527 222 535 210 Z"/>
+    <path class="f-skin" d="M 517 314 C 524 314 529 320 529 328 C 529 338 524 345 516 345 C 509 345 505 338 506 330 C 507 320 511 314 517 314 Z"/>
+    <g class="s-skin" stroke-width="1.3" opacity=".5">
+      <path d="M 508 330 C 507 322 511 315 517 314"/>
+      <path d="M 513 344 C 517 341 519 336 519 331"/>
+      <path d="M 520 343 C 524 339 526 334 526 329"/>
+    </g>
+
+    <!-- outer arm, lowered to the deer -->
+    <path fill="url(#k_g-heal)" d="M 572 208 C 584 222 592 243 595 264 C 597 275 599 282 602 289 L 587 296 C 583 283 581 270 579 256 C 575 236 569 220 563 210 Z"/>
+    <!-- her hand, open, meeting the deer's muzzle -->
+    <path class="f-skin" d="M 600 283 C 606 283 610 288 609 295 C 608 302 601 307 594 305 C 588 303 585 297 588 291 C 591 286 595 283 600 283 Z"/>
+    <g class="s-skin" stroke-width="1.4" opacity=".6">
+      <path d="M 588 291 C 591 286 596 283 601 284"/>
+      <path d="M 594 304 C 598 301 601 297 602 292"/>
+      <path d="M 601 305 C 605 301 608 297 608 292"/>
+    </g>
+
+    <!-- crown of small flowers -->
+    <g>
+      <g class="f-pearl" opacity=".97"><circle cx="524" cy="166" r="3.3"/><circle cx="530" cy="162" r="3.3"/><circle cx="531" cy="169" r="3.2"/><circle cx="525" cy="173" r="3"/><circle cx="521" cy="161" r="2.8"/></g>
+      <circle cx="527" cy="167" r="1.5" class="f-gold"/>
+      <g class="f-pearl" opacity=".95"><circle cx="534" cy="150" r="3.4"/><circle cx="541" cy="146" r="3.4"/><circle cx="543" cy="153" r="3.3"/><circle cx="536" cy="157" r="3.1"/><circle cx="531" cy="145" r="2.8"/></g>
+      <circle cx="538" cy="151" r="1.6" class="f-gold"/>
+      <g class="f-pearl" opacity=".93"><circle cx="551" cy="142" r="3.4"/><circle cx="558" cy="140" r="3.3"/><circle cx="559" cy="147" r="3.2"/><circle cx="552" cy="150" r="3"/></g>
+      <circle cx="555" cy="145" r="1.5" class="f-gold"/>
+      <g class="f-pearl" opacity=".82"><circle cx="567" cy="150" r="3.1"/><circle cx="573" cy="149" r="2.9"/><circle cx="573" cy="156" r="2.9"/><circle cx="567" cy="157" r="2.7"/></g>
+      <circle cx="570" cy="153" r="1.4" class="f-gold" opacity=".8"/>
+      <g class="f-pearl" opacity=".66"><circle cx="578" cy="166" r="2.6"/><circle cx="583" cy="165" r="2.4"/><circle cx="582" cy="171" r="2.4"/><circle cx="577" cy="172" r="2.2"/></g>
+      <g class="f-pearl" opacity=".55"><circle cx="517" cy="180" r="2.3"/><circle cx="521" cy="182" r="2"/><circle cx="586" cy="184" r="2"/></g>
+      <g filter="url(#k_f-bloom)" opacity=".4">
+        <ellipse cx="548" cy="156" rx="40" ry="18" class="f-glow"/>
+      </g>
+    </g>
+
+    <!-- rim: light grazing the edge that faces the glow -->
+    <g mask="url(#k_m-rim-heal)">
+      <g class="s-glow" stroke-width="8" opacity=".3" filter="url(#k_f-bloom)">
+        <path d="M 531 158 C 526 146 538 137 549 137 C 562 137 573 146 569 158"/>
+        <path d="M 524 194 C 516 228 512 268 511 306 C 510 338 513 372 519 402 C 523 422 528 438 535 450"/>
+        <path d="M 526 208 C 513 222 507 248 507 274 C 507 292 511 306 517 317"/>
+        <path d="M 522 310 C 518 340 512 372 506 408 C 500 444 496 472 494 494"/>
+      </g>
+      <g class="s-rim" stroke-width="2.4">
+        <path d="M 531 158 C 526 146 538 137 549 137 C 562 137 573 146 569 158"/>
+        <path d="M 524 194 C 516 228 512 268 511 306 C 510 338 513 372 519 402 C 523 422 528 438 535 450"/>
+        <path d="M 526 208 C 513 222 507 248 507 274 C 507 292 511 306 517 317" stroke-width="2"/>
+        <path d="M 522 310 C 518 340 512 372 506 408 C 500 444 496 472 494 494" stroke-width="1.8" opacity=".7"/>
+        <path d="M 494 494 C 512 503 540 505 566 501 C 588 498 601 493 607 487" stroke-width="1.6" opacity=".55"/>
+        <path d="M 524 206 C 538 199 560 199 574 206" stroke-width="1.7" opacity=".6"/>
+        <path d="M 514 236 C 503 262 498 290 500 316 C 502 338 508 356 516 370" stroke-width="1.5" opacity=".5"/>
+      </g>
+      <!-- light coming through the outer hair strands -->
+      <g class="s-hot" stroke-width="1.1" opacity=".55">
+        <path d="M 521 200 C 514 236 511 278 512 318"/>
+        <path d="M 517 254 C 513 286 513 320 517 352"/>
+      </g>
+    </g>
+  </g>
+
+  <!-- a sheer scarf drifting into the gap, catching the light between them -->
+  <path fill="url(#k_g-veil)" d="M 528 212 C 500 222 470 240 450 266 C 432 290 424 316 426 342 C 434 316 446 291 464 271 C 484 249 510 231 536 223 Z"/>
+  <path class="s-rim" stroke-width="1.3" opacity=".3" d="M 528 212 C 500 222 470 240 450 266 C 432 290 424 316 426 342"/>
+
+  <!-- ===================================================================
+       7. THE ARCHER — crimson and gold, bow in hand, glancing across
+       =================================================================== -->
+  <g>
+    <!-- backlight bloom -->
+    <g filter="url(#k_f-bloom-wide)" opacity=".5" transform="translate(8 -5)">
+      <path class="f-glow-deep" d="M 326 204 C 316 216 314 230 317 244 C 320 258 325 266 330 275 C 323 289 319 298 320 312 C 313 336 306 352 302 374 C 294 422 288 466 284 505 C 301 515 321 519 343 517 C 367 515 395 507 415 494 C 411 452 407 410 403 373 C 399 347 395 328 392 312 C 393 299 388 290 381 275 C 386 266 391 258 393 244 C 396 230 394 216 384 204 C 370 197 340 197 326 204 Z"/>
+    </g>
+
+    <!-- trailing train, sweeping off behind her -->
+    <path fill="url(#k_g-train)" d="M 294 424 C 270 452 242 480 216 514 C 208 524 210 531 220 529 C 248 524 278 522 302 525 C 296 500 292 462 294 424 Z"/>
+    <!-- sash tails -->
+    <path fill="url(#k_g-train)" d="M 324 282 C 300 310 272 342 252 378 C 238 404 230 430 228 453 C 238 430 252 404 270 380 C 292 350 318 318 334 295 Z"/>
+    <path fill="url(#k_g-train)" opacity=".85" d="M 334 292 C 318 326 300 362 290 396 C 283 420 280 440 280 456 C 287 434 296 410 307 388 C 322 356 338 324 346 302 Z"/>
+
+    <!-- quiver on her back, over the right shoulder -->
+    <g>
+      <g class="s-gold-deep" stroke-width="2.2" opacity=".9">
+        <path d="M 388 192 C 394 176 400 160 404 148"/>
+        <path d="M 388 193 C 396 180 404 168 412 158"/>
+        <path d="M 387 193 C 390 177 392 160 392 146"/>
+      </g>
+      <g class="f-gold">
+        <path d="M 404 148 C 408 139 414 132 421 129 C 420 139 415 148 409 155 Z" opacity=".95"/>
+        <path d="M 412 158 C 419 151 427 147 434 147 C 430 156 423 163 415 166 Z" opacity=".85"/>
+        <path d="M 392 146 C 392 136 395 127 400 121 C 403 131 402 141 399 150 Z" opacity=".9"/>
+      </g>
+      <path fill="url(#k_g-arch)" d="M 336 268 L 378 190 L 396 199 L 353 277 Z"/>
+      <ellipse cx="387" cy="195" rx="10" ry="5" class="f-crim-deep" transform="rotate(-27 387 195)"/>
+      <ellipse cx="387" cy="195" rx="10" ry="5" fill="none" stroke="var(--mem-gold)" stroke-width="1.6" opacity=".75" transform="rotate(-27 387 195)"/>
+      <path class="s-gold" stroke-width="1.8" opacity=".7" d="M 379 191 L 396 200"/>
+      <path class="s-gold" stroke-width="1.5" opacity=".45" d="M 360 230 L 377 239"/>
+    </g>
+
+    <!-- robe mass -->
+    <path fill="url(#k_g-arch)" d="M 326 204 C 316 216 314 230 317 244 C 320 258 325 266 330 275 C 323 289 319 298 320 312 C 313 336 306 352 302 374 C 294 422 288 466 284 505 C 301 515 321 519 343 517 C 367 515 395 507 415 494 C 411 452 407 410 403 373 C 399 347 395 328 392 312 C 393 299 388 290 381 275 C 386 266 391 258 393 244 C 396 230 394 216 384 204 C 370 197 340 197 326 204 Z"/>
+    <path fill="url(#k_g-arch-warm)" d="M 326 204 C 316 216 314 230 317 244 C 320 258 325 266 330 275 C 323 289 319 298 320 312 C 313 336 306 352 302 374 C 294 422 288 466 284 505 C 301 515 321 519 343 517 C 367 515 395 507 415 494 C 411 452 407 410 403 373 C 399 347 395 328 392 312 C 393 299 388 290 381 275 C 386 266 391 258 393 244 C 396 230 394 216 384 204 C 370 197 340 197 326 204 Z"/>
+
+    <!-- skirt folds: form, not decoration -->
+    <g class="f-crim-lit" opacity=".2">
+      <path d="M 344 296 C 336 360 326 436 320 514 L 331 515 C 333 436 342 360 350 296 Z"/>
+      <path d="M 388 298 C 392 356 398 430 406 498 L 396 503 C 390 432 382 358 379 298 Z"/>
+    </g>
+    <g class="f-ink" opacity=".38">
+      <path d="M 366 298 C 364 362 362 436 362 516 L 372 514 C 374 436 374 362 372 298 Z"/>
+      <path d="M 326 300 C 318 362 308 436 300 506 L 308 510 C 314 438 322 364 330 302 Z"/>
+    </g>
+    <!-- lifted hem on the forward leg -->
+    <path class="f-ink" opacity=".4" d="M 380 500 C 392 500 404 497 415 494 C 413 486 412 480 411 474 C 400 482 390 489 380 492 Z"/>
+
+    <!-- forward leg and boot stepping out from under the hem -->
+    <path fill="url(#k_g-arch)" d="M 398 492 C 400 503 404 512 409 517 C 418 522 430 522 437 518 L 436 527 C 424 531 408 528 401 521 C 394 512 391 501 390 492 Z"/>
+    <path class="s-rim" stroke-width="1.6" opacity=".6" d="M 409 517 C 418 522 430 522 437 518"/>
+    <path fill="url(#k_g-arch)" d="M 320 512 C 318 521 322 528 331 528 C 340 528 346 523 344 514 Z"/>
+
+    <!-- high waist sash -->
+    <path class="f-gold-deep" d="M 320 263 C 338 272 374 272 392 261 L 390 292 C 372 301 338 301 322 293 Z"/>
+    <path class="f-ink" opacity=".35" d="M 321 278 C 338 287 374 287 391 277 L 390 292 C 372 301 338 301 322 293 Z"/>
+    <path class="s-gold" stroke-width="2" opacity=".85" d="M 320 263 C 338 272 374 272 392 261"/>
+    <path class="s-gold" stroke-width="1.5" opacity=".5" d="M 322 293 C 338 301 372 301 390 292"/>
+    <!-- knot -->
+    <path class="f-gold-deep" d="M 330 272 C 338 268 346 270 348 276 C 350 283 344 289 336 288 C 329 287 326 278 330 272 Z"/>
+    <path class="s-gold" stroke-width="1.4" opacity=".6" d="M 330 272 C 338 268 346 270 348 277"/>
+
+    <!-- crossed collar -->
+    <path class="f-gold-deep" d="M 334 205 C 344 223 378 223 388 204 L 393 211 C 382 232 342 232 330 212 Z"/>
+    <path class="s-gold" stroke-width="1.8" opacity=".8" d="M 330 212 C 342 232 382 232 393 211"/>
+
+    <!-- outer arm: wide flowing sleeve -->
+    <path fill="url(#k_g-arch-sleeve)" d="M 330 203 C 312 215 300 243 296 270 C 293 292 296 310 302 325 L 321 320 C 315 302 313 285 316 263 C 320 239 329 218 340 207 Z"/>
+    <path class="f-ink" opacity=".3" d="M 310 228 C 302 252 299 282 303 312 L 310 312 C 306 282 308 252 316 230 Z"/>
+    <path class="s-gold" stroke-width="1.6" opacity=".45" d="M 302 325 C 308 327 316 324 321 320"/>
+    <!-- palm, behind the bow -->
+    <path class="f-skin" d="M 306 313 C 298 313 290 318 287 326 C 284 334 288 342 296 343 C 303 344 309 339 311 331 C 313 323 312 315 306 313 Z"/>
+
+    <!-- inner arm, swinging forward -->
+    <path fill="url(#k_g-arch-sleeve)" d="M 384 203 C 400 216 409 242 411 268 C 413 290 409 306 403 318 L 385 313 C 391 297 395 282 393 260 C 391 236 383 216 374 206 Z"/>
+    <path fill="url(#k_g-arch-warm)" opacity=".8" d="M 384 203 C 400 216 409 242 411 268 C 413 290 409 306 403 318 L 385 313 C 391 297 395 282 393 260 C 391 236 383 216 374 206 Z"/>
+    <path class="f-skin" d="M 404 314 C 412 316 418 324 418 333 C 418 343 411 349 403 347 C 396 345 392 336 394 328 C 396 319 399 313 404 314 Z"/>
+    <g class="s-skin" stroke-width="1.4" opacity=".65">
+      <path d="M 404 314 C 412 316 418 324 418 333"/>
+      <path d="M 405 346 C 410 343 413 338 414 332"/>
+      <path d="M 398 344 C 403 341 406 336 407 330"/>
+    </g>
+
+    <!-- head, bound hair, streaming ribbon -->
+    <g>
+      <!-- ribbons first, they live behind the knot -->
+      <path fill="url(#k_g-ribbon)" d="M 348 114 C 320 100 284 102 254 116 C 226 129 204 146 188 164 C 200 160 216 152 236 144 C 268 131 310 124 342 128 Z"/>
+      <path class="s-gold" stroke-width="1.5" opacity=".65" d="M 188 164 C 200 160 216 152 236 144 C 268 131 310 124 342 128"/>
+      <path fill="url(#k_g-ribbon)" opacity=".9" d="M 344 124 C 316 122 286 132 262 148 C 240 162 224 178 214 194 C 226 184 242 172 262 162 C 288 149 318 140 342 138 Z"/>
+      <path class="s-gold" stroke-width="1.2" opacity=".45" d="M 214 194 C 226 184 242 172 262 162 C 288 149 318 140 342 138"/>
+
+      <!-- neck -->
+      <path class="f-skin" d="M 352 174 C 350 184 350 194 352 202 L 374 200 C 370 192 369 182 370 174 Z"/>
+      <path class="f-ink" opacity=".45" d="M 352 174 C 350 184 350 194 352 202 L 360 201 C 357 192 356 182 358 174 Z"/>
+      <!-- skull -->
+      <path class="f-hair" d="M 361 136 C 374 136 384 147 384 161 C 384 174 377 184 367 188 C 356 191 346 184 343 172 C 340 158 348 136 361 136 Z"/>
+      <!-- a face read entirely by its lit profile -->
+      <path class="f-skin" d="M 372 142 C 380 147 384 156 384 164 C 384 176 378 185 368 188 C 371 176 374 158 372 142 Z"/>
+      <path class="s-hot" stroke-width="1.7" opacity=".9" d="M 373 143 C 379 148 382 155 383 162 C 383 166 380 168 378 170 C 381 173 380 177 376 179 C 373 183 369 186 364 188"/>
+      <!-- bound topknot -->
+      <path class="f-hair" d="M 342 140 C 334 126 338 110 351 103 C 364 96 380 102 384 116 C 387 128 381 140 370 144 C 358 148 348 150 342 140 Z"/>
+      <path class="f-hair-deep" opacity=".6" d="M 346 138 C 342 126 346 114 356 108 C 350 118 348 128 350 140 Z"/>
+      <path class="s-gold" stroke-width="2.2" opacity=".8" d="M 344 130 C 356 136 374 134 382 124"/>
+      <path class="s-gold" stroke-width="1.6" opacity=".55" d="M 366 102 C 374 106 380 114 381 122"/>
+      <!-- nape -->
+      <path class="f-hair" d="M 352 180 C 348 190 348 198 352 204 L 370 200 C 366 194 364 186 366 178 Z"/>
+    </g>
+
+    <!-- the longbow: one big clear arc, string toward the light -->
+    <g>
+      <path class="s-glow" stroke-width="11" opacity=".2" filter="url(#k_f-bloom)" d="M 302 170 C 282 238 280 402 306 464"/>
+      <path class="s-ink" stroke-width="7" d="M 302 170 C 282 238 280 402 306 464"/>
+      <path class="s-gold-deep" stroke-width="2.6" opacity=".9" d="M 305 176 C 287 240 285 398 309 458"/>
+      <path class="s-gold" stroke-width="1.3" opacity=".6" d="M 306 196 C 292 250 291 388 310 440"/>
+      <path class="s-ink" stroke-width="4.6" d="M 302 170 C 302 162 307 156 314 155"/>
+      <path class="s-ink" stroke-width="4.6" d="M 306 464 C 306 472 311 478 318 479"/>
+      <path class="s-rim" stroke-width="1.3" opacity=".75" d="M 314 156 L 318 478"/>
+      <path class="s-glow" stroke-width="4" opacity=".16" filter="url(#k_f-bloom)" d="M 314 156 L 318 478"/>
+    </g>
+    <!-- fingers closing over the grip -->
+    <g class="f-skin">
+      <path d="M 288 318 C 282 319 279 324 281 328 C 284 331 290 330 293 327 C 295 323 292 317 288 318 Z"/>
+      <path d="M 285 328 C 279 329 276 334 278 338 C 281 341 287 340 290 337 C 292 333 289 327 285 328 Z"/>
+      <path d="M 286 337 C 281 338 278 343 280 347 C 283 350 289 349 292 346 C 294 342 290 336 286 337 Z"/>
+    </g>
+    <g class="s-skin" stroke-width="1.2" opacity=".7">
+      <path d="M 281 327 C 284 330 290 330 293 327"/>
+      <path d="M 278 337 C 281 340 287 340 290 337"/>
+      <path d="M 280 346 C 283 349 289 349 292 346"/>
+    </g>
+
+    <!-- rim: the edge of her turned to the glow -->
+    <g mask="url(#k_m-rim-arch)">
+      <g class="s-glow" stroke-width="8" opacity=".3" filter="url(#k_f-bloom)">
+        <path d="M 384 204 C 394 216 396 230 393 244 C 391 258 386 266 381 275 C 388 290 393 299 392 312 C 395 328 399 347 403 373 C 407 410 411 452 415 494"/>
+        <path d="M 384 203 C 400 216 409 242 411 268 C 413 290 409 306 403 318"/>
+        <path d="M 378 190 L 396 199 L 353 277"/>
+      </g>
+      <g class="s-rim" stroke-width="2.6">
+        <path d="M 384 204 C 394 216 396 230 393 244 C 391 258 386 266 381 275 C 388 290 393 299 392 312 C 395 328 399 347 403 373 C 407 410 411 452 415 494"/>
+        <path d="M 384 203 C 400 216 409 242 411 268 C 413 290 409 306 403 318" stroke-width="2.2"/>
+        <path d="M 326 204 C 340 197 370 197 384 204" stroke-width="1.9" opacity=".7"/>
+        <path d="M 415 494 C 395 507 367 515 343 517 C 321 519 301 515 284 505" stroke-width="1.7" opacity=".55"/>
+        <path d="M 379 191 L 396 200 L 354 277" stroke-width="1.6" opacity=".7"/>
+        <path d="M 384 116 C 387 128 381 140 370 144" stroke-width="1.8" opacity=".85"/>
+        <path d="M 330 203 C 316 213 305 236 300 260" stroke-width="1.6" opacity=".35"/>
+        <path d="M 302 325 C 296 310 293 292 296 270" stroke-width="1.4" opacity=".3"/>
+        <path d="M 294 424 C 292 462 296 500 302 525" stroke-width="1.5" opacity=".3"/>
+        <path d="M 334 295 C 318 318 292 350 270 380 C 252 404 238 430 228 453" stroke-width="1.4" opacity=".3"/>
+      </g>
+    </g>
+  </g>
+
+  <!-- ========== 8. air in front: haze, petals, motes ========== -->
+  <ellipse cx="462" cy="516" rx="360" ry="34" fill="url(#k_g-haze-front)" opacity=".8"/>
+
+  <!-- out-of-focus petals close to the lens -->
+  <g filter="url(#k_f-soft)" class="f-petal">
+    <ellipse cx="148" cy="548" rx="15" ry="7.5" opacity=".20" transform="rotate(-22 148 548)"/>
+    <ellipse cx="318" cy="582" rx="13" ry="6.5" opacity=".16" transform="rotate(34 318 582)"/>
+    <ellipse cx="612" cy="566" rx="14" ry="7"   opacity=".18" transform="rotate(-14 612 566)"/>
+    <ellipse cx="784" cy="534" rx="12" ry="6"   opacity=".14" transform="rotate(46 784 534)"/>
+    <ellipse cx="72"  cy="430" rx="11" ry="5.5" opacity=".12" transform="rotate(12 72 430)"/>
+    <ellipse cx="860" cy="430" rx="12" ry="6"   opacity=".11" transform="rotate(-38 860 430)"/>
+  </g>
+
+  <!-- petals in the plane of the figures -->
+  <g class="f-petal">
+    <ellipse cx="466" cy="462" rx="7"   ry="3.4" opacity=".6"  transform="rotate(-28 466 462)"/>
+    <ellipse cx="506" cy="378" rx="6"   ry="2.9" opacity=".5"  transform="rotate(18 506 378)"/>
+    <ellipse cx="444" cy="286" rx="6.4" ry="3.1" opacity=".58" transform="rotate(-50 444 286)"/>
+    <ellipse cx="612" cy="430" rx="6.8" ry="3.3" opacity=".34" transform="rotate(24 612 430)"/>
+    <ellipse cx="726" cy="470" rx="6"   ry="2.9" opacity=".22" transform="rotate(-10 726 470)"/>
+    <ellipse cx="256" cy="452" rx="6.2" ry="3"   opacity=".24" transform="rotate(40 256 452)"/>
+    <ellipse cx="412" cy="424" rx="5.4" ry="2.6" opacity=".38" transform="rotate(-34 412 424)"/>
+  </g>
+
+  <!-- motes of light -->
+  <g class="f-hot" filter="url(#k_f-dot)">
+    <circle cx="430" cy="268" r="1.9" opacity=".9"/>
+    <circle cx="482" cy="226" r="1.5" opacity=".75"/>
+    <circle cx="452" cy="340" r="2.1" opacity=".95"/>
+    <circle cx="502" cy="412" r="1.6" opacity=".7"/>
+    <circle cx="418" cy="352" r="1.4" opacity=".65"/>
+    <circle cx="470" cy="166" r="1.3" opacity=".5"/>
+    <circle cx="398" cy="212" r="1.2" opacity=".45"/>
+    <circle cx="528" cy="330" r="1.5" opacity=".6"/>
+    <circle cx="610" cy="354" r="1.4" opacity=".45"/>
+    <circle cx="636" cy="268" r="1.2" opacity=".35"/>
+    <circle cx="300" cy="300" r="1.3" opacity=".3"/>
+    <circle cx="246" cy="222" r="1.1" opacity=".26"/>
+    <circle cx="698" cy="414" r="1.3" opacity=".28"/>
+    <circle cx="756" cy="246" r="1.1" opacity=".22"/>
+    <circle cx="186" cy="420" r="1.2" opacity=".2"/>
+    <circle cx="560" cy="186" r="1.2" opacity=".4"/>
+    <circle cx="488" cy="494" r="1.7" opacity=".55"/>
+    <circle cx="378" cy="470" r="1.4" opacity=".4"/>
+    <circle cx="582" cy="446" r="1.5" opacity=".38"/>
+    <circle cx="344" cy="150" r="1.1" opacity=".3"/>
+    <circle cx="658" cy="188" r="1.1" opacity=".26"/>
+    <circle cx="794" cy="366" r="1.1" opacity=".18"/>
+  </g>
+
+  <!-- final unifying bloom, so the whole memory glows from inside -->
+  <ellipse cx="461" cy="352" rx="150" ry="150" fill="url(#k_g-core)" opacity=".22" filter="url(#k_f-haze)"/>
+</g>
+</svg>
+</div>
     <div class="vision stub" id="v-hug" data-shot="hug">相拥</div>
   </div>
 </div>
@@ -591,6 +1450,10 @@
 (function(){
   "use strict";
 
+  window.addEventListener("error", function(e){
+    window.__lastError = (e.message || "") + " @ " + (e.lineno || "?");
+  });
+
   var hand    = document.getElementById("hand");
   var wrap    = document.getElementById("handwrap");
   var stage   = document.getElementById("stage");
@@ -603,6 +1466,8 @@
   var letters = document.getElementById("letters");
   var finalEl = document.getElementById("final");
   var reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  /* headless browsers report reduced motion by default; ?motion=full previews the real cut */
+  if (/[?&]motion=full/.test(location.search)) reduced = false;
 
   var LINES = [
     "Mandy 老婆要早点睡觉",
@@ -662,7 +1527,7 @@
 
   /* the light swells as the hand opens */
   function paintHalo(){
-    halo.style.setProperty("--halo-a", (.72 + open * .5).toFixed(3));
+    halo.style.setProperty("--halo-a", (.95 + open * .55).toFixed(3));
     halo.style.setProperty("--halo-s", (.9 + open * .16).toFixed(3));
   }
 
@@ -1121,8 +1986,8 @@
   var sctx    = streaks.getContext("2d");
 
   var YAW_SIGN = 1;                  // +1 puts a +X panel in front of you when you look right; -1 swings it behind your head
-  var MOTES = window.innerWidth < 620 ? 460 : 1000;   // light smeared along the tube
-  var HOOPS = 26, HOOP_GAP = 760, TUBE_R = 330, TUBE_DEPTH = 0;
+  var MOTES = window.innerWidth < 620 ? 620 : 1500;   // light smeared along the tube
+  var HOOPS = 42, HOOP_GAP = 520, TUBE_R = 820, TUBE_DEPTH = 0, MOTE_DEPTH = 7200;
   var RAD = Math.PI / 180;
 
   /* t = seconds since the dive began. sp = forward speed in px/s. */
@@ -1194,8 +2059,8 @@
     for (var i = 0; i < MOTES; i++){
       motes.push({
         th: Math.random() * Math.PI * 2,
-        rk: .62 + Math.random() * .62,
-        z:  Math.random() * TUBE_DEPTH,
+        rk: .06 + Math.pow(Math.random(), 1.7) * 1.2,
+        z:  Math.random() * MOTE_DEPTH,
         w:  .35 + Math.random() * .9,
         px: 0, py: 0, seen: false
       });
@@ -1219,14 +2084,14 @@
     letters.style.perspective = (P * .93).toFixed(0) + "px";
   }
 
-  function warpX(z, t){ return Math.sin(z * .00042 + t * .33) * 180 + Math.sin(z * .00017 - t * .21) * 115; }
-  function warpY(z, t){ return Math.cos(z * .00036 - t * .27) * 142 + Math.sin(z * .00021 + t * .17) *  96; }
-  function ripple(z, th, t){ return 1 + .2 * Math.sin(z * .00075 + th * 2 + t * 1.1) + .09 * Math.sin(th * 3 - t * .8); }
+  function warpX(z, t){ return Math.sin(z * .000148 + t * .25) * 78 + Math.sin(z * .000067 - t * .16) * 52; }
+  function warpY(z, t){ return Math.cos(z * .000131 - t * .21) * 64 + Math.sin(z * .000081 + t * .13) * 44; }
+  function ripple(z, th, t){ return 1 + .17 * Math.sin(z * .00041 + th * 2 + t * .9) + .08 * Math.sin(th * 3 - t * .7); }
 
   /* project a world point through exactly the camera CSS is using, so the
      canvas tunnel and the DOM memories agree about where "forward" is */
-  function proj(X, Y, Z, st, f, cx, cy){
-    var z = Z + camZ;
+  function proj(X, Y, Z, st, f, cx, cy, cz){
+    var z = Z + (cz === undefined ? camZ : cz);
     var c, n, x1, y1, z1, x2, y2, z2, x3, y3;
     c = Math.cos(st.yaw * YAW_SIGN * RAD); n = Math.sin(st.yaw * YAW_SIGN * RAD);
     x1 = X * c + z * n;  y1 = Y;  z1 = -X * n + z * c;
@@ -1239,11 +2104,30 @@
     return [cx + x3 * k, cy + y3 * k, k];
   }
 
+  var glowCv = document.createElement("canvas"), gctx = glowCv.getContext("2d"), GS = .34;
   function sizeStreaks(){
     var r = Math.min(window.devicePixelRatio || 1, 2);
     streaks.width = window.innerWidth * r;
     streaks.height = window.innerHeight * r;
     sctx.setTransform(r, 0, 0, r, 0, 0);
+    glowCv.width = Math.max(1, Math.round(window.innerWidth * GS));
+    glowCv.height = Math.max(1, Math.round(window.innerHeight * GS));
+  }
+
+  /* draw the bright pass small and blurry and add it back on top: bloom */
+  function bloom(){
+    var W = window.innerWidth, H = window.innerHeight;
+    gctx.setTransform(1, 0, 0, 1, 0, 0);
+    gctx.clearRect(0, 0, glowCv.width, glowCv.height);
+    gctx.drawImage(streaks, 0, 0, glowCv.width, glowCv.height);
+    sctx.save();
+    sctx.globalCompositeOperation = "lighter";
+    sctx.globalAlpha = .55;
+    try { sctx.filter = "blur(6px)"; } catch (e) {}
+    sctx.drawImage(glowCv, 0, 0, W, H);
+    sctx.filter = "none";
+    sctx.globalAlpha = 1;
+    sctx.restore();
   }
 
   var flying = false, fly0 = 0, camZ = 0, flash = 0;
@@ -1309,7 +2193,7 @@
   function drawTube(st, t){
     var W = window.innerWidth, H = window.innerHeight, cx = W / 2, cy = H / 2;
     var f = parseFloat(flight.style.perspective) || 820;
-    var i, j, m, pz, q, a;
+    var i, j, m, pz, q, a, d;
 
     sctx.clearRect(0, 0, W, H);
     sctx.globalCompositeOperation = "lighter";
@@ -1331,7 +2215,7 @@
       var hp = hoops[i];
       if (hp.z - camZ < 90) hp.z += TUBE_DEPTH;
       d = hp.z - camZ;
-      a = Math.min(1, (TUBE_DEPTH - d) / (TUBE_DEPTH * .7)) * Math.min(1, (d - 90) / 700) * .5;
+      a = Math.min(1, (TUBE_DEPTH - d) / (TUBE_DEPTH * .7)) * Math.min(1, (d - 90) / 700) * .22;
       if (a <= .015) continue;
       pz = hp.z;
       var wx = warpX(pz, t), wy = warpY(pz, t);
@@ -1349,29 +2233,48 @@
     }
 
     /* the light itself, smeared into streaks by how fast it is going past */
+    var blur = st.sp * .105;
     sctx.lineCap = "round";
     for (i = 0; i < motes.length; i++){
       m = motes[i];
-      if (m.z - camZ < 70){ m.z += TUBE_DEPTH; m.seen = false; }
+      if (m.z - camZ < 56){ m.z += MOTE_DEPTH; m.seen = false; }
       d = m.z - camZ;
       pz = m.z;
       var rr2 = TUBE_R * m.rk * ripple(pz, m.th, t);
       q = proj(warpX(pz, t) + Math.cos(m.th) * rr2, warpY(pz, t) + Math.sin(m.th) * rr2, -pz, st, f, cx, cy);
       if (!q){ m.seen = false; continue; }
-      a = Math.min(1, (TUBE_DEPTH - d) / (TUBE_DEPTH * .55)) * Math.min(1, (d - 70) / 520) * m.w * .72;
+      a = Math.min(1, (MOTE_DEPTH - d) / (MOTE_DEPTH * .42)) * Math.min(1, (d - 50) / 120) * m.w;
       if (a > .012){
         var hot = Math.min(1, q[2] * 1.5);                       // closer = whiter
-        sctx.strokeStyle = "rgba(255," + Math.round(214 + hot * 38) + "," + Math.round(160 + hot * 78) + "," + a.toFixed(3) + ")";
-        sctx.lineWidth = (.5 + q[2] * 2.3) * m.w;
+        sctx.strokeStyle = "rgba(255," + Math.round(214 + hot * 38) + "," + Math.round(168 + hot * 76) + "," + Math.min(1, a).toFixed(3) + ")";
+        sctx.lineWidth = (.7 + q[2] * 4.2) * m.w;
+        var back = proj(warpX(pz, t) + Math.cos(m.th) * rr2, warpY(pz, t) + Math.sin(m.th) * rr2,
+                        -pz, st, f, cx, cy, camZ - blur);
         sctx.beginPath();
-        if (m.seen){ sctx.moveTo(m.px, m.py); } else { sctx.moveTo(q[0], q[1]); }
+        sctx.moveTo(back ? back[0] : q[0], back ? back[1] : q[1]);
         sctx.lineTo(q[0], q[1]);
         sctx.stroke();
       }
-      m.px = q[0]; m.py = q[1]; m.seen = true;
+    }
+
+    /* the anamorphic streak off the light ahead */
+    if (core){
+      var fl = sctx.createLinearGradient(0, core[1], W, core[1]);
+      fl.addColorStop(0, "rgba(255,196,130,0)");
+      fl.addColorStop(.5, "rgba(255,232,196,.3)");
+      fl.addColorStop(1, "rgba(255,196,130,0)");
+      sctx.fillStyle = fl;
+      sctx.fillRect(0, core[1] - 2.2, W, 4.4);
+      var fl2 = sctx.createLinearGradient(0, core[1], W, core[1]);
+      fl2.addColorStop(0, "rgba(255,170,96,0)");
+      fl2.addColorStop(.5, "rgba(255,190,130,.1)");
+      fl2.addColorStop(1, "rgba(255,170,96,0)");
+      sctx.fillStyle = fl2;
+      sctx.fillRect(0, core[1] - 14, W, 28);
     }
 
     sctx.globalCompositeOperation = "source-over";
+    bloom();
     if (flash > .002){
       sctx.fillStyle = "rgba(255,238,210," + flash.toFixed(3) + ")";
       sctx.fillRect(0, 0, W, H);
@@ -1451,7 +2354,30 @@
     bctx.setTransform(r, 0, 0, r, 0, 0);
   }
 
+  var grainEl = document.getElementById("grain");
+  var barsEl  = document.getElementById("bars");
+  var born = performance.now();
+
+  /* a camera is never locked off: slow drift, a slower breath, and a push-in
+     that you only notice because the shot felt alive */
+  function operator(now){
+    if (reduced) return;
+    var e = (now - born) / 1000;
+    var dx = Math.sin(e * .19) * 7 + Math.sin(e * .071) * 5;
+    var dy = Math.cos(e * .151) * 6 + Math.sin(e * .043) * 4;
+    var br = 1 + Math.sin(e * .11) * .009;
+    stage.style.transform = "translate3d(" + dx.toFixed(2) + "px," + dy.toFixed(2) + "px,0) scale(" + br.toFixed(4) + ")";
+
+    var push = 1 + Math.min(.085, e * .0022);
+    wrap.style.setProperty("--push", push.toFixed(4));
+
+    /* grain has to move or it reads as a dirty screen, not film */
+    grainEl.style.transform = "translate3d(" +
+      ((e * 173) % 220 - 110).toFixed(0) + "px," + ((e * 211) % 220 - 110).toFixed(0) + "px,0)";
+  }
+
   function frame(now){
+    operator(now);
     runTweens(now);
     stepParts(now);
     drawParts();
@@ -1470,12 +2396,30 @@
 
   /* jump straight to a scene for previewing: #words / #fly / #arrive */
   var jump = (location.hash || "").slice(1);
-  if (jump === "words" || jump === "fly" || jump === "arrive"){
+  /* #shot8.1 renders exactly one frame of the flight at t = 8.1s, synchronously,
+     so a still of any moment can be pulled without waiting on the animation clock */
+  if (jump.indexOf("shot") === 0){
+    var at = parseFloat(jump.slice(4)) || 0;
+    stage.style.opacity = "0";
+    buildTunnel(); sizeLens(); sizeStreaks();
+    flight.classList.add("on");
+    flying = true;
+    var base = performance.now();          // one clock for the whole still, or
+    fly0 = base - at * 1000;               // rendering cost drifts the moment
+    for (var sf = 7; sf >= 0; sf--) flightFrame(base - sf * 16);
+  } else if (jump === "pose0" || jump === "pose1" || jump === "pose5"){
+    barsEl.classList.add("on");
+    stage.classList.add("lit");
+    setOpen(jump === "pose0" ? 0 : 1);
+    if (jump === "pose5"){ setOpen(1); hand.style.setProperty("--palm-ink","0"); hand.style.setProperty("--clap-ink","1"); }
+    if (jump !== "pose0") wrap.classList.add("thumb-live");
+  } else if (jump === "words" || jump === "fly" || jump === "arrive"){
     stage.style.opacity = "0";
     if (jump === "words") setTimeout(runLetters, 400);
     if (jump === "fly")   setTimeout(diveIn, 400);
     if (jump === "arrive") setTimeout(function(){ sizeStreaks(); toArrival(); }, 400);
   } else {
+    setTimeout(function(){ barsEl.classList.add("on"); }, 120);
     setTimeout(function(){ stage.classList.add("lit"); armPull(); }, 260);
   }
 })();
