@@ -271,12 +271,13 @@
   }
   #arrival.show{opacity:1;pointer-events:auto}
   #car{
-    width:min(94vw,860px);flex:0 0 auto;
+    width:auto;max-width:94vw;height:min(48vh,470px);flex:0 0 auto;
+    filter:drop-shadow(0 0 70px rgb(255 180 120 / .22));
     opacity:0;transform:translateY(16px) scale(.985);
     transition:opacity 1.6s ease, transform 1.8s cubic-bezier(.22,1,.36,1);
   }
   #car.in{opacity:1;transform:none}
-  #car svg{display:block;width:100%;height:auto;overflow:visible}
+  #car svg{display:block;width:auto;height:100%;max-width:94vw;overflow:visible}
   #car.stub{
     height:min(44vh,330px);border-radius:24px;
     display:grid;place-items:center;
@@ -286,8 +287,8 @@
   #question{
     margin:0;font-family:var(--brush);
     font-size:clamp(1.8rem,8vw,4.1rem);line-height:1.34;text-wrap:balance;
-    color:var(--text);
-    text-shadow:0 0 34px rgb(var(--glow) / .6), 0 0 90px rgb(var(--glow) / .3);
+    color:#FFF6EA;
+    text-shadow:0 0 18px rgb(var(--glow) / .55), 0 0 54px rgb(var(--glow) / .42), 0 0 120px rgb(var(--glow) / .3);
     opacity:0;transform:translateY(14px);
     transition:opacity 1.8s ease, transform 1.8s cubic-bezier(.22,1,.36,1);
   }
@@ -2108,7 +2109,400 @@
 <div id="ouch">疼</div>
 
 <section id="arrival">
-  <div id="car" class="stub">特斯拉</div>
+  <div id="car">
+<svg class="memory" viewBox="0 0 900 600" xmlns="http://www.w3.org/2000/svg" role="img">
+<style>#car .memory{--night:#0B0D1F;
+  --night-deep:#04050E;
+  --amber-core:#FFE6C4;
+  --amber:#FFC98A;
+  --amber-deep:#FF9E5E;
+  --amber-dim:#B9733F;
+  --ember-hot:#FF8A6E;
+  --ember-red:#FF3B2F;
+  --ember-red-deep:#8E1410;
+  --car-top:#1E2545;
+  --car-mid:#121733;
+  --car-low:#090C24;
+  --car-shadow:#05060F;
+  --glass:#141A33;
+  --glass-sheen:#4A5786;
+  --rim-warm:#FFDCAE;
+  --rim-cool:#93A6DC;
+  --cargo-dark:#160F14;
+  --figure-dark:#090A16;
+  --figure-mid:#171A30;
+  --mask-in:#FFFFFF;
+  --mask-out:#000000;}</style>
+<defs>
+
+<radialGradient id="t_gHaze" cx=".5" cy=".5" r=".5">
+  <stop offset="0" style="stop-color:var(--amber-dim);stop-opacity:.55"/>
+  <stop offset=".45" style="stop-color:var(--amber-dim);stop-opacity:.22"/>
+  <stop offset="1" style="stop-color:var(--amber-dim);stop-opacity:0"/>
+</radialGradient>
+
+<radialGradient id="t_gPoolWarm" cx=".5" cy=".5" r=".5">
+  <stop offset="0" style="stop-color:var(--amber);stop-opacity:.72"/>
+  <stop offset=".35" style="stop-color:var(--amber-deep);stop-opacity:.4"/>
+  <stop offset=".72" style="stop-color:var(--amber-dim);stop-opacity:.14"/>
+  <stop offset="1" style="stop-color:var(--amber-dim);stop-opacity:0"/>
+</radialGradient>
+
+<radialGradient id="t_gPoolRed" cx=".5" cy=".5" r=".5">
+  <stop offset="0" style="stop-color:var(--ember-hot);stop-opacity:.6"/>
+  <stop offset=".4" style="stop-color:var(--ember-red);stop-opacity:.3"/>
+  <stop offset="1" style="stop-color:var(--ember-red-deep);stop-opacity:0"/>
+</radialGradient>
+
+<linearGradient id="t_gStreakRed" x1="0" y1="0" x2="0" y2="1">
+  <stop offset="0" style="stop-color:var(--ember-red);stop-opacity:.6"/>
+  <stop offset=".45" style="stop-color:var(--ember-red);stop-opacity:.22"/>
+  <stop offset="1" style="stop-color:var(--ember-red);stop-opacity:0"/>
+</linearGradient>
+
+<linearGradient id="t_gBody" gradientUnits="userSpaceOnUse" x1="0" y1="286" x2="0" y2="468">
+  <stop offset="0" style="stop-color:var(--car-top)"/>
+  <stop offset=".3" style="stop-color:var(--car-mid)"/>
+  <stop offset=".66" style="stop-color:var(--car-low)"/>
+  <stop offset="1" style="stop-color:var(--car-shadow)"/>
+</linearGradient>
+
+<linearGradient id="t_gBodyWarm" gradientUnits="userSpaceOnUse" x1="190" y1="0" x2="560" y2="0">
+  <stop offset="0" style="stop-color:var(--amber-dim);stop-opacity:0"/>
+  <stop offset=".6" style="stop-color:var(--amber-dim);stop-opacity:.07"/>
+  <stop offset="1" style="stop-color:var(--amber-deep);stop-opacity:.2"/>
+</linearGradient>
+
+<linearGradient id="t_gRedBounce" gradientUnits="userSpaceOnUse" x1="340" y1="0" x2="566" y2="0">
+  <stop offset="0" style="stop-color:var(--ember-red);stop-opacity:0"/>
+  <stop offset="1" style="stop-color:var(--ember-red);stop-opacity:.5"/>
+</linearGradient>
+
+<linearGradient id="t_gGlass" gradientUnits="userSpaceOnUse" x1="0" y1="288" x2="0" y2="358">
+  <stop offset="0" style="stop-color:var(--glass-sheen);stop-opacity:.42"/>
+  <stop offset=".35" style="stop-color:var(--glass)"/>
+  <stop offset="1" style="stop-color:var(--night-deep)"/>
+</linearGradient>
+
+<linearGradient id="t_gRimRoof" gradientUnits="userSpaceOnUse" x1="150" y1="0" x2="400" y2="0">
+  <stop offset="0" style="stop-color:var(--rim-cool);stop-opacity:0"/>
+  <stop offset=".4" style="stop-color:var(--rim-cool);stop-opacity:.45"/>
+  <stop offset=".78" style="stop-color:var(--rim-warm);stop-opacity:.95"/>
+  <stop offset="1" style="stop-color:var(--amber-core)"/>
+</linearGradient>
+
+<linearGradient id="t_gRimBelt" gradientUnits="userSpaceOnUse" x1="170" y1="0" x2="390" y2="0">
+  <stop offset="0" style="stop-color:var(--rim-warm);stop-opacity:0"/>
+  <stop offset=".6" style="stop-color:var(--rim-warm);stop-opacity:.3"/>
+  <stop offset="1" style="stop-color:var(--rim-warm);stop-opacity:.6"/>
+</linearGradient>
+
+<linearGradient id="t_gRimFig" gradientUnits="userSpaceOnUse" x1="0" y1="270" x2="0" y2="494">
+  <stop offset="0" style="stop-color:var(--amber-core);stop-opacity:.95"/>
+  <stop offset=".3" style="stop-color:var(--amber);stop-opacity:.85"/>
+  <stop offset=".66" style="stop-color:var(--amber-deep);stop-opacity:.5"/>
+  <stop offset="1" style="stop-color:var(--amber-deep);stop-opacity:.1"/>
+</linearGradient>
+
+<radialGradient id="t_gCargo" gradientUnits="userSpaceOnUse" cx="492" cy="374" r="96">
+  <stop offset="0" style="stop-color:var(--amber);stop-opacity:.8"/>
+  <stop offset=".2" style="stop-color:var(--amber-deep);stop-opacity:.5"/>
+  <stop offset=".46" style="stop-color:var(--amber-dim);stop-opacity:.22"/>
+  <stop offset=".75" style="stop-color:var(--cargo-dark)"/>
+  <stop offset="1" style="stop-color:var(--cargo-dark)"/>
+</radialGradient>
+
+<linearGradient id="t_gHatch" gradientUnits="userSpaceOnUse" x1="420" y1="302" x2="466" y2="230">
+  <stop offset="0" style="stop-color:var(--amber-deep);stop-opacity:.7"/>
+  <stop offset=".34" style="stop-color:var(--amber-dim);stop-opacity:.42"/>
+  <stop offset=".7" style="stop-color:var(--car-mid)"/>
+  <stop offset="1" style="stop-color:var(--car-shadow)"/>
+</linearGradient>
+
+<linearGradient id="t_gHatchGlass" gradientUnits="userSpaceOnUse" x1="400" y1="304" x2="452" y2="246">
+  <stop offset="0" style="stop-color:var(--amber-dim);stop-opacity:.5"/>
+  <stop offset=".4" style="stop-color:var(--glass)"/>
+  <stop offset="1" style="stop-color:var(--night-deep)"/>
+</linearGradient>
+
+<linearGradient id="t_gBarRed" gradientUnits="userSpaceOnUse" x1="451" y1="0" x2="566" y2="0">
+  <stop offset="0" style="stop-color:var(--ember-red-deep)"/>
+  <stop offset=".12" style="stop-color:var(--ember-red)"/>
+  <stop offset=".55" style="stop-color:var(--ember-hot)"/>
+  <stop offset=".88" style="stop-color:var(--ember-red)"/>
+  <stop offset="1" style="stop-color:var(--ember-red-deep)"/>
+</linearGradient>
+
+<linearGradient id="t_gFigure" gradientUnits="userSpaceOnUse" x1="672" y1="0" x2="740" y2="0">
+  <stop offset="0" style="stop-color:var(--figure-mid)"/>
+  <stop offset=".45" style="stop-color:var(--figure-dark)"/>
+  <stop offset="1" style="stop-color:var(--night-deep)"/>
+</linearGradient>
+
+<linearGradient id="t_gSillWarm" gradientUnits="userSpaceOnUse" x1="0" y1="377" x2="0" y2="420">
+  <stop offset="0" style="stop-color:var(--amber);stop-opacity:.55"/>
+  <stop offset="1" style="stop-color:var(--amber-deep);stop-opacity:0"/>
+</linearGradient>
+
+<radialGradient id="t_gLamp" cx=".5" cy=".5" r=".5">
+  <stop offset="0" style="stop-color:var(--amber-core)"/>
+  <stop offset=".4" style="stop-color:var(--amber);stop-opacity:.7"/>
+  <stop offset="1" style="stop-color:var(--amber-deep);stop-opacity:0"/>
+</radialGradient>
+
+<linearGradient id="t_gBodyDark" gradientUnits="userSpaceOnUse" x1="40" y1="0" x2="270" y2="0">
+  <stop offset="0" style="stop-color:var(--night-deep);stop-opacity:.9"/>
+  <stop offset=".55" style="stop-color:var(--night-deep);stop-opacity:.45"/>
+  <stop offset="1" style="stop-color:var(--night-deep);stop-opacity:0"/>
+</linearGradient>
+
+<radialGradient id="t_gMaskR" cx=".5" cy=".5" r=".5">
+  <stop offset="0" style="stop-color:var(--mask-in)"/>
+  <stop offset=".5" style="stop-color:var(--mask-in)"/>
+  <stop offset=".72" style="stop-color:var(--mask-in);stop-opacity:.88"/>
+  <stop offset=".9" style="stop-color:var(--mask-in);stop-opacity:.34"/>
+  <stop offset="1" style="stop-color:var(--mask-out)"/>
+</radialGradient>
+
+<filter id="t_fTight" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="2.4"/></filter>
+<filter id="t_fSoft" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="6"/></filter>
+<filter id="t_fBloom" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="15"/></filter>
+<filter id="t_fWide" x="-90%" y="-90%" width="280%" height="280%"><feGaussianBlur stdDeviation="34"/></filter>
+
+<mask id="t_mVignette" maskUnits="userSpaceOnUse" x="0" y="0" width="900" height="600">
+  <ellipse cx="382" cy="354" rx="470" ry="300" fill="url(#t_gMaskR)"/>
+</mask>
+
+
+
+
+<path id="t_pBody" d="M 56 433
+  C 45 419 44 401 52 388
+  C 60 379 72 376 86 376
+  C 118 372 150 366 169 360
+  C 186 338 212 310 237 291
+  C 268 285 330 287 384 296
+  C 424 292 466 292 505 300
+  C 522 310 536 330 543 354
+  C 547 378 548 410 547 436
+  C 546 444 544 447 540 448
+  C 510 450 470 452 452 452
+  C 448 452 445 450 443 446
+  C 438 442 434 440 430 438
+  C 424 437 418 436 412 434
+  C 408 406 390 383 364 382
+  C 338 381 324 404 320 434
+  C 290 433 250 431 210 429
+  C 190 428 176 427 168 425
+  C 162 400 146 378 122 377
+  C 100 376 86 398 82 420
+  C 74 424 64 429 56 433 Z"/>
+
+<clipPath id="t_cBody"><use href="#t_pBody"/></clipPath>
+
+<path id="t_pRoofArc" d="M 169 360 C 186 338 212 310 237 291 C 268 285 330 287 384 296"/>
+<path id="t_pRoofRear" d="M 384 296 C 424 292 466 292 505 300"/>
+<path id="t_pBelt" d="M 176 352 C 230 345 300 343 380 349"/>
+<path id="t_pFarPillar" d="M 505 300 C 522 310 536 330 543 354"/>
+<path id="t_pRearEdge" d="M 543 354 C 547 378 548 410 547 436 C 546 444 544 447 540 448"/>
+
+<path id="t_pAperture" d="M 400 296 L 489 300 L 553 378 L 464 381 Z"/>
+<path id="t_pHatch" d="M 384 296 C 424 292 466 292 505 300 C 528 288 544 262 556 232 C 516 228 478 228 446 228 C 432 252 410 278 384 296 Z"/>
+<path id="t_pFig" d="M 706 272
+  C 696 272 690 278 689 288
+  C 688 298 688 308 691 317
+  C 692 322 691 326 689 329
+  C 685 330 682 334 680 340
+  C 678 350 677 361 678 372
+  C 679 382 681 390 683 398
+  C 682 406 678 414 674 423
+  C 679 428 684 430 689 429
+  C 687 442 686 454 687 466
+  C 688 472 688 476 688 479
+  C 685 485 681 490 677 494
+  C 683 498 694 498 699 494
+  C 700 488 700 484 700 480
+  C 699 466 698 452 697 436
+  L 712 435
+  C 713 448 714 462 714 476
+  C 716 486 723 493 733 496
+  C 737 495 736 489 731 484
+  C 728 481 727 480 726 478
+  C 725 462 724 448 724 433
+  C 730 434 735 431 738 423
+  C 735 412 733 402 732 393
+  C 734 382 735 371 734 360
+  C 733 349 731 340 728 334
+  C 727 331 726 329 725 326
+  C 727 316 726 302 724 291
+  C 723 283 716 272 706 272 Z"/>
+
+<path id="t_pFigRim" d="M 706 272
+  C 696 272 690 278 689 288
+  C 688 298 688 308 691 317
+  C 692 322 691 326 689 329
+  C 685 330 682 334 680 340
+  C 678 350 677 361 678 372
+  C 679 382 681 390 683 398
+  C 682 406 678 414 674 423
+  C 679 428 684 430 689 429
+  C 687 442 686 454 687 466
+  C 688 472 688 476 688 479
+  C 685 485 681 490 677 494"/>
+
+<clipPath id="t_cFig"><use href="#t_pFig"/></clipPath>
+
+<g id="t_scene" mask="url(#t_mVignette)">
+
+  <!-- night air, lit from inside the car -->
+  <ellipse cx="420" cy="346" rx="310" ry="176" fill="url(#t_gHaze)"/>
+  <ellipse cx="460" cy="300" rx="176" ry="106" fill="url(#t_gHaze)" opacity=".5"/>
+
+  <!-- light pooling on the ground -->
+  <ellipse cx="410" cy="462" rx="272" ry="52" fill="url(#t_gPoolWarm)"/>
+  <ellipse cx="500" cy="486" rx="184" ry="46" fill="url(#t_gPoolRed)"/>
+  <ellipse cx="690" cy="481" rx="116" ry="28" fill="url(#t_gPoolWarm)" opacity=".75"/>
+  <ellipse cx="516" cy="466" rx="132" ry="28" fill="url(#t_gPoolWarm)" opacity=".5"/>
+
+  <!-- the bar's reflection sliding toward us on wet asphalt -->
+  <g filter="url(#t_fSoft)" opacity=".75">
+    <path d="M 456 400 L 566 396 L 596 530 L 420 526 Z" fill="url(#t_gStreakRed)"/>
+  </g>
+  <g filter="url(#t_fTight)" opacity=".5">
+    <path d="M 480 402 L 492 401 L 486 486 L 466 485 Z" fill="url(#t_gStreakRed)"/>
+    <path d="M 524 398 L 538 397 L 542 496 L 518 495 Z" fill="url(#t_gStreakRed)"/>
+    <path d="M 556 396 L 566 395 L 578 480 L 558 480 Z" fill="url(#t_gStreakRed)"/>
+  </g>
+
+  <!-- contact shadow -->
+  <ellipse cx="300" cy="446" rx="182" ry="17" fill="var(--night-deep)" opacity=".9" filter="url(#t_fSoft)"/>
+  <ellipse cx="486" cy="456" rx="94" ry="14" fill="var(--night-deep)" opacity=".85" filter="url(#t_fSoft)"/>
+
+  <!-- wheels, behind the body -->
+  <g>
+    <ellipse cx="122" cy="417" rx="28" ry="35" fill="var(--night-deep)"/>
+    <ellipse cx="122" cy="417" rx="17" ry="22" fill="var(--car-shadow)"/>
+    <path d="M 102 400 C 107 390 114 384 123 383" fill="none" stroke="var(--rim-cool)" stroke-opacity=".3" stroke-width="1.7"/>
+    <ellipse cx="364" cy="426" rx="32" ry="39" fill="var(--night-deep)"/>
+    <ellipse cx="364" cy="426" rx="20" ry="25" fill="var(--car-shadow)"/>
+    <path d="M 341 407 C 346 396 354 389 364 388" fill="none" stroke="var(--rim-warm)" stroke-opacity=".3" stroke-width="1.9"/>
+    <path d="M 386 446 C 381 457 374 463 365 465" fill="none" stroke="var(--amber-deep)" stroke-opacity=".3" stroke-width="2"/>
+  </g>
+
+  <!-- ===== the liftgate, raised high on its struts: we see its lit inner face ===== -->
+  <g>
+    <use href="#t_pHatch" fill="var(--night-deep)" filter="url(#t_fSoft)" opacity=".7"/>
+    <use href="#t_pHatch" fill="url(#t_gHatch)"/>
+    <path d="M 392 293 C 424 289 466 289 500 297 C 514 283 522 270 527 256 C 492 252 456 252 423 253 C 414 266 404 281 392 293 Z"
+          fill="url(#t_gHatchGlass)" opacity=".95"/>
+    <path d="M 428 262 C 462 258 494 258 520 262" stroke="var(--amber)" stroke-opacity=".3" stroke-width="3.2" fill="none" filter="url(#t_fTight)"/>
+    <path d="M 446 228 C 478 228 516 228 556 232" stroke="var(--rim-warm)" stroke-opacity=".55" stroke-width="1.8" fill="none"/>
+    <path d="M 384 296 C 410 278 432 252 446 228" stroke="var(--amber-deep)" stroke-opacity=".4" stroke-width="7" fill="none" filter="url(#t_fSoft)"/>
+    <path d="M 384 296 C 410 278 432 252 446 228" stroke="var(--rim-warm)" stroke-opacity=".85" stroke-width="2.3" fill="none"/>
+    <path d="M 505 300 C 528 288 544 262 556 232" stroke="var(--rim-warm)" stroke-opacity=".7" stroke-width="2.1" fill="none"/>
+    <use href="#t_pRoofRear" fill="none" stroke="var(--amber)" stroke-opacity=".5" stroke-width="2"/>
+  </g>
+
+  <!-- ===== body ===== -->
+  <use href="#t_pBody" fill="url(#t_gBody)"/>
+  <g clip-path="url(#t_cBody)">
+    <rect x="190" y="286" width="376" height="186" fill="url(#t_gBodyWarm)"/>
+    <rect x="30" y="280" width="246" height="196" fill="url(#t_gBodyDark)"/>
+    <rect x="340" y="352" width="228" height="122" fill="url(#t_gRedBounce)" opacity=".3"/>
+    <path d="M 172 358 C 190 340 214 312 240 296 C 272 290 330 292 380 300
+             C 384 314 386 332 387 349 C 330 344 250 342 180 348 C 176 351 174 355 172 358 Z" fill="url(#t_gGlass)"/>
+    <path d="M 196 334 C 232 312 272 302 368 310" stroke="var(--glass-sheen)" stroke-opacity=".4" stroke-width="4.5" fill="none" filter="url(#t_fTight)"/>
+    <path d="M 256 345 C 257 372 257 406 256 430" stroke="var(--night-deep)" stroke-opacity=".4" stroke-width="1.1" fill="none"/>
+    <rect x="200" y="356" width="18" height="4" rx="2" fill="var(--rim-warm)" opacity=".28"/>
+    <rect x="296" y="357" width="18" height="4" rx="2" fill="var(--rim-warm)" opacity=".32"/>
+    <ellipse cx="548" cy="362" rx="24" ry="50" fill="var(--amber-deep)" opacity=".12" filter="url(#t_fSoft)"/>
+  </g>
+
+  <!-- rim light: one long arc, nose to tail -->
+  <use href="#t_pRoofArc" fill="none" stroke="url(#t_gRimRoof)" stroke-width="7" opacity=".4" filter="url(#t_fSoft)"/>
+  <use href="#t_pRoofArc" fill="none" stroke="url(#t_gRimRoof)" stroke-width="2.3"/>
+  <use href="#t_pBelt" fill="none" stroke="url(#t_gRimBelt)" stroke-width="1.5"/>
+  <use href="#t_pFarPillar" fill="none" stroke="var(--rim-warm)" stroke-opacity=".5" stroke-width="2"/>
+  <use href="#t_pRearEdge" fill="none" stroke="var(--ember-hot)" stroke-opacity=".5" stroke-width="2.1"/>
+  <path d="M 168 425 C 240 430 320 434 412 434" fill="none" stroke="url(#t_gRimBelt)" stroke-width="1.5" opacity=".4"/>
+  <path d="M 52 388 C 60 379 72 376 86 376" fill="none" stroke="var(--rim-cool)" stroke-opacity=".22" stroke-width="1.8"/>
+
+  <!-- ===== the open cargo space ===== -->
+  <clipPath id="t_cAper"><use href="#t_pAperture"/></clipPath>
+  <use href="#t_pAperture" fill="url(#t_gCargo)"/>
+  <g clip-path="url(#t_cAper)">
+    <path d="M 489 300 L 478 301 L 542 377 L 553 378 Z" fill="var(--amber-dim)" opacity=".4"/>
+    <path d="M 400 296 L 411 297 L 475 380 L 464 381 Z" fill="var(--cargo-dark)" opacity=".7"/>
+    <ellipse cx="446" cy="316" rx="26" ry="10" fill="url(#t_gLamp)" opacity=".85"/>
+    <ellipse cx="446" cy="316" rx="12" ry="4" fill="var(--amber-core)" opacity=".9" filter="url(#t_fTight)"/>
+    <path d="M 470 381 C 480 367 500 361 520 363 C 538 365 548 372 552 379 Z" fill="var(--cargo-dark)" opacity=".92"/>
+    <path d="M 470 380 C 480 366 500 360 520 363" stroke="var(--amber-core)" stroke-opacity=".5" stroke-width="1.5" fill="none"/>
+    <ellipse cx="534" cy="358" rx="20" ry="24" fill="var(--night-deep)" opacity=".45" filter="url(#t_fSoft)"/>
+  </g>
+  <path d="M 464 381 L 553 378" stroke="var(--amber)" stroke-width="8" fill="none" opacity=".4" filter="url(#t_fSoft)"/>
+  <path d="M 464 381 L 553 378" stroke="var(--amber-core)" stroke-width="2.3" fill="none" opacity=".95"/>
+  <path d="M 464 381 L 553 378 L 556 400 L 466 403 Z" fill="url(#t_gSillWarm)"/>
+
+  <!-- struts -->
+  <g>
+    <path d="M 498 322 C 506 306 514 286 522 264" stroke="var(--car-shadow)" stroke-width="2.4" fill="none" opacity=".8"/>
+    <path d="M 498 322 C 506 306 514 286 522 264" stroke="var(--rim-warm)" stroke-opacity=".3" stroke-width=".9" fill="none" transform="translate(-1 0)"/>
+    <path d="M 420 318 C 428 300 436 280 444 258" stroke="var(--car-shadow)" stroke-width="3.4" fill="none"/>
+    <path d="M 420 318 C 428 300 436 280 444 258" stroke="var(--rim-warm)" stroke-opacity=".5" stroke-width="1.2" fill="none" transform="translate(-1.3 0)"/>
+  </g>
+
+  <!-- ===== full-width rear light bar ===== -->
+  <g>
+    <path d="M 453 391 L 564 385 L 564 396 L 453 403 Z" fill="url(#t_gBarRed)" opacity=".5" filter="url(#t_fBloom)"/>
+    <ellipse cx="508" cy="394" rx="70" ry="15" fill="var(--ember-red)" opacity=".16" filter="url(#t_fWide)"/>
+    <path d="M 453 391 L 564 385 L 564 396 L 453 403 Z" fill="url(#t_gBarRed)"/>
+    <path d="M 456 395 L 562 389" stroke="var(--amber-core)" stroke-opacity=".45" stroke-width="1.3" fill="none"/>
+  </g>
+
+  <!-- ===== she has just come out from behind the open hatch ===== -->
+  <g transform="translate(47.5 29.5) scale(.91)">
+    <ellipse cx="744" cy="496" rx="60" ry="13" fill="var(--night-deep)" opacity=".75" filter="url(#t_fSoft)"/>
+    <ellipse cx="702" cy="493" rx="26" ry="7" fill="var(--night-deep)" opacity=".9" filter="url(#t_fTight)"/>
+    <use href="#t_pFig" fill="url(#t_gFigure)"/>
+    <g clip-path="url(#t_cFig)">
+      <ellipse cx="681" cy="356" rx="17" ry="110" fill="var(--amber-dim)" opacity=".38" filter="url(#t_fSoft)"/>
+      <ellipse cx="690" cy="296" rx="11" ry="21" fill="var(--amber-dim)" opacity=".32" filter="url(#t_fSoft)"/>
+      <path d="M 706 315 C 702 345 700 379 699 416 L 728 418 C 727 379 723 345 716 315 Z" fill="var(--night-deep)" opacity=".55"/>
+      <path d="M 697 301 L 716 301 L 714 319 L 699 319 Z" fill="var(--night-deep)" opacity=".7"/>
+      <path d="M 693 305 C 700 301 713 301 720 306 C 723 312 722 318 719 322 C 711 318 700 318 693 322 C 690 316 690 309 693 305 Z" fill="var(--figure-mid)"/>
+      <path d="M 693 305 C 700 301 713 301 720 306" stroke="var(--amber)" stroke-opacity=".45" stroke-width="1.5" fill="none"/>
+      <path d="M 695 320 C 693 334 692 347 693 359 C 697 359 700 357 701 355 C 699 343 698 331 699 320 Z" fill="var(--figure-mid)" opacity=".9"/>
+      <path d="M 695 320 C 693 334 692 347 693 359" stroke="var(--amber-deep)" stroke-opacity=".4" stroke-width="1.2" fill="none"/>
+      <path d="M 680 347 C 683 358 689 367 696 373 L 700 382 C 689 378 682 369 678 358 Z" fill="var(--figure-mid)" opacity=".85"/>
+      <path d="M 734 345 C 731 356 726 365 719 372 L 715 381 C 726 377 733 367 736 356 Z" fill="var(--figure-mid)" opacity=".55"/>
+      <path d="M 680 347 C 683 358 689 367 696 373" stroke="var(--amber)" stroke-opacity=".5" stroke-width="1.4" fill="none"/>
+      <path d="M 688 435 C 686 443 686 449 687 455" stroke="var(--amber-deep)" stroke-opacity=".45" stroke-width="1.8" fill="none"/>
+      <path d="M 725 437 C 724 444 724 450 725 456" stroke="var(--amber-deep)" stroke-opacity=".2" stroke-width="1.5" fill="none"/>
+      <path d="M 675 416 C 686 423 728 426 739 416" stroke="var(--amber-deep)" stroke-opacity=".45" stroke-width="1.7" fill="none"/>
+    </g>
+
+    <!-- her hands, held together, because she is about to say something -->
+    <g>
+      <path d="M 697 370 C 702 367 711 367 715 371 C 718 375 718 381 715 384 C 710 387 701 387 697 383 C 694 379 694 373 697 370 Z" fill="var(--figure-mid)"/>
+      <path d="M 697 370 C 702 367 711 367 715 371" stroke="var(--amber-core)" stroke-opacity=".6" stroke-width="1.3" fill="none"/>
+      <path d="M 698 377 C 703 375 710 375 714 377" stroke="var(--night-deep)" stroke-opacity=".6" stroke-width=".9" fill="none"/>
+      <path d="M 700 382 C 705 380 711 380 714 382" stroke="var(--night-deep)" stroke-opacity=".45" stroke-width=".9" fill="none"/>
+    </g>
+
+    <!-- rim light down the side of her that faces the car -->
+    <use href="#t_pFigRim" fill="none" stroke="url(#t_gRimFig)" stroke-width="6.5" opacity=".3" filter="url(#t_fSoft)"/>
+    <use href="#t_pFigRim" fill="none" stroke="url(#t_gRimFig)" stroke-width="2.2"/>
+    <path d="M 706 272 C 716 272 723 277 725 286" fill="none" stroke="var(--amber)" stroke-opacity=".4" stroke-width="1.7"/>
+    <path d="M 723 314 C 727 318 730 323 732 329" fill="none" stroke="var(--amber)" stroke-opacity=".3" stroke-width="1.5"/>
+  </g>
+
+  <!-- one last breath of haze, so nothing ends at an edge -->
+  <ellipse cx="430" cy="330" rx="262" ry="162" fill="url(#t_gHaze)" opacity=".2"/>
+</g>
+</defs>
+<use href="#t_scene"/>
+</svg>
+</div>
   <p id="question">你可以做我女朋友吗</p>
   <p class="sig">always &amp; forever</p>
   <button id="again2" type="button" style="padding:11px 26px;border-radius:999px;border:1px solid rgb(var(--glow) / .32);font-size:.84rem;font-weight:300;letter-spacing:.16em;color:var(--text-soft)">再看一遍</button>
@@ -2648,8 +3042,8 @@
     var q   = document.getElementById("question");
 
     ar.classList.add("show");
-    halo.style.setProperty("--halo-a", ".85");
-    halo.style.setProperty("--halo-s", "1.15");
+    halo.style.setProperty("--halo-a", "1.55");
+    halo.style.setProperty("--halo-s", "1.05");
 
     /* the illustration may or may not come apart. animate whatever is there. */
     var gate   = car.querySelector("#liftgate");
@@ -3174,11 +3568,22 @@
     if (jump === "pose5"){ setOpen(1); hand.style.setProperty("--palm-ink","0"); hand.style.setProperty("--clap-ink","1"); }
     if (jump === "pose6"){ setOpen(1); setThumb(1); }
     if (jump !== "pose0") wrap.classList.add("thumb-live");
-  } else if (jump === "words" || jump === "fly" || jump === "arrive"){
+  } else if (jump === "words" || jump === "fly" || jump === "arrive" || jump === "arrived"){
     stage.style.opacity = "0";
     if (jump === "words") setTimeout(runLetters, 400);
     if (jump === "fly")   setTimeout(diveIn, 400);
     if (jump === "arrive") setTimeout(function(){ sizeStreaks(); toArrival(); }, 400);
+    if (jump === "arrived") setTimeout(function(){          // end state, no transitions
+      sizeStreaks(); toArrival();
+      var ar = document.getElementById("arrival"), car = document.getElementById("car");
+      [car, document.getElementById("question"), ar.querySelector(".sig")].forEach(function(e){
+        e.style.transition = "none"; e.style.opacity = "1"; e.style.transform = "none";
+      });
+      car.classList.add("in");
+      var g = car.querySelector("#t_liftgate, #liftgate"), fi = car.querySelector("#t_figure, #figure");
+      if (g) g.style.transform = "rotate(0deg)";
+      if (fi){ fi.style.opacity = "1"; fi.style.transform = "none"; }
+    }, 400);
   } else {
     setTimeout(function(){ barsEl.classList.add("on"); }, 120);
     setTimeout(function(){ stage.classList.add("lit"); armPull(); }, 260);
