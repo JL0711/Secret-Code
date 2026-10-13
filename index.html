@@ -2435,7 +2435,7 @@
     for (var i = 0; i < parts.length; i++){
       var p = parts[i], dx = p.x - cx, dy = p.y - cy;
       p.ang  = Math.atan2(dy, dx);
-      p.rad  = Math.max(R * 1.05, Math.hypot(dx, dy));
+      p.rad  = R * (1.08 + Math.pow(Math.random(), 1.5) * 2.1);
       p.spin = .82 + Math.random() * .5;
       p.vr   = -(30 + Math.random() * 80);
       var r = Math.random();
@@ -2466,7 +2466,7 @@
         p.ang += p.spin * (R * 1.9 / (p.rad + R * .4)) * dt * 4.2;
         p.rad += p.vr * dt;
         if (p.rad < innermost){             // down to the last stable orbit, then flung wide again
-          p.rad = Math.max(window.innerWidth, window.innerHeight) * (.4 + Math.random() * .28) * holeZoom;
+          p.rad = R * (2.5 + Math.random() * .8);
           p.ang = Math.random() * Math.PI * 2;
         }
         if (holeZoom > 1) p.rad *= 1 + (holeZoom - 1) * dt * .9;   // everything swells as we fall in
@@ -2520,6 +2520,9 @@
       emb(p, q, R);
     }
 
+    /* 1b. the disk as a body of light, in layered bands, back half first */
+    diskBands(cx, cy, R, false);
+
     /* 2. the event horizon, and the photon ring hugging it */
     bctx.globalCompositeOperation = "source-over";
     var g = bctx.createRadialGradient(cx, cy, R * .55, cx, cy, R * 1.04);
@@ -2537,7 +2540,12 @@
     bctx.fillStyle = pr;
     bctx.beginPath(); bctx.arc(cx, cy, R * 1.16, 0, Math.PI * 2); bctx.fill();
 
+    /* 2b. the far side of the disk, bent up over the horizon and down beneath it */
+    lensRing(cx, cy, R);
+
     /* 3. everything in front: the near disk, and the lensed arcs over and under */
+    diskBands(cx, cy, R, true);
+
     for (i = 0; i < parts.length; i++){
       p = parts[i];
       var q2 = diskPos(p, cx, cy, R);
@@ -2545,6 +2553,48 @@
       emb(p, q2, R);
     }
     bctx.globalCompositeOperation = "source-over";
+  }
+
+  /* the accretion disk, as a stack of thin ellipses so it reads as a body of
+     light rather than a wire. half is drawn behind the horizon, half in front. */
+  function diskBands(cx, cy, R, front){
+    /* seen from just above the plane, the near half of the disk reads BELOW the
+       centre line and the far half above it; that split is the whole illusion */
+    var inner = R * 1.12, outer = R * 3.4, N = 13;
+    bctx.save();
+    bctx.beginPath();
+    front ? bctx.rect(0, cy - R * .04, BW, BH)
+          : bctx.rect(0, 0, BW, cy + R * .04);
+    bctx.clip();
+    for (var i = 0; i < N; i++){
+      var u = i / (N - 1);
+      var rr = inner + (outer - inner) * Math.pow(u, 1.5);
+      var fall = Math.pow(1 - u, 1.7);
+      var al = (front ? .3 : .2) * fall * fade;
+      if (al < .004) continue;
+      bctx.strokeStyle = "rgba(255," + Math.round(196 + fall * 56) + "," + Math.round(126 + fall * 104) + "," + al.toFixed(3) + ")";
+      bctx.lineWidth = 7 + fall * 16;
+      bctx.beginPath();
+      bctx.ellipse(cx, cy, rr, Math.max(1, rr * TILT), 0, 0, Math.PI * 2);
+      bctx.stroke();
+    }
+    bctx.restore();
+  }
+
+  /* the far half of the disk, lensed into a ring that hugs the horizon */
+  function lensRing(cx, cy, R){
+    for (var i = 0; i < 16; i++){
+      var u = i / 15;
+      var rr = R * (1.05 + u * .42);
+      var fall = Math.pow(1 - u, 1.5);
+      var al = .42 * fall * fade;
+      if (al < .004) continue;
+      bctx.strokeStyle = "rgba(255," + Math.round(214 + fall * 38) + "," + Math.round(150 + fall * 86) + "," + al.toFixed(3) + ")";
+      bctx.lineWidth = 1 + fall * 3.4;
+      bctx.beginPath();
+      bctx.ellipse(cx, cy, rr, rr * .97, 0, 0, Math.PI * 2);
+      bctx.stroke();
+    }
   }
 
   /* one ember: hotter and whiter the closer it orbits */
@@ -3094,7 +3144,21 @@
   var jump = (location.hash || "").slice(1);
   /* #shot8.1 renders exactly one frame of the flight at t = 8.1s, synchronously,
      so a still of any moment can be pulled without waiting on the animation clock */
-  if (jump.indexOf("shot") === 0){
+  /* #hole renders the horizon and its disk, one frame, without waiting for the clap */
+  if (jump === "hole"){
+    stage.classList.add("lit");
+    setOpen(1);
+    requestAnimationFrame(function(){
+      var r = wrap.getBoundingClientRect();
+      dissolve(r.left + r.width / 2, r.top + r.height * .55);
+      setTimeout(function(){
+        toVortex();
+        stage.style.opacity = "0";
+        for (var k = 0; k < 90; k++) stepParts(performance.now() + k * 16);
+        drawParts();
+      }, 80);
+    });
+  } else if (jump.indexOf("shot") === 0){
     var at = parseFloat(jump.slice(4)) || 0;
     stage.style.opacity = "0";
     buildTunnel(); sizeLens(); sizeStreaks();
