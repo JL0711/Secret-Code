@@ -224,13 +224,6 @@
     position:absolute;left:50%;top:50%;width:0;height:0;
     transform-style:preserve-3d;
   }
-  .ring{
-    position:absolute;left:0;top:0;
-    border-radius:50%;
-    border:2.5px solid rgb(var(--glow) / .5);
-    box-shadow:0 0 26px rgb(var(--glow) / .3), inset 0 0 30px rgb(var(--glow-deep) / .22);
-    will-change:transform,opacity;
-  }
   .vision{
     position:absolute;left:0;top:0;
     width:1120px;height:747px;
@@ -892,14 +885,24 @@
     setTimeout(runLetters, 1700);
   }
 
+  /* Gargantua: a black sphere, a bright disk around it, and the far half of that
+     disk lensed up over the top and down under the bottom. Each ember is given a
+     home in one of those three bands. */
+  var holeZoom = 1;
+  function holeR(){ return Math.min(window.innerWidth, window.innerHeight) * .17 * holeZoom; }
+
   function toVortex(){
-    var cx = window.innerWidth / 2, cy = window.innerHeight * .46;
+    var cx = window.innerWidth / 2, cy = window.innerHeight * .46, R = holeR();
     for (var i = 0; i < parts.length; i++){
-      var p = parts[i], dx = p.x - cx, dy = (p.y - cy) / .62;
-      p.rad = Math.max(40, Math.hypot(dx, dy));
-      p.ang = Math.atan2(dy, dx);
-      p.spin = .9 + Math.random() * .6;
-      p.vr = -(26 + Math.random() * 70);
+      var p = parts[i], dx = p.x - cx, dy = p.y - cy;
+      p.ang  = Math.atan2(dy, dx);
+      p.rad  = Math.max(R * 1.05, Math.hypot(dx, dy));
+      p.spin = .82 + Math.random() * .5;
+      p.vr   = -(30 + Math.random() * 80);
+      var r = Math.random();
+      p.band = r < .56 ? "disk" : (r < .84 ? "top" : "bot");
+      p.band === "disk" ? (p.h = (Math.random() - .5) * R * .13)
+                        : (p.h = R * (.03 + Math.random() * .3));
     }
     pmode = "vortex";
   }
@@ -918,38 +921,102 @@
         p.vx *= .965; p.vy = p.vy * .965 + 40 * dt;
       }
     } else if (pmode === "vortex"){
+      var R = holeR(), innermost = R * 1.06;
       for (i = 0; i < parts.length; i++){
         p = parts[i];
-        p.ang += p.spin * (150 / (p.rad + 90)) * dt * 5.4;
+        p.ang += p.spin * (R * 1.9 / (p.rad + R * .4)) * dt * 4.2;
         p.rad += p.vr * dt;
-        if (p.rad < 24){                    // swallowed by the mouth, thrown back out wide
-          p.rad = Math.max(window.innerWidth, window.innerHeight) * (.45 + Math.random() * .3);
+        if (p.rad < innermost){             // down to the last stable orbit, then flung wide again
+          p.rad = Math.max(window.innerWidth, window.innerHeight) * (.4 + Math.random() * .28) * holeZoom;
           p.ang = Math.random() * Math.PI * 2;
         }
-        p.x = cx + Math.cos(p.ang) * p.rad;
-        p.y = cy + Math.sin(p.ang) * p.rad * .62;
+        if (holeZoom > 1) p.rad *= 1 + (holeZoom - 1) * dt * .9;   // everything swells as we fall in
       }
     }
+  }
+
+  var TILT = .19;   // how far the disk is tipped toward us
+
+  /* where one ember sits on screen, and whether the sphere is in front of it */
+  function diskPos(p, cx, cy, R){
+    var c = Math.cos(p.ang), sn = Math.sin(p.ang);
+    if (p.band === "disk"){
+      return { x: cx + c * p.rad, y: cy + sn * p.rad * TILT - p.h, behind: sn > 0, lensed: 0 };
+    }
+    /* the far side of the disk, bent up over the sphere (or down under it) */
+    var up = p.band === "top" ? -1 : 1;
+    var rr = R + p.h + Math.abs(c) * R * .1;
+    return { x: cx + c * rr, y: cy + up * rr * (.62 + Math.abs(sn) * .34), behind: false, lensed: 1 };
   }
 
   function drawParts(){
     bctx.clearRect(0, 0, BW, BH);
     if (pmode === "idle" || !parts.length) return;
+
     var cx = window.innerWidth / 2, cy = window.innerHeight * .46;
-    var reach = Math.max(window.innerWidth, window.innerHeight) * .6;
+    var R = holeR(), i, p, a;
+
+    if (pmode === "burst"){
+      var reach = Math.max(window.innerWidth, window.innerHeight) * .6;
+      bctx.globalCompositeOperation = "lighter";
+      for (i = 0; i < parts.length; i++){
+        p = parts[i];
+        a = p.a * fade;
+        if (a <= .01) continue;
+        bctx.fillStyle = "rgba(255,196,120," + a.toFixed(3) + ")";
+        bctx.beginPath();
+        bctx.arc(p.x, p.y, p.sz, 0, Math.PI * 2);
+        bctx.fill();
+      }
+      bctx.globalCompositeOperation = "source-over";
+      return;
+    }
+
+    /* 1. the half of the disk that passes behind the sphere */
     bctx.globalCompositeOperation = "lighter";
-    for (var i = 0; i < parts.length; i++){
-      var p = parts[i];
-      var d = Math.hypot(p.x - cx, p.y - cy);
-      var hot = Math.max(0, 1 - d / reach);
-      var a = p.a * (pmode === "vortex" ? (.18 + hot * .82) : 1) * fade;
-      if (a <= .01) continue;
-      bctx.fillStyle = "rgba(255," + Math.round(186 + hot * 54) + "," + Math.round(104 + hot * 70) + "," + a.toFixed(3) + ")";
-      bctx.beginPath();
-      bctx.arc(p.x, p.y, p.sz * (1 + hot * .5), 0, Math.PI * 2);
-      bctx.fill();
+    for (i = 0; i < parts.length; i++){
+      p = parts[i];
+      var q = diskPos(p, cx, cy, R);
+      if (!q.behind) continue;
+      emb(p, q, R);
+    }
+
+    /* 2. the event horizon, and the photon ring hugging it */
+    bctx.globalCompositeOperation = "source-over";
+    var g = bctx.createRadialGradient(cx, cy, R * .55, cx, cy, R * 1.04);
+    g.addColorStop(0, "rgba(2,2,6,1)");
+    g.addColorStop(.86, "rgba(3,3,9,1)");
+    g.addColorStop(1, "rgba(5,5,12,0)");
+    bctx.fillStyle = g;
+    bctx.beginPath(); bctx.arc(cx, cy, R * 1.04, 0, Math.PI * 2); bctx.fill();
+
+    bctx.globalCompositeOperation = "lighter";
+    var pr = bctx.createRadialGradient(cx, cy, R * .97, cx, cy, R * 1.16);
+    pr.addColorStop(0, "rgba(255,214,150,0)");
+    pr.addColorStop(.35, "rgba(255,228,186," + (.5 * fade).toFixed(3) + ")");
+    pr.addColorStop(1, "rgba(255,170,90,0)");
+    bctx.fillStyle = pr;
+    bctx.beginPath(); bctx.arc(cx, cy, R * 1.16, 0, Math.PI * 2); bctx.fill();
+
+    /* 3. everything in front: the near disk, and the lensed arcs over and under */
+    for (i = 0; i < parts.length; i++){
+      p = parts[i];
+      var q2 = diskPos(p, cx, cy, R);
+      if (q2.behind) continue;
+      emb(p, q2, R);
     }
     bctx.globalCompositeOperation = "source-over";
+  }
+
+  /* one ember: hotter and whiter the closer it orbits */
+  function emb(p, q, R){
+    var near = Math.max(0, Math.min(1, 1 - (p.rad - R) / (R * 2.6)));
+    var a = p.a * (.2 + near * .8) * fade * (q.lensed ? .82 : 1);
+    if (a <= .012) return;
+    bctx.fillStyle = "rgba(255," + Math.round(188 + near * 62) + "," + Math.round(108 + near * 108) + "," + a.toFixed(3) + ")";
+    bctx.beginPath();
+    bctx.arc(q.x, q.y, p.sz * (.85 + near * .8), 0, Math.PI * 2);
+    bctx.fill();
   }
 
   /* ---------- scene 7: the words come out of the hole ---------- */
@@ -987,15 +1054,59 @@
   }
 
   function toArrival(){
-    var ar = document.getElementById("arrival");
+    var ar  = document.getElementById("arrival");
     var car = document.getElementById("car");
-    var q = document.getElementById("question");
+    var q   = document.getElementById("question");
+
     ar.classList.add("show");
-    halo.style.setProperty("--halo-a", ".9");
-    halo.style.setProperty("--halo-s", "1.1");
-    setTimeout(function(){ car.classList.add("in"); }, 700);
-    setTimeout(function(){ q.classList.add("in"); }, 3400);
-    setTimeout(function(){ ar.querySelector(".sig").classList.add("in"); }, 5200);
+    halo.style.setProperty("--halo-a", ".85");
+    halo.style.setProperty("--halo-s", "1.15");
+
+    /* the illustration may or may not come apart. animate whatever is there. */
+    var gate   = car.querySelector("#liftgate");
+    var figure = car.querySelector("#figure");
+    var lamps  = car.querySelectorAll("#taillight, #cargolight, .lamp");
+
+    if (gate){
+      var gb = gate.getBBox();                       // hinge along its top edge
+      gate.style.transformBox = "fill-box";
+      gate.style.transformOrigin = "50% 100%";
+      gate.style.transform = "rotate(0deg)";
+      gate.style.opacity = "1";
+      void gate.getBBox();
+    }
+    if (figure){
+      figure.style.opacity = "0";
+      figure.style.transition = "opacity 1.4s ease, transform 1.6s cubic-bezier(.22,1,.36,1)";
+      figure.style.transform = "translateX(26px)";
+    }
+    lamps.forEach(function(l){
+      l.style.opacity = "0";
+      l.style.transition = "opacity 1.2s ease";
+    });
+
+    setTimeout(function(){ car.classList.add("in"); }, 600);
+    setTimeout(function(){ lamps.forEach(function(l){ l.style.opacity = ""; }); }, 1500);
+
+    if (gate){
+      setTimeout(function(){
+        tween({ tag:"gate", from:0, to:1, dur:1700, ease:easeOut, step:function(v){
+          gate.style.transition = "none";
+          gate.style.transform = "rotate(" + (-62 * v).toFixed(2) + "deg)";
+        }});
+      }, 2200);
+    }
+
+    if (figure){
+      setTimeout(function(){
+        figure.style.opacity = "1";
+        figure.style.transform = "none";
+      }, gate ? 4300 : 2600);
+    }
+
+    var qAt = (gate ? 6400 : 3800);
+    setTimeout(function(){ q.classList.add("in"); }, qAt);
+    setTimeout(function(){ ar.querySelector(".sig").classList.add("in"); }, qAt + 1900);
   }
 
   document.getElementById("again").addEventListener("click", function(){ location.reload(); });
@@ -1010,7 +1121,9 @@
   var sctx    = streaks.getContext("2d");
 
   var YAW_SIGN = 1;                  // +1 puts a +X panel in front of you when you look right; -1 swings it behind your head
-  var RINGS = 58, GAP = 260;
+  var MOTES = window.innerWidth < 620 ? 460 : 1000;   // light smeared along the tube
+  var HOOPS = 26, HOOP_GAP = 760, TUBE_R = 330, TUBE_DEPTH = 0;
+  var RAD = Math.PI / 180;
 
   /* t = seconds since the dive began. sp = forward speed in px/s. */
   var SHOT = [
@@ -1030,6 +1143,14 @@
     { t:20.8,  yaw:  -5, pitch: 11, roll:   9, sp: 7200 },
     { t:21.9,  yaw:   0, pitch:  0, roll:   0, sp: 9400 }
   ];
+  if (reduced){
+    for (var si = 0; si < SHOT.length; si++){
+      SHOT[si].t *= .62;
+      SHOT[si].pitch *= .3;
+      SHOT[si].roll  *= .25;
+      SHOT[si].yaw   *= .9;
+    }
+  }
   var SHOT_END = SHOT[SHOT.length - 1].t;
 
   function smooth(p){ return p * p * (3 - 2 * p); }
@@ -1065,17 +1186,22 @@
     return ZTAB[i];
   }
 
-  var rings = [], visions = [];
+  var motes = [], hoops = [], visions = [];
 
   function buildTunnel(){
-    var frag = document.createDocumentFragment();
-    for (var i = 0; i < RINGS; i++){
-      var el = document.createElement("div");
-      el.className = "ring";
-      frag.appendChild(el);
-      rings.push({ el: el, z: i * GAP, phase: i * 0.42, hue: i });
+    TUBE_DEPTH = HOOPS * HOOP_GAP;
+    motes = [];
+    for (var i = 0; i < MOTES; i++){
+      motes.push({
+        th: Math.random() * Math.PI * 2,
+        rk: .62 + Math.random() * .62,
+        z:  Math.random() * TUBE_DEPTH,
+        w:  .35 + Math.random() * .9,
+        px: 0, py: 0, seen: false
+      });
     }
-    cam.appendChild(frag);
+    hoops = [];
+    for (i = 0; i < HOOPS; i++) hoops.push({ z: i * HOOP_GAP });
 
     visions = [
       { el: document.getElementById("v-kings"), z: zAt(8.1)  + 277, x: 520, rot: -62 },
@@ -1093,6 +1219,26 @@
     letters.style.perspective = (P * .93).toFixed(0) + "px";
   }
 
+  function warpX(z, t){ return Math.sin(z * .00042 + t * .33) * 180 + Math.sin(z * .00017 - t * .21) * 115; }
+  function warpY(z, t){ return Math.cos(z * .00036 - t * .27) * 142 + Math.sin(z * .00021 + t * .17) *  96; }
+  function ripple(z, th, t){ return 1 + .2 * Math.sin(z * .00075 + th * 2 + t * 1.1) + .09 * Math.sin(th * 3 - t * .8); }
+
+  /* project a world point through exactly the camera CSS is using, so the
+     canvas tunnel and the DOM memories agree about where "forward" is */
+  function proj(X, Y, Z, st, f, cx, cy){
+    var z = Z + camZ;
+    var c, n, x1, y1, z1, x2, y2, z2, x3, y3;
+    c = Math.cos(st.yaw * YAW_SIGN * RAD); n = Math.sin(st.yaw * YAW_SIGN * RAD);
+    x1 = X * c + z * n;  y1 = Y;  z1 = -X * n + z * c;
+    c = Math.cos(st.pitch * RAD); n = Math.sin(st.pitch * RAD);
+    x2 = x1;  y2 = y1 * c - z1 * n;  z2 = y1 * n + z1 * c;
+    c = Math.cos(st.roll * RAD); n = Math.sin(st.roll * RAD);
+    x3 = x2 * c - y2 * n;  y3 = x2 * n + y2 * c;
+    if (z2 > f - 50) return null;
+    var k = f / (f - z2);
+    return [cx + x3 * k, cy + y3 * k, k];
+  }
+
   function sizeStreaks(){
     var r = Math.min(window.devicePixelRatio || 1, 2);
     streaks.width = window.innerWidth * r;
@@ -1107,15 +1253,27 @@
     buildTunnel();
     sizeLens();
     sizeStreaks();
-    flight.classList.add("on");
-    letters.style.transition = "opacity .9s ease";
+
+    letters.style.transition = "opacity .7s ease";
     letters.style.opacity = "0";
-    tween({ tag:"vfade", from:1, to:0, dur:1200, ease:easeInOut, step:function(v){
-      fade = v;
-      halo.style.setProperty("--halo-a", (v * 1.4).toFixed(3));
-    }, done:function(){ pmode = "idle"; parts = []; } });
-    flying = true;
-    fly0 = performance.now();
+
+    /* rush the mouth: the horizon swells until it has swallowed the frame,
+       and the tunnel is already lit behind it when it does */
+    var DIVE = reduced ? 700 : 1500;
+    tween({ tag:"dive", from:1, to:11, dur:DIVE, ease:function(x){ return x * x * x; },
+      step:function(v){
+        holeZoom = v;
+        halo.style.setProperty("--halo-a", (1.3 / v + .1).toFixed(3));
+        if (v > 3.4 && !flying){
+          flight.classList.add("on");
+          flying = true;
+          fly0 = performance.now();
+        }
+      },
+      done:function(){
+        tween({ tag:"vfade", from:1, to:0, dur:420, ease:easeOut, step:function(v){ fade = v; },
+          done:function(){ pmode = "idle"; parts = []; holeZoom = 1; } });
+      }});
   }
 
   function flightFrame(now){
@@ -1131,20 +1289,7 @@
       "rotateY(" + (YAW_SIGN * st.yaw).toFixed(2) + "deg) " +
       "translateZ(" + camZ.toFixed(1) + "px)";
 
-    var span = RINGS * GAP, i, r, d;
-    for (i = 0; i < rings.length; i++){
-      r = rings[i];
-      d = r.z - camZ;
-      if (d < 60){ r.z += span; d = r.z - camZ; }
-      var size = 520 + Math.sin(r.phase + t * .5) * 170;
-      var a = d > span * .86 ? 0 : Math.min(1, (span - d) / (span * .5)) * Math.min(1, (d - 60) / 420);
-      r.el.style.width = size + "px";
-      r.el.style.height = size + "px";
-      r.el.style.opacity = a.toFixed(3);
-      r.el.style.transform =
-        "translateZ(" + (-r.z) + "px) rotateZ(" + ((r.phase * 46 + t * 26) % 360).toFixed(1) + "deg) translate(-50%,-50%)";
-    }
-
+    var i, d;
     for (i = 0; i < visions.length; i++){
       var v = visions[i];
       d = v.z - camZ;
@@ -1156,32 +1301,79 @@
       v.el.style.opacity = Math.max(0, Math.min(1, o)).toFixed(3);
     }
 
-    drawStreaks(st.sp, t);
+    drawTube(st, t);
 
     if (t > SHOT_END + .35 && scene === "flight") arrive();
   }
 
-  function drawStreaks(sp, t){
+  function drawTube(st, t){
     var W = window.innerWidth, H = window.innerHeight, cx = W / 2, cy = H / 2;
+    var f = parseFloat(flight.style.perspective) || 820;
+    var i, j, m, pz, q, a;
+
     sctx.clearRect(0, 0, W, H);
-    var n = 150, len = Math.min(.62, sp / 11000);
-    sctx.lineCap = "round";
-    for (var i = 0; i < n; i++){
-      var a = (i * 2.39996 + t * .12) % (Math.PI * 2);
-      var rr = ((i * 0.6180339 + t * (sp / 2600)) % 1);
-      var r0 = 60 + rr * rr * Math.max(W, H) * .95;
-      var r1 = r0 * (1 + len);
-      var al = (1 - rr) * .5 * Math.min(1, sp / 1400);
-      if (al < .012) continue;
-      sctx.strokeStyle = "rgba(255," + Math.round(200 - rr * 40) + "," + Math.round(140 - rr * 40) + "," + al.toFixed(3) + ")";
-      sctx.lineWidth = .8 + (1 - rr) * 2.1;
+    sctx.globalCompositeOperation = "lighter";
+
+    /* the light at the far end */
+    var core = proj(warpX(camZ + 7000, t), warpY(camZ + 7000, t), -(camZ + 7000), st, f, cx, cy);
+    if (core){
+      var cg = sctx.createRadialGradient(core[0], core[1], 0, core[0], core[1], Math.max(W, H) * .22);
+      cg.addColorStop(0,   "rgba(255,246,228,.5)");
+      cg.addColorStop(.25, "rgba(255,206,146,.22)");
+      cg.addColorStop(1,   "rgba(255,160,90,0)");
+      sctx.fillStyle = cg;
+      sctx.fillRect(0, 0, W, H);
+    }
+
+    /* concentric shock rings rushing past, bent by the warp */
+    sctx.lineWidth = 1.5;
+    for (i = 0; i < hoops.length; i++){
+      var hp = hoops[i];
+      if (hp.z - camZ < 90) hp.z += TUBE_DEPTH;
+      d = hp.z - camZ;
+      a = Math.min(1, (TUBE_DEPTH - d) / (TUBE_DEPTH * .7)) * Math.min(1, (d - 90) / 700) * .5;
+      if (a <= .015) continue;
+      pz = hp.z;
+      var wx = warpX(pz, t), wy = warpY(pz, t);
+      sctx.strokeStyle = "rgba(255,226,180," + a.toFixed(3) + ")";
       sctx.beginPath();
-      sctx.moveTo(cx + Math.cos(a) * r0, cy + Math.sin(a) * r0 * .92);
-      sctx.lineTo(cx + Math.cos(a) * r1, cy + Math.sin(a) * r1 * .92);
+      var started = false;
+      for (j = 0; j <= 46; j++){
+        var th = j / 46 * Math.PI * 2;
+        var rr = TUBE_R * ripple(pz, th, t);
+        q = proj(wx + Math.cos(th) * rr, wy + Math.sin(th) * rr, -pz, st, f, cx, cy);
+        if (!q){ started = false; continue; }
+        started ? sctx.lineTo(q[0], q[1]) : (sctx.moveTo(q[0], q[1]), started = true);
+      }
       sctx.stroke();
     }
+
+    /* the light itself, smeared into streaks by how fast it is going past */
+    sctx.lineCap = "round";
+    for (i = 0; i < motes.length; i++){
+      m = motes[i];
+      if (m.z - camZ < 70){ m.z += TUBE_DEPTH; m.seen = false; }
+      d = m.z - camZ;
+      pz = m.z;
+      var rr2 = TUBE_R * m.rk * ripple(pz, m.th, t);
+      q = proj(warpX(pz, t) + Math.cos(m.th) * rr2, warpY(pz, t) + Math.sin(m.th) * rr2, -pz, st, f, cx, cy);
+      if (!q){ m.seen = false; continue; }
+      a = Math.min(1, (TUBE_DEPTH - d) / (TUBE_DEPTH * .55)) * Math.min(1, (d - 70) / 520) * m.w * .72;
+      if (a > .012){
+        var hot = Math.min(1, q[2] * 1.5);                       // closer = whiter
+        sctx.strokeStyle = "rgba(255," + Math.round(214 + hot * 38) + "," + Math.round(160 + hot * 78) + "," + a.toFixed(3) + ")";
+        sctx.lineWidth = (.5 + q[2] * 2.3) * m.w;
+        sctx.beginPath();
+        if (m.seen){ sctx.moveTo(m.px, m.py); } else { sctx.moveTo(q[0], q[1]); }
+        sctx.lineTo(q[0], q[1]);
+        sctx.stroke();
+      }
+      m.px = q[0]; m.py = q[1]; m.seen = true;
+    }
+
+    sctx.globalCompositeOperation = "source-over";
     if (flash > .002){
-      sctx.fillStyle = "rgba(255,224,180," + flash.toFixed(3) + ")";
+      sctx.fillStyle = "rgba(255,238,210," + flash.toFixed(3) + ")";
       sctx.fillRect(0, 0, W, H);
     }
   }
