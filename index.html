@@ -392,7 +392,7 @@
   transform: translateY(calc((1 - var(--open)) * 7.2px)) rotate(calc(17deg - var(--open) * 13deg));}
 .f-pinky .dist{transform-origin:295px 202px; transform: scaleY(calc(0.95 + var(--open) * 0.05));}
 .f-thumb,#f-thumb{transform-origin:134px 344px;
-  transform: rotate(calc(58deg - var(--open) * 100deg - var(--thumb) * 40deg));}
+  transform: rotate(calc(58deg - var(--open) * 100deg - var(--thumb) * 22deg));}
 .f-thumb > .prox{transform-origin:134px 344px; transform: scaleY(calc(0.94 + var(--open) * 0.06));}
 .f-thumb > .seg2{transform-origin:134px 278px;
   transform: translateY(calc((1 - var(--open)) * 3.96px)) rotate(calc(-11deg - var(--open) * 3deg));}
@@ -1424,7 +1424,681 @@
 </g>
 </svg>
 </div>
-    <div class="vision stub" id="v-hug" data-shot="hug">相拥</div>
+    <div class="vision" id="v-hug" data-shot="hug">
+<svg class="hug" viewBox="0 0 900 600" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" preserveAspectRatio="xMidYMid meet">
+<style>#v-hug .hug{--night-deep:#04050E;
+  --night:#0B0D1F;
+  --night-cool:#161B3E;
+  --night-violet:#2A2050;
+  --amber-core:#FFF3DD;
+  --amber:#FFC98A;
+  --amber-deep:#FF9E5E;
+  --ember:#FF7A3F;
+  --skin-lit:#FFD2A4;
+  --skin-mid:#D08C62;
+  --skin-shade:#8C4E4C;
+  --skin-deep:#36243F;
+  --hair-lit:#A9664F;
+  --hair-mid:#4A2A46;
+  --hair-dark:#140E28;
+  --hair-black:#0A0718;
+  --his-hair-lit:#7A4A4C;
+  --his-hair-mid:#331F3C;
+  --his-hair-dark:#0D0A1E;
+  --her-cloth-hi:#FFF0D8;
+  --her-cloth-lit:#FBD6AC;
+  --her-cloth-mid:#B98874;
+  --her-cloth-shade:#453558;
+  --her-cloth-deep:#171433;
+  --his-cloth-lit:#C9794C;
+  --his-cloth-mid:#6E4350;
+  --his-cloth-shade:#221C40;
+  --his-cloth-deep:#0E0C24;
+  --trouser-lit:#5A4064;
+  --trouser-mid:#291F44;
+  --trouser-dark:#0D0B1E;
+  --shoe-lit:#473150;
+  --shoe-dark:#090714;
+  --floor-glow:#FFB172;
+  --shadow:#03040C;
+  --mask-opaque:#FFFFFF;
+  --mask-clear:#000000;}
+#v-hug .hug .s-night-deep{stop-color:var(--night-deep)}
+#v-hug .hug .s-night{stop-color:var(--night)}
+#v-hug .hug .s-night-cool{stop-color:var(--night-cool)}
+#v-hug .hug .s-night-violet{stop-color:var(--night-violet)}
+#v-hug .hug .s-amber-core{stop-color:var(--amber-core)}
+#v-hug .hug .s-amber{stop-color:var(--amber)}
+#v-hug .hug .s-amber-deep{stop-color:var(--amber-deep)}
+#v-hug .hug .s-ember{stop-color:var(--ember)}
+#v-hug .hug .s-skin-lit{stop-color:var(--skin-lit)}
+#v-hug .hug .s-skin-mid{stop-color:var(--skin-mid)}
+#v-hug .hug .s-skin-shade{stop-color:var(--skin-shade)}
+#v-hug .hug .s-skin-deep{stop-color:var(--skin-deep)}
+#v-hug .hug .s-hair-lit{stop-color:var(--hair-lit)}
+#v-hug .hug .s-hair-mid{stop-color:var(--hair-mid)}
+#v-hug .hug .s-hair-dark{stop-color:var(--hair-dark)}
+#v-hug .hug .s-hair-black{stop-color:var(--hair-black)}
+#v-hug .hug .s-his-hair-lit{stop-color:var(--his-hair-lit)}
+#v-hug .hug .s-his-hair-mid{stop-color:var(--his-hair-mid)}
+#v-hug .hug .s-his-hair-dark{stop-color:var(--his-hair-dark)}
+#v-hug .hug .s-her-hi{stop-color:var(--her-cloth-hi)}
+#v-hug .hug .s-her-lit{stop-color:var(--her-cloth-lit)}
+#v-hug .hug .s-her-mid{stop-color:var(--her-cloth-mid)}
+#v-hug .hug .s-her-shade{stop-color:var(--her-cloth-shade)}
+#v-hug .hug .s-her-deep{stop-color:var(--her-cloth-deep)}
+#v-hug .hug .s-his-lit{stop-color:var(--his-cloth-lit)}
+#v-hug .hug .s-his-mid{stop-color:var(--his-cloth-mid)}
+#v-hug .hug .s-his-shade{stop-color:var(--his-cloth-shade)}
+#v-hug .hug .s-his-deep{stop-color:var(--his-cloth-deep)}
+#v-hug .hug .s-trouser-lit{stop-color:var(--trouser-lit)}
+#v-hug .hug .s-trouser-mid{stop-color:var(--trouser-mid)}
+#v-hug .hug .s-trouser-dark{stop-color:var(--trouser-dark)}
+#v-hug .hug .s-shoe-lit{stop-color:var(--shoe-lit)}
+#v-hug .hug .s-shoe-dark{stop-color:var(--shoe-dark)}
+#v-hug .hug .s-floor{stop-color:var(--floor-glow)}
+#v-hug .hug .s-shadow{stop-color:var(--shadow)}
+#v-hug .hug .s-opaque{stop-color:var(--mask-opaque)}
+#v-hug .hug .s-clear{stop-color:var(--mask-clear)}
+#v-hug .hug .f-amber{fill:var(--amber)}
+#v-hug .hug .f-amber-core{fill:var(--amber-core)}
+#v-hug .hug .f-amber-deep{fill:var(--amber-deep)}
+#v-hug .hug .f-ember{fill:var(--ember)}
+#v-hug .hug .f-shadow{fill:var(--shadow)}
+#v-hug .hug .f-night-deep{fill:var(--night-deep)}
+#v-hug .hug .f-hair-black{fill:var(--hair-black)}
+#v-hug .hug .k-amber{stroke:var(--amber)}
+#v-hug .hug .k-amber-core{stroke:var(--amber-core)}
+#v-hug .hug .k-amber-deep{stroke:var(--amber-deep)}
+#v-hug .hug .k-ember{stroke:var(--ember)}
+#v-hug .hug .k-night-deep{stroke:var(--night-deep)}
+#v-hug .hug .k-hair-black{stroke:var(--hair-black)}
+#v-hug .hug .no-fill{fill:none}
+#v-hug .hug .cap{stroke-linecap:round;stroke-linejoin:round}</style>
+
+<defs>
+  <filter id="h_soft" x="-45%" y="-45%" width="190%" height="190%" color-interpolation-filters="sRGB">
+    <feGaussianBlur stdDeviation="5"/>
+  </filter>
+  <filter id="h_softer" x="-60%" y="-60%" width="220%" height="220%" color-interpolation-filters="sRGB">
+    <feGaussianBlur stdDeviation="12"/>
+  </filter>
+  <filter id="h_haze" x="-70%" y="-70%" width="240%" height="240%" color-interpolation-filters="sRGB">
+    <feGaussianBlur stdDeviation="34"/>
+  </filter>
+  <filter id="h_tiny" x="-60%" y="-60%" width="220%" height="220%" color-interpolation-filters="sRGB">
+    <feGaussianBlur stdDeviation="2"/>
+  </filter>
+  <filter id="h_hair" x="-60%" y="-60%" width="220%" height="220%" color-interpolation-filters="sRGB">
+    <feGaussianBlur stdDeviation="3.4"/>
+  </filter>
+  <filter id="h_bloom" x="-250%" y="-250%" width="600%" height="600%" color-interpolation-filters="sRGB">
+    <feGaussianBlur stdDeviation="3.2" result="b"/>
+    <feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+  </filter>
+  <filter id="h_rimglow" x="-90%" y="-90%" width="280%" height="280%" color-interpolation-filters="sRGB">
+    <feGaussianBlur stdDeviation="4.5" result="b"/>
+    <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+  </filter>
+
+  <!-- ===== the one light: behind them, a little above ===== -->
+  <radialGradient id="h_pool" gradientUnits="userSpaceOnUse" cx="452" cy="250" r="360" fx="462" fy="208">
+    <stop offset="0"    class="s-amber-core" stop-opacity=".40"/>
+    <stop offset=".14"  class="s-amber"      stop-opacity=".30"/>
+    <stop offset=".36"  class="s-amber-deep" stop-opacity=".19"/>
+    <stop offset=".62"  class="s-ember"      stop-opacity=".08"/>
+    <stop offset=".84"  class="s-ember"      stop-opacity=".025"/>
+    <stop offset="1"    class="s-ember"      stop-opacity="0"/>
+  </radialGradient>
+  <radialGradient id="h_core" gradientUnits="userSpaceOnUse" cx="462" cy="206" r="180">
+    <stop offset="0"   class="s-amber-core" stop-opacity=".52"/>
+    <stop offset=".34" class="s-amber"      stop-opacity=".26"/>
+    <stop offset=".70" class="s-amber-deep" stop-opacity=".08"/>
+    <stop offset="1"   class="s-amber-deep" stop-opacity="0"/>
+  </radialGradient>
+  <radialGradient id="h_floor" gradientUnits="userSpaceOnUse" cx="452" cy="540" r="300">
+    <stop offset="0"   class="s-floor" stop-opacity=".44"/>
+    <stop offset=".30" class="s-floor" stop-opacity=".22"/>
+    <stop offset=".68" class="s-floor" stop-opacity=".05"/>
+    <stop offset="1"   class="s-floor" stop-opacity="0"/>
+  </radialGradient>
+  <radialGradient id="h_shad" gradientUnits="userSpaceOnUse" cx="430" cy="558" r="230">
+    <stop offset="0"   class="s-shadow" stop-opacity=".94"/>
+    <stop offset=".30" class="s-shadow" stop-opacity=".62"/>
+    <stop offset=".68" class="s-shadow" stop-opacity=".16"/>
+    <stop offset="1"   class="s-shadow" stop-opacity="0"/>
+  </radialGradient>
+
+  <!-- the dark foundation under every modelled shape -->
+  <linearGradient id="h_base" gradientUnits="userSpaceOnUse" x1="470" y1="180" x2="390" y2="470">
+    <stop offset="0"   class="s-night-violet"/>
+    <stop offset=".38" class="s-night-cool"/>
+    <stop offset="1"   class="s-night-deep"/>
+  </linearGradient>
+
+  <!-- her dress: pale, drinks what little light reaches round them -->
+  <linearGradient id="h_herCloth" gradientUnits="userSpaceOnUse" x1="440" y1="268" x2="334" y2="420">
+    <stop offset="0"   class="s-her-mid"/>
+    <stop offset=".22" class="s-her-shade"/>
+    <stop offset=".58" class="s-her-shade"/>
+    <stop offset=".84" class="s-her-mid"/>
+    <stop offset="1"   class="s-her-lit"/>
+  </linearGradient>
+  <linearGradient id="h_hem" gradientUnits="userSpaceOnUse" x1="0" y1="392" x2="0" y2="492">
+    <stop offset="0" class="s-night-deep" stop-opacity="0"/>
+    <stop offset="1" class="s-night-deep" stop-opacity=".62"/>
+  </linearGradient>
+  <linearGradient id="h_seam" gradientUnits="userSpaceOnUse" x1="452" y1="300" x2="398" y2="300">
+    <stop offset="0"   class="s-night-deep" stop-opacity=".92"/>
+    <stop offset=".46" class="s-night-deep" stop-opacity=".42"/>
+    <stop offset="1"   class="s-night-deep" stop-opacity="0"/>
+  </linearGradient>
+
+  <!-- her hair: the heaviest thing in the picture -->
+  <linearGradient id="h_hairg" gradientUnits="userSpaceOnUse" x1="444" y1="190" x2="336" y2="330">
+    <stop offset="0"   class="s-hair-mid"/>
+    <stop offset=".26" class="s-hair-dark"/>
+    <stop offset=".66" class="s-hair-black"/>
+    <stop offset=".90" class="s-hair-dark"/>
+    <stop offset="1"   class="s-hair-mid"/>
+  </linearGradient>
+  <linearGradient id="h_hairSheen" gradientUnits="userSpaceOnUse" x1="0" y1="150" x2="0" y2="452">
+    <stop offset="0"   class="s-amber"      stop-opacity="0"/>
+    <stop offset=".12" class="s-amber-core" stop-opacity=".62"/>
+    <stop offset=".42" class="s-amber"      stop-opacity=".34"/>
+    <stop offset=".78" class="s-amber-deep" stop-opacity=".12"/>
+    <stop offset="1"   class="s-amber-deep" stop-opacity="0"/>
+  </linearGradient>
+
+  <!-- his head, bowed into her hair -->
+  <linearGradient id="h_hisHair" gradientUnits="userSpaceOnUse" x1="494" y1="108" x2="450" y2="172">
+    <stop offset="0"   class="s-his-hair-lit"/>
+    <stop offset=".22" class="s-his-hair-mid"/>
+    <stop offset=".64" class="s-his-hair-dark"/>
+    <stop offset="1"   class="s-his-hair-dark"/>
+  </linearGradient>
+  <linearGradient id="h_hisFace" gradientUnits="userSpaceOnUse" x1="492" y1="140" x2="450" y2="176">
+    <stop offset="0"   class="s-skin-shade"/>
+    <stop offset=".42" class="s-skin-deep"/>
+    <stop offset="1"   class="s-night-deep"/>
+  </linearGradient>
+  <linearGradient id="h_hisNeck" gradientUnits="userSpaceOnUse" x1="520" y1="196" x2="476" y2="178">
+    <stop offset="0"   class="s-skin-shade"/>
+    <stop offset=".5"  class="s-skin-deep"/>
+    <stop offset="1"   class="s-night-deep"/>
+  </linearGradient>
+
+  <!-- his clothes -->
+  <linearGradient id="h_hisCloth" gradientUnits="userSpaceOnUse" x1="560" y1="250" x2="434" y2="360">
+    <stop offset="0"   class="s-his-mid"/>
+    <stop offset=".24" class="s-his-shade"/>
+    <stop offset=".66" class="s-his-deep"/>
+    <stop offset="1"   class="s-his-deep"/>
+  </linearGradient>
+  <linearGradient id="h_hisFarArm" gradientUnits="userSpaceOnUse" x1="552" y1="216" x2="500" y2="286">
+    <stop offset="0"   class="s-his-lit"/>
+    <stop offset=".18" class="s-his-mid"/>
+    <stop offset=".62" class="s-his-shade"/>
+    <stop offset="1"   class="s-his-deep"/>
+  </linearGradient>
+  <linearGradient id="h_hisUpper" gradientUnits="userSpaceOnUse" x1="420" y1="206" x2="408" y2="264">
+    <stop offset="0"   class="s-his-lit"/>
+    <stop offset=".17" class="s-his-mid"/>
+    <stop offset=".58" class="s-his-shade"/>
+    <stop offset="1"   class="s-his-deep"/>
+  </linearGradient>
+  <linearGradient id="h_hisFore" gradientUnits="userSpaceOnUse" x1="398" y1="196" x2="364" y2="236">
+    <stop offset="0"   class="s-his-lit"/>
+    <stop offset=".20" class="s-his-mid"/>
+    <stop offset=".62" class="s-his-shade"/>
+    <stop offset="1"   class="s-his-deep"/>
+  </linearGradient>
+  <linearGradient id="h_trouser" gradientUnits="userSpaceOnUse" x1="540" y1="420" x2="442" y2="470">
+    <stop offset="0"   class="s-trouser-lit"/>
+    <stop offset=".22" class="s-trouser-mid"/>
+    <stop offset="1"   class="s-trouser-dark"/>
+  </linearGradient>
+  <linearGradient id="h_shoe" gradientUnits="userSpaceOnUse" x1="546" y1="528" x2="444" y2="552">
+    <stop offset="0"   class="s-shoe-lit"/>
+    <stop offset=".30" class="s-shoe-dark"/>
+    <stop offset="1"   class="s-shoe-dark"/>
+  </linearGradient>
+
+  <!-- her arm: pale sleeve, then bare forearm, lit from behind his shoulder -->
+  <linearGradient id="h_herSleeve" gradientUnits="userSpaceOnUse" x1="470" y1="228" x2="452" y2="272">
+    <stop offset="0"   class="s-her-lit"/>
+    <stop offset=".22" class="s-her-mid"/>
+    <stop offset=".66" class="s-her-shade"/>
+    <stop offset="1"   class="s-her-deep"/>
+  </linearGradient>
+  <linearGradient id="h_herStub" gradientUnits="userSpaceOnUse" x1="392" y1="252" x2="378" y2="296">
+    <stop offset="0"   class="s-her-mid"/>
+    <stop offset=".30" class="s-her-shade"/>
+    <stop offset=".78" class="s-her-deep"/>
+    <stop offset="1"   class="s-her-deep"/>
+  </linearGradient>
+  <linearGradient id="h_herFore" gradientUnits="userSpaceOnUse" x1="518" y1="214" x2="500" y2="254">
+    <stop offset="0"   class="s-skin-lit"/>
+    <stop offset=".26" class="s-skin-mid"/>
+    <stop offset=".72" class="s-skin-shade"/>
+    <stop offset="1"   class="s-skin-deep"/>
+  </linearGradient>
+  <linearGradient id="h_herLegL" gradientUnits="userSpaceOnUse" x1="364" y1="490" x2="390" y2="490">
+    <stop offset="0"   class="s-skin-mid"/>
+    <stop offset=".34" class="s-skin-shade"/>
+    <stop offset="1"   class="s-skin-deep"/>
+  </linearGradient>
+  <linearGradient id="h_herLegR" gradientUnits="userSpaceOnUse" x1="400" y1="486" x2="426" y2="486">
+    <stop offset="0"   class="s-skin-shade"/>
+    <stop offset=".44" class="s-skin-deep"/>
+    <stop offset="1"   class="s-skin-deep"/>
+  </linearGradient>
+
+  <!-- hands -->
+  <linearGradient id="h_handHead" gradientUnits="userSpaceOnUse" x1="404" y1="212" x2="372" y2="178">
+    <stop offset="0"   class="s-skin-deep"/>
+    <stop offset=".34" class="s-skin-shade"/>
+    <stop offset=".76" class="s-skin-mid"/>
+    <stop offset="1"   class="s-skin-lit"/>
+  </linearGradient>
+  <linearGradient id="h_fingerHead" gradientUnits="userSpaceOnUse" x1="392" y1="196" x2="372" y2="168">
+    <stop offset="0"   class="s-skin-shade"/>
+    <stop offset=".40" class="s-skin-mid"/>
+    <stop offset="1"   class="s-skin-lit"/>
+  </linearGradient>
+  <linearGradient id="h_handWaist" gradientUnits="userSpaceOnUse" x1="388" y1="322" x2="346" y2="288">
+    <stop offset="0"   class="s-skin-deep"/>
+    <stop offset=".32" class="s-skin-shade"/>
+    <stop offset=".74" class="s-skin-mid"/>
+    <stop offset="1"   class="s-skin-lit"/>
+  </linearGradient>
+  <linearGradient id="h_fingerWaist" gradientUnits="userSpaceOnUse" x1="368" y1="306" x2="344" y2="288">
+    <stop offset="0"   class="s-skin-shade"/>
+    <stop offset=".42" class="s-skin-mid"/>
+    <stop offset="1"   class="s-skin-lit"/>
+  </linearGradient>
+  <linearGradient id="h_herHand" gradientUnits="userSpaceOnUse" x1="526" y1="222" x2="558" y2="194">
+    <stop offset="0"   class="s-skin-deep"/>
+    <stop offset=".32" class="s-skin-shade"/>
+    <stop offset=".74" class="s-skin-mid"/>
+    <stop offset="1"   class="s-skin-lit"/>
+  </linearGradient>
+  <linearGradient id="h_herFinger" gradientUnits="userSpaceOnUse" x1="540" y1="216" x2="562" y2="196">
+    <stop offset="0"   class="s-skin-shade"/>
+    <stop offset=".40" class="s-skin-mid"/>
+    <stop offset="1"   class="s-skin-lit"/>
+  </linearGradient>
+
+  <!-- rim light: fades in and out along a contour so nothing looks traced -->
+  <linearGradient id="h_rimL" gradientUnits="userSpaceOnUse" x1="0" y1="160" x2="0" y2="470">
+    <stop offset="0"   class="s-amber-core" stop-opacity="0"/>
+    <stop offset=".12" class="s-amber-core" stop-opacity=".92"/>
+    <stop offset=".46" class="s-amber"      stop-opacity=".72"/>
+    <stop offset=".80" class="s-amber-deep" stop-opacity=".28"/>
+    <stop offset="1"   class="s-amber-deep" stop-opacity="0"/>
+  </linearGradient>
+  <linearGradient id="h_rimR" gradientUnits="userSpaceOnUse" x1="0" y1="180" x2="0" y2="470">
+    <stop offset="0"   class="s-amber-core" stop-opacity="0"/>
+    <stop offset=".14" class="s-amber-core" stop-opacity=".88"/>
+    <stop offset=".48" class="s-amber"      stop-opacity=".62"/>
+    <stop offset=".82" class="s-amber-deep" stop-opacity=".22"/>
+    <stop offset="1"   class="s-amber-deep" stop-opacity="0"/>
+  </linearGradient>
+  <linearGradient id="h_rimHead" gradientUnits="userSpaceOnUse" x1="440" y1="120" x2="520" y2="150">
+    <stop offset="0"   class="s-amber"      stop-opacity="0"/>
+    <stop offset=".34" class="s-amber"      stop-opacity=".62"/>
+    <stop offset=".74" class="s-amber-core" stop-opacity=".90"/>
+    <stop offset="1"   class="s-amber-core" stop-opacity=".2"/>
+  </linearGradient>
+
+  <!-- ==========================================================
+       The whole pair, defined once. Used as halo, as the dark
+       foundation, and as clip paths for the modelling.
+       ========================================================== -->
+  <g id="h_sil">
+    <path id="h_hisFootFar"  d="M 500 524 C 492 530 491 540 497 545 C 504 551 522 551 534 548 C 543 545 546 540 542 535 C 536 529 526 525 518 523 Z"/>
+    <path id="h_hisFootNear" d="M 446 530 C 438 536 436 546 442 551 C 450 557 470 557 484 554 C 494 551 497 545 493 540 C 487 534 476 530 468 528 Z"/>
+    <path id="h_hisLegFar"   d="M 492 378 C 490 408 496 438 502 462 C 507 482 508 508 506 528 L 532 530 C 534 508 532 482 534 462 C 537 438 542 408 542 376 Z"/>
+    <path id="h_hisLegNear"  d="M 442 382 C 440 412 444 440 450 464 C 455 486 456 512 454 532 L 480 534 C 482 512 480 486 483 464 C 487 440 492 412 492 380 Z"/>
+    <path id="h_hisTorso"    d="M 446 212 C 432 222 428 242 429 266 C 430 306 432 346 434 388 C 472 400 522 400 558 390 C 560 344 558 300 556 266 C 554 240 546 218 530 208 C 508 198 466 200 446 212 Z"/>
+    <path id="h_hisArmFar"   d="M 538 210 C 556 218 564 240 560 260 C 552 280 524 290 494 288 C 474 286 462 276 466 264 C 476 248 502 230 520 218 C 527 213 533 208 538 210 Z"/>
+    <path id="h_hisNeckp"    d="M 468 158 C 476 178 486 192 500 202 C 508 208 517 211 523 209 C 515 192 505 176 497 163 Z"/>
+    <path id="h_hisHead"     d="M 444 142 C 440 118 452 104 471 104 C 491 104 503 119 501 140 C 499 161 487 173 470 174 C 455 175 446 160 444 142 Z"/>
+    <path id="h_herHead"     d="M 394 172 C 398 162 410 157 422 162 C 433 168 438 182 436 196 C 434 208 424 216 412 214 C 399 212 391 200 391 186 Z"/>
+    <path id="h_herSleeveR"  d="M 430 256 C 430 244 444 237 458 233 C 472 229 486 227 492 232 C 499 238 496 250 486 255 C 472 261 456 267 446 271 C 436 275 430 268 430 256 Z"/>
+    <path id="h_herForeR"    d="M 486 255 C 480 245 486 232 498 225 C 512 217 528 211 538 209 C 549 207 553 220 543 226 C 529 234 512 245 502 253 C 494 259 490 261 486 255 Z"/>
+    <path id="h_herHandS"    d="M 522 198 C 534 190 552 190 561 198 C 570 206 567 219 556 222 C 543 225 528 218 522 210 Z"/>
+    <path id="h_herSkirt"    d="M 404 226 C 382 230 366 242 358 262 C 350 282 350 306 354 330 C 346 352 340 376 336 404 C 331 432 328 456 328 470 C 352 484 390 488 422 484 C 444 481 454 473 454 464 C 452 436 448 408 444 384 C 440 360 432 344 428 330 C 432 306 434 282 432 262 C 430 242 420 228 404 226 Z"/>
+    <path id="h_herArmStub"  d="M 350 292 C 344 278 352 262 366 256 C 382 249 404 247 420 251 C 431 254 432 266 422 272 C 408 280 388 286 374 294 C 363 300 355 301 350 292 Z"/>
+    <path id="h_herLegLp"    d="M 364 452 L 388 452 C 390 478 388 502 384 520 L 364 518 C 362 498 362 474 364 452 Z"/>
+    <path id="h_herLegRp"    d="M 402 452 L 424 452 C 426 474 424 496 420 514 L 402 512 C 400 492 400 472 402 452 Z"/>
+    <path id="h_herFootL"    d="M 362 514 C 356 526 356 538 362 545 C 368 552 382 553 390 549 C 396 545 394 538 388 534 C 380 528 374 522 372 512 Z"/>
+    <path id="h_herFootR"    d="M 402 510 C 396 522 396 536 402 543 C 408 550 420 551 427 547 C 433 543 431 536 425 532 C 417 526 412 519 410 508 Z"/>
+    <path id="h_herHair"     d="M 398 158 C 416 150 432 160 440 180 C 448 202 448 226 444 250 C 440 280 432 312 428 344 C 424 376 422 408 418 438 C 406 454 384 458 366 450 C 350 442 340 426 337 406 C 332 374 330 340 332 306 C 334 270 340 234 350 206 C 358 182 382 164 398 158 Z"/>
+    <path id="h_herLockA"    d="M 340 300 C 330 330 328 364 334 396 C 338 418 348 434 360 440 C 350 420 344 392 344 360 C 344 330 346 312 350 298 Z"/>
+    <path id="h_herLockB"    d="M 428 290 C 436 320 434 352 426 380 C 420 402 412 418 404 428 C 414 404 420 376 422 346 C 424 318 426 302 428 290 Z"/>
+    <path id="h_hisUpperp"   d="M 452 204 C 430 204 404 214 384 226 C 368 236 360 252 368 264 C 377 275 394 268 410 258 C 428 246 448 232 458 222 C 465 214 461 204 452 204 Z"/>
+    <path id="h_hisForep"    d="M 358 252 C 352 232 364 210 380 196 C 390 187 404 190 406 200 C 408 213 398 227 390 241 C 384 253 384 263 380 269 C 372 276 362 268 358 252 Z"/>
+    <path id="h_handHeadS"   d="M 404 196 C 402 184 390 176 377 176 C 364 176 356 184 358 194 C 360 206 374 214 388 212 C 398 210 406 204 404 196 Z"/>
+    <path id="h_handWaistS"  d="M 384 294 C 374 285 357 284 346 292 C 335 300 335 315 346 321 C 358 328 379 326 387 316 C 393 309 391 300 384 294 Z"/>
+  </g>
+
+  <clipPath id="h_cTorso"><use href="#h_hisTorso"/></clipPath>
+  <clipPath id="h_cFarArm"><use href="#h_hisArmFar"/></clipPath>
+  <clipPath id="h_cHead"><use href="#h_hisHead"/></clipPath>
+  <clipPath id="h_cHair"><use href="#h_herHair"/></clipPath>
+  <clipPath id="h_cSkirt"><use href="#h_herSkirt"/></clipPath>
+  <clipPath id="h_cUpper"><use href="#h_hisUpperp"/></clipPath>
+  <clipPath id="h_cFore"><use href="#h_hisForep"/></clipPath>
+  <clipPath id="h_cSleeve"><use href="#h_herSleeveR"/></clipPath>
+  <clipPath id="h_cHerFore"><use href="#h_herForeR"/></clipPath>
+  <clipPath id="h_cStub"><use href="#h_herArmStub"/></clipPath>
+  <clipPath id="h_cHisLegs"><use href="#h_hisLegFar"/><use href="#h_hisLegNear"/></clipPath>
+  <clipPath id="h_cHerLegs"><use href="#h_herLegLp"/><use href="#h_herLegRp"/></clipPath>
+
+  <!-- the picture dissolves at the edges instead of stopping -->
+  <radialGradient id="h_vigG" cx=".5" cy=".5" r=".5">
+    <stop offset="0"   class="s-opaque"/>
+    <stop offset=".48" class="s-opaque"/>
+    <stop offset=".68" class="s-opaque" stop-opacity=".72"/>
+    <stop offset=".85" class="s-opaque" stop-opacity=".2"/>
+    <stop offset="1"   class="s-clear"/>
+  </radialGradient>
+  <mask id="h_vig" maskUnits="userSpaceOnUse" x="0" y="0" width="900" height="600">
+    <ellipse cx="452" cy="300" rx="540" ry="430" fill="url(#h_vigG)"/>
+  </mask>
+</defs>
+
+<g mask="url(#h_vig)">
+
+  <!-- ===== the pool of light they stand in ===== -->
+  <ellipse cx="452" cy="276" rx="356" ry="300" fill="url(#h_pool)"/>
+  <ellipse cx="462" cy="206" rx="182" ry="162" fill="url(#h_core)" filter="url(#h_haze)"/>
+  <ellipse cx="452" cy="540" rx="300" ry="54" fill="url(#h_floor)" filter="url(#h_soft)"/>
+  <ellipse cx="430" cy="558" rx="232" ry="34" fill="url(#h_shad)" filter="url(#h_soft)"/>
+
+  <!-- ===== halo: the light gets round them ===== -->
+  <use href="#h_sil" class="f-amber-deep" opacity=".34" filter="url(#h_softer)"/>
+  <use href="#h_sil" class="f-amber" opacity=".16" filter="url(#h_soft)"/>
+  <!-- ===== dark foundation ===== -->
+  <use href="#h_sil" fill="url(#h_base)"/>
+
+  <!-- ================= HIM: behind her, bowed over her ================= -->
+  <use href="#h_hisFootFar" fill="url(#h_shoe)" opacity=".82"/>
+  <use href="#h_hisLegFar"  fill="url(#h_trouser)" opacity=".86"/>
+  <use href="#h_hisFootNear" fill="url(#h_shoe)"/>
+  <use href="#h_hisLegNear" fill="url(#h_trouser)"/>
+  <g clip-path="url(#h_cHisLegs)">
+    <path d="M 438 374 C 460 392 464 414 458 440 C 452 466 450 500 452 534 L 426 534 Z" class="f-night-deep" opacity=".5" filter="url(#h_soft)"/>
+    <path d="M 492 378 C 496 410 498 442 496 472 C 494 498 494 516 496 532" class="no-fill k-night-deep" stroke-width="15" opacity=".46" filter="url(#h_soft)"/>
+    <path d="M 531 392 C 536 430 537 476 534 528" class="no-fill k-amber" stroke-width="4.5" opacity=".2" filter="url(#h_soft)"/>
+    <path d="M 478 398 C 483 436 484 482 481 532" class="no-fill k-amber" stroke-width="4" opacity=".13" filter="url(#h_soft)"/>
+    <path d="M 500 450 C 514 444 528 446 538 454 C 532 468 512 470 500 462 Z" class="f-amber-deep" opacity=".12" filter="url(#h_soft)"/>
+    <path d="M 452 452 C 464 446 478 448 488 456 C 482 468 464 470 454 462 Z" class="f-amber-deep" opacity=".1" filter="url(#h_soft)"/>
+    <path d="M 512 404 C 516 420 514 432 508 442" class="no-fill k-night-deep" stroke-width="5" opacity=".4" filter="url(#h_tiny)"/>
+    <path d="M 464 412 C 469 428 467 440 461 450" class="no-fill k-night-deep" stroke-width="4" opacity=".34" filter="url(#h_tiny)"/>
+    <path d="M 506 486 C 512 498 512 510 508 522" class="no-fill k-night-deep" stroke-width="5" opacity=".34" filter="url(#h_tiny)"/>
+    <path d="M 450 488 C 456 500 456 512 452 522" class="no-fill k-night-deep" stroke-width="4" opacity=".3" filter="url(#h_tiny)"/>
+  </g>
+  <path d="M 500 526 C 512 523 526 525 536 530" class="no-fill k-amber" stroke-width="2.2" opacity=".3" filter="url(#h_tiny)"/>
+  <path d="M 446 532 C 460 529 478 531 490 537" class="no-fill k-amber" stroke-width="2" opacity=".24" filter="url(#h_tiny)"/>
+
+  <!-- his torso -->
+  <use href="#h_hisTorso" fill="url(#h_hisCloth)"/>
+  <g clip-path="url(#h_cTorso)">
+    <!-- she is pressed into this side of him: it goes dark where she is -->
+    <path d="M 468 196 C 448 214 440 268 442 330 C 444 372 446 392 448 400 L 420 400 L 420 196 Z" fill="url(#h_seam)" filter="url(#h_soft)"/>
+    <path d="M 530 206 C 548 216 556 238 556 266 C 556 300 558 344 558 388 L 536 390 C 534 344 532 300 530 266 C 528 238 524 218 530 206 Z" class="f-amber-deep" opacity=".13" filter="url(#h_soft)"/>
+    <!-- cloth bunching where her arms pull him in -->
+    <path d="M 492 244 C 510 254 530 266 546 282" class="no-fill k-night-deep" stroke-width="8" opacity=".3" filter="url(#h_soft)"/>
+    <path d="M 486 262 C 506 272 526 286 540 302" class="no-fill k-night-deep" stroke-width="7" opacity=".28" filter="url(#h_soft)"/>
+    <path d="M 494 236 C 514 246 534 258 550 272" class="no-fill k-amber-deep" stroke-width="3.4" opacity=".14" filter="url(#h_soft)"/>
+    <path d="M 468 290 C 494 304 522 316 552 322" class="no-fill k-night-deep" stroke-width="9" opacity=".28" filter="url(#h_soft)"/>
+    <path d="M 456 336 C 486 348 516 356 554 356" class="no-fill k-night-deep" stroke-width="10" opacity=".3" filter="url(#h_soft)"/>
+    <path d="M 436 378 C 476 392 518 394 558 386" class="no-fill k-night-deep" stroke-width="18" opacity=".46" filter="url(#h_soft)"/>
+    <path d="M 440 214 C 462 206 492 204 516 210 C 506 224 476 228 452 224 C 442 222 436 218 440 214 Z" class="f-night-deep" opacity=".5" filter="url(#h_soft)"/>
+    <path d="M 552 240 C 558 274 558 320 556 358" class="no-fill k-amber-deep" stroke-width="5" opacity=".14" filter="url(#h_soft)"/>
+  </g>
+
+  <!-- his far arm, reaching round her: it crosses his own body and vanishes behind her -->
+  <use href="#h_hisArmFar" fill="url(#h_hisFarArm)"/>
+  <g clip-path="url(#h_cFarArm)">
+    <path d="M 540 212 C 558 222 564 242 558 260 L 536 252 C 534 236 534 220 540 212 Z" class="f-amber-deep" opacity=".2" filter="url(#h_soft)"/>
+    <path d="M 552 254 C 536 274 510 284 484 282 C 470 281 464 274 466 266 L 466 292 L 560 292 Z" class="f-night-deep" opacity=".5" filter="url(#h_soft)"/>
+    <path d="M 524 232 C 532 240 532 252 524 260" class="no-fill k-night-deep" stroke-width="6" opacity=".34" filter="url(#h_tiny)"/>
+    <path d="M 498 248 C 506 256 506 268 498 276" class="no-fill k-night-deep" stroke-width="5" opacity=".3" filter="url(#h_tiny)"/>
+    <path d="M 544 224 C 552 238 554 252 550 262" class="no-fill k-amber-deep" stroke-width="3.4" opacity=".26" filter="url(#h_soft)"/>
+  </g>
+
+  <!-- the notch under his arm, where her arm passes beneath it -->
+  <path d="M 454 230 C 466 238 480 244 494 246 C 486 256 468 256 456 250 C 448 246 448 234 454 230 Z" class="f-night-deep" opacity=".62" filter="url(#h_soft)"/>
+
+  <!-- his neck and his bowed head -->
+  <use href="#h_hisNeckp" fill="url(#h_hisNeck)"/>
+  <path d="M 470 160 C 480 178 492 192 506 202 C 496 208 482 202 472 190 C 464 180 464 168 470 160 Z" class="f-night-deep" opacity=".66" filter="url(#h_soft)"/>
+  <use href="#h_hisHead" fill="url(#h_hisFace)"/>
+  <g clip-path="url(#h_cHead)">
+    <!-- his face is turned down into her hair: only the far cheek plane shows, deep in shadow -->
+    <path d="M 442 142 C 438 116 452 102 472 102 C 492 102 504 118 502 140 C 500 158 492 170 480 174 C 470 177 460 174 456 168 C 470 160 478 144 478 128 C 478 114 468 108 458 110 C 448 112 442 124 441 140 Z" fill="url(#h_hisHair)"/>
+    <path d="M 456 164 C 466 168 474 174 472 180 C 468 186 458 182 452 174 Z" fill="url(#h_hisHair)"/>
+    <path d="M 462 110 C 480 112 494 124 498 142" class="no-fill k-amber-core" stroke-width="2.4" opacity=".3" filter="url(#h_tiny)"/>
+    <path d="M 468 104 C 488 108 500 122 503 140" class="no-fill k-amber" stroke-width="6" opacity=".34" filter="url(#h_hair)"/>
+    <path d="M 448 110 C 462 104 480 104 494 112" class="no-fill k-amber" stroke-width="4" opacity=".2" filter="url(#h_hair)"/>
+    <path d="M 448 116 C 440 128 438 144 442 158" class="no-fill k-night-deep" stroke-width="7" opacity=".5" filter="url(#h_soft)"/>
+    <path d="M 492 156 C 486 166 476 172 464 174" class="no-fill k-night-deep" stroke-width="9" opacity=".48" filter="url(#h_soft)"/>
+    <path d="M 496 146 C 492 158 484 168 474 172" class="no-fill k-amber-deep" stroke-width="2.6" opacity=".3" filter="url(#h_tiny)"/>
+  </g>
+
+  <!-- ===== HER right arm, up over his far shoulder ===== -->
+  <use href="#h_herSleeveR" fill="url(#h_herSleeve)"/>
+  <g clip-path="url(#h_cSleeve)">
+    <path d="M 430 254 C 448 248 470 240 490 234 L 492 250 C 470 258 448 266 432 270 Z" class="f-night-deep" opacity=".42" filter="url(#h_soft)"/>
+    <path d="M 434 246 C 452 240 472 232 490 229" class="no-fill k-amber" stroke-width="4" opacity=".3" filter="url(#h_soft)"/>
+    <path d="M 462 234 C 466 244 464 254 456 260" class="no-fill k-night-deep" stroke-width="5" opacity=".28" filter="url(#h_tiny)"/>
+  </g>
+  <use href="#h_herForeR" fill="url(#h_herFore)"/>
+  <g clip-path="url(#h_cHerFore)">
+    <path d="M 488 252 C 502 246 522 234 540 224 L 544 236 C 524 248 502 260 490 262 Z" class="f-night-deep" opacity=".44" filter="url(#h_soft)"/>
+    <path d="M 492 240 C 508 232 526 220 540 214" class="no-fill k-amber" stroke-width="4" opacity=".34" filter="url(#h_soft)"/>
+  </g>
+  <!-- her hand, flat and gripping over his shoulder blade -->
+  <path d="M 520 200 C 534 192 552 192 562 200 C 568 208 564 218 554 220 C 540 222 524 214 520 206 Z" class="f-night-deep" opacity=".5" filter="url(#h_soft)"/>
+  <use href="#h_herHandS" fill="url(#h_herHand)"/>
+  <g class="no-fill cap">
+    <path d="M 536 206 C 546 199 556 194 564 193" stroke="url(#h_herFinger)" stroke-width="8"/>
+    <path d="M 537 213 C 548 207 559 202 567 201" stroke="url(#h_herFinger)" stroke-width="8"/>
+    <path d="M 537 220 C 548 216 558 211 565 209" stroke="url(#h_herFinger)" stroke-width="7.5"/>
+    <path d="M 535 226 C 545 224 553 221 559 217" stroke="url(#h_herFinger)" stroke-width="6.5"/>
+    <path d="M 523 200 C 517 194 511 191 505 192" stroke="url(#h_herFinger)" stroke-width="7"/>
+  </g>
+  <g class="no-fill cap k-hair-black" opacity=".5" filter="url(#h_tiny)">
+    <path d="M 539 210 C 549 203 558 199 565 198" stroke-width="1.8"/>
+    <path d="M 539 217 C 550 212 559 207 566 206" stroke-width="1.8"/>
+    <path d="M 538 224 C 548 220 556 216 562 214" stroke-width="1.6"/>
+  </g>
+  <g class="no-fill cap k-amber-core" opacity=".46" filter="url(#h_tiny)">
+    <path d="M 534 202 C 544 195 554 190 562 189" stroke-width="1.9"/>
+    <path d="M 535 209 C 546 203 556 198 564 197" stroke-width="1.7"/>
+    <path d="M 521 197 C 534 189 551 188 561 194" stroke-width="2.4" opacity=".9"/>
+  </g>
+
+  <!-- ================= HER: in front of him, leaning in ================= -->
+  <use href="#h_herSkirt" fill="url(#h_herCloth)"/>
+  <g clip-path="url(#h_cSkirt)">
+    <use href="#h_herSkirt" fill="url(#h_hem)"/>
+    <path d="M 430 230 C 444 272 446 330 440 388 C 436 428 434 460 436 486 L 408 486 C 416 442 420 392 418 336 C 416 282 410 248 404 228 Z" class="f-night-deep" opacity=".4" filter="url(#h_soft)"/>
+    <!-- cloth crushed where his lower arm closes round her -->
+    <path d="M 392 300 C 376 304 362 310 350 320" class="no-fill k-night-deep" stroke-width="9" opacity=".3" filter="url(#h_soft)"/>
+    <path d="M 396 316 C 380 322 364 330 352 340" class="no-fill k-night-deep" stroke-width="8" opacity=".28" filter="url(#h_soft)"/>
+    <path d="M 390 292 C 374 294 360 298 348 304" class="no-fill k-amber" stroke-width="3.6" opacity=".2" filter="url(#h_soft)"/>
+    <path d="M 348 332 C 344 360 340 388 338 412" class="no-fill k-amber" stroke-width="7" opacity=".16" filter="url(#h_soft)"/>
+    <path d="M 364 352 C 358 382 354 412 354 442" class="no-fill k-night-deep" stroke-width="7" opacity=".24" filter="url(#h_soft)"/>
+    <path d="M 392 400 C 390 428 390 452 392 478" class="no-fill k-night-deep" stroke-width="9" opacity=".28" filter="url(#h_soft)"/>
+    <path d="M 420 398 C 422 426 426 448 430 470" class="no-fill k-night-deep" stroke-width="10" opacity=".32" filter="url(#h_soft)"/>
+    <path d="M 376 404 C 374 430 374 454 376 478" class="no-fill k-amber" stroke-width="5" opacity=".12" filter="url(#h_soft)"/>
+    <path d="M 334 390 C 329 420 327 448 327 470 C 338 476 348 480 358 482 C 352 442 350 410 352 384 Z" class="f-amber" opacity=".2" filter="url(#h_soft)"/>
+    <path d="M 326 458 C 350 478 392 486 422 480 C 442 476 452 468 454 460 L 454 492 L 324 492 Z" class="f-night-deep" opacity=".4" filter="url(#h_soft)"/>
+    <path d="M 352 342 C 374 350 404 352 430 346" class="no-fill k-night-deep" stroke-width="7" opacity=".26" filter="url(#h_soft)"/>
+  </g>
+
+  <!-- her legs, heels lifted -->
+  <use href="#h_herLegLp" fill="url(#h_herLegL)"/>
+  <use href="#h_herLegRp" fill="url(#h_herLegR)"/>
+  <g clip-path="url(#h_cHerLegs)">
+    <path d="M 378 450 C 384 478 384 502 380 520 L 392 520 L 392 450 Z" class="f-night-deep" opacity=".44" filter="url(#h_soft)"/>
+    <path d="M 414 450 C 418 474 418 496 414 514 L 426 514 L 426 450 Z" class="f-night-deep" opacity=".5" filter="url(#h_soft)"/>
+    <path d="M 366 464 C 364 488 364 506 366 518" class="no-fill k-amber-core" stroke-width="2.6" opacity=".34" filter="url(#h_tiny)"/>
+    <path d="M 404 464 C 403 484 404 500 406 512" class="no-fill k-amber" stroke-width="2.2" opacity=".2" filter="url(#h_tiny)"/>
+    <path d="M 362 452 C 374 460 388 460 390 452" class="no-fill k-night-deep" stroke-width="12" opacity=".5" filter="url(#h_soft)"/>
+    <path d="M 400 452 C 412 460 424 458 426 452" class="no-fill k-night-deep" stroke-width="12" opacity=".5" filter="url(#h_soft)"/>
+  </g>
+  <use href="#h_herFootL" fill="url(#h_herLegL)"/>
+  <use href="#h_herFootR" fill="url(#h_herLegR)"/>
+  <path d="M 360 518 C 356 530 357 540 363 546" class="no-fill k-amber" stroke-width="2.4" opacity=".4" filter="url(#h_tiny)"/>
+  <path d="M 400 514 C 397 526 398 536 404 543" class="no-fill k-amber" stroke-width="2.2" opacity=".3" filter="url(#h_tiny)"/>
+  <ellipse cx="378" cy="550" rx="20" ry="4.5" class="f-shadow" opacity=".66" filter="url(#h_soft)"/>
+  <ellipse cx="416" cy="547" rx="17" ry="4" class="f-shadow" opacity=".6" filter="url(#h_soft)"/>
+
+  <!-- her left arm, going under his and round his ribs -->
+  <use href="#h_herArmStub" fill="url(#h_herStub)"/>
+  <g clip-path="url(#h_cStub)">
+    <path d="M 352 290 C 368 280 392 268 418 258 L 424 268 C 398 280 372 292 358 300 Z" class="f-night-deep" opacity=".44" filter="url(#h_soft)"/>
+    <path d="M 356 282 C 374 270 398 260 418 254" class="no-fill k-amber" stroke-width="4" opacity=".26" filter="url(#h_soft)"/>
+    <path d="M 382 258 C 388 266 388 278 380 284" class="no-fill k-night-deep" stroke-width="5" opacity=".26" filter="url(#h_tiny)"/>
+  </g>
+  <!-- the wedge of night between her lifted arm and her ribs -->
+  <path d="M 352 292 C 364 294 376 290 388 284 C 380 300 364 308 354 304 C 348 300 348 294 352 292 Z" class="f-night-deep" opacity=".6" filter="url(#h_soft)"/>
+
+  <!-- ===== her hair: the weight of it, falling over everything ===== -->
+  <use href="#h_herLockA" fill="url(#h_hairg)"/>
+  <use href="#h_herLockB" fill="url(#h_hairg)"/>
+  <use href="#h_herHair" fill="url(#h_hairg)"/>
+  <g clip-path="url(#h_cHair)">
+    <path d="M 438 174 C 448 200 450 232 446 262 C 442 300 432 344 428 384 L 452 384 L 452 170 Z" class="f-night-deep" opacity=".5" filter="url(#h_soft)"/>
+    <path d="M 400 158 C 418 152 432 162 440 180 C 428 170 412 166 400 170 C 388 174 378 184 372 196 C 378 176 388 162 400 158 Z" class="f-hair-black" opacity=".44" filter="url(#h_soft)"/>
+    <path d="M 404 160 C 388 186 376 218 368 256 C 360 296 356 340 356 384" class="no-fill cap" stroke="url(#h_hairSheen)" stroke-width="13" opacity=".8" filter="url(#h_hair)"/>
+    <path d="M 418 164 C 404 192 394 226 388 264 C 382 302 380 342 382 380" class="no-fill cap" stroke="url(#h_hairSheen)" stroke-width="7" opacity=".5" filter="url(#h_hair)"/>
+    <path d="M 430 172 C 420 202 412 236 408 272 C 404 306 404 338 406 368" class="no-fill cap" stroke="url(#h_hairSheen)" stroke-width="5" opacity=".3" filter="url(#h_hair)"/>
+    <path d="M 388 166 C 370 196 358 232 350 272 C 344 306 342 344 344 380" class="no-fill cap" stroke="url(#h_hairSheen)" stroke-width="6" opacity=".4" filter="url(#h_hair)"/>
+    <path d="M 396 170 C 378 200 366 238 360 278 C 354 312 352 348 354 382" class="no-fill k-hair-black" stroke-width="4" opacity=".4" filter="url(#h_tiny)"/>
+    <path d="M 412 174 C 398 206 388 242 384 280 C 380 314 380 348 382 378" class="no-fill k-hair-black" stroke-width="4" opacity=".4" filter="url(#h_tiny)"/>
+    <path d="M 424 182 C 414 214 406 250 404 286 C 402 316 402 346 404 370" class="no-fill k-hair-black" stroke-width="4" opacity=".4" filter="url(#h_tiny)"/>
+    <path d="M 336 318 C 334 352 338 390 348 418 C 356 438 374 450 392 446 L 430 446 L 430 460 L 330 460 Z" class="f-hair-black" opacity=".52" filter="url(#h_softer)"/>
+  </g>
+  <!-- loose strands that catch the light at the ends -->
+  <g class="no-fill cap" opacity=".55">
+    <path d="M 344 252 C 336 286 334 322 338 354" stroke="url(#h_hairSheen)" stroke-width="2.6"/>
+    <path d="M 338 352 C 338 382 346 410 360 428" stroke="url(#h_hairSheen)" stroke-width="2.2"/>
+    <path d="M 364 440 C 372 452 382 458 394 458" stroke="url(#h_hairSheen)" stroke-width="1.9"/>
+    <path d="M 408 430 C 414 442 414 452 410 460" stroke="url(#h_hairSheen)" stroke-width="1.7"/>
+    <path d="M 396 156 C 410 150 424 152 434 160" stroke="url(#h_hairSheen)" stroke-width="2.2"/>
+  </g>
+
+  <!-- ================= his near arm, closing the circle ================= -->
+  <use href="#h_hisUpperp" fill="url(#h_hisUpper)"/>
+  <g clip-path="url(#h_cUpper)">
+    <path d="M 452 206 C 432 208 408 218 388 230 C 374 238 366 250 370 260 L 362 266 L 362 284 L 462 230 Z" class="f-night-deep" opacity=".48" filter="url(#h_soft)"/>
+    <path d="M 454 204 C 432 206 408 214 388 226 C 376 233 368 242 366 250" class="no-fill k-amber" stroke-width="5.5" opacity=".3" filter="url(#h_soft)"/>
+    <path d="M 420 222 C 426 232 424 244 416 250" class="no-fill k-night-deep" stroke-width="6" opacity=".3" filter="url(#h_tiny)"/>
+    <path d="M 392 236 C 398 246 396 256 388 262" class="no-fill k-night-deep" stroke-width="5" opacity=".28" filter="url(#h_tiny)"/>
+  </g>
+  <use href="#h_hisForep" fill="url(#h_hisFore)"/>
+  <g clip-path="url(#h_cFore)">
+    <path d="M 366 258 C 362 240 372 218 384 204 C 392 195 402 192 406 198 L 414 196 L 414 272 L 372 276 Z" class="f-night-deep" opacity=".46" filter="url(#h_soft)"/>
+    <path d="M 362 254 C 358 234 368 212 382 198 C 390 190 400 188 404 194" class="no-fill k-amber" stroke-width="5" opacity=".3" filter="url(#h_soft)"/>
+    <path d="M 370 234 C 378 238 382 248 378 256" class="no-fill k-night-deep" stroke-width="5" opacity=".3" filter="url(#h_tiny)"/>
+  </g>
+  <!-- the triangle of night between his forearm and the side of her head -->
+  <path d="M 372 246 C 382 230 390 214 396 200 C 400 214 396 232 388 246 C 382 256 374 256 372 246 Z" class="f-night-deep" opacity=".5" filter="url(#h_soft)"/>
+
+  <!-- his hand on the back of her head, fingers into her hair -->
+  <path d="M 372 196 C 382 182 398 176 410 182 C 418 186 416 196 408 202 C 394 212 376 208 372 198 Z" class="f-night-deep" opacity=".52" filter="url(#h_soft)"/>
+  <use href="#h_handHeadS" fill="url(#h_handHead)"/>
+  <g class="no-fill cap">
+    <path d="M 386 184 C 380 174 372 166 364 162" stroke="url(#h_fingerHead)" stroke-width="8.5"/>
+    <path d="M 381 190 C 373 182 364 175 356 172" stroke="url(#h_fingerHead)" stroke-width="8.5"/>
+    <path d="M 377 197 C 368 192 359 187 351 185" stroke="url(#h_fingerHead)" stroke-width="8"/>
+    <path d="M 375 205 C 366 203 357 200 350 197" stroke="url(#h_fingerHead)" stroke-width="7"/>
+    <path d="M 396 199 C 400 208 400 216 396 222" stroke="url(#h_fingerHead)" stroke-width="7.5"/>
+  </g>
+  <g class="no-fill cap k-hair-black" opacity=".5" filter="url(#h_tiny)">
+    <path d="M 384 188 C 377 179 369 171 361 167" stroke-width="1.8"/>
+    <path d="M 379 195 C 371 187 362 181 354 178" stroke-width="1.8"/>
+    <path d="M 376 202 C 367 197 358 193 351 191" stroke-width="1.6"/>
+  </g>
+  <g class="no-fill cap k-amber-core" opacity=".48" filter="url(#h_tiny)">
+    <path d="M 388 180 C 382 170 374 162 366 158" stroke-width="2"/>
+    <path d="M 383 186 C 375 178 366 171 358 168" stroke-width="1.8"/>
+    <path d="M 398 198 C 402 207 402 215 398 221" stroke-width="1.8"/>
+    <path d="M 404 192 C 396 180 382 170 368 164" stroke-width="2.4" opacity=".85"/>
+  </g>
+
+  <!-- his other hand, come back into view on the far side of her: gripping her waist -->
+  <path d="M 388 298 C 378 288 358 288 348 296 C 340 302 342 314 352 318" class="no-fill k-night-deep" stroke-width="12" opacity=".5" filter="url(#h_soft)"/>
+  <use href="#h_handWaistS" fill="url(#h_handWaist)"/>
+  <g class="no-fill cap">
+    <path d="M 358 290 C 350 283 341 279 332 279" stroke="url(#h_fingerWaist)" stroke-width="8.5"/>
+    <path d="M 352 295 C 343 290 333 287 325 288" stroke="url(#h_fingerWaist)" stroke-width="8.5"/>
+    <path d="M 348 302 C 339 299 329 298 321 300" stroke="url(#h_fingerWaist)" stroke-width="8"/>
+    <path d="M 347 311 C 338 311 329 312 322 315" stroke="url(#h_fingerWaist)" stroke-width="7"/>
+    <path d="M 370 288 C 372 279 371 271 366 266" stroke="url(#h_fingerWaist)" stroke-width="7.5"/>
+  </g>
+  <g class="no-fill cap k-hair-black" opacity=".5" filter="url(#h_tiny)">
+    <path d="M 356 294 C 347 288 338 285 330 285" stroke-width="1.8"/>
+    <path d="M 351 301 C 342 297 332 295 324 296" stroke-width="1.8"/>
+    <path d="M 348 308 C 339 306 330 306 323 308" stroke-width="1.6"/>
+  </g>
+  <g class="no-fill cap k-amber-core" opacity=".46" filter="url(#h_tiny)">
+    <path d="M 360 286 C 352 279 343 275 334 275" stroke-width="2"/>
+    <path d="M 354 291 C 345 286 335 283 327 284" stroke-width="1.8"/>
+    <path d="M 372 286 C 374 277 373 269 368 264" stroke-width="1.8"/>
+    <path d="M 388 296 C 378 284 362 276 344 274" stroke-width="2.4" opacity=".8"/>
+  </g>
+
+  <!-- ===================== the rim: one light, behind ===================== -->
+  <g class="no-fill cap" filter="url(#h_rimglow)">
+    <!-- the outer contour of her hair, the single brightest edge in the picture -->
+    <path d="M 398 157 C 378 164 360 180 350 206 C 340 234 334 270 332 306 C 330 340 332 374 337 406 C 340 428 350 443 366 450" stroke="url(#h_rimL)" stroke-width="3.6"/>
+    <path d="M 366 450 C 384 458 406 454 418 438" stroke="url(#h_rimL)" stroke-width="2.4" opacity=".5"/>
+    <!-- his back and far arm -->
+    <path d="M 530 208 C 546 218 554 240 556 266 C 558 300 560 344 558 390" stroke="url(#h_rimR)" stroke-width="3.4"/>
+    <path d="M 538 210 C 556 218 564 240 560 260" stroke="url(#h_rimR)" stroke-width="3"/>
+    <!-- his bowed head -->
+    <path d="M 446 128 C 452 110 464 103 474 104 C 492 106 503 120 501 140 C 499 158 492 170 480 174" stroke="url(#h_rimHead)" stroke-width="3.4"/>
+    <!-- her crown, right under his cheek -->
+    <path d="M 396 158 C 410 150 426 154 436 168" stroke="url(#h_rimHead)" stroke-width="2.8" opacity=".8"/>
+    <!-- the top of his near arm, nearest the light -->
+    <path d="M 456 206 C 432 206 406 216 386 228 C 372 237 364 249 366 258" stroke="url(#h_rimL)" stroke-width="2.6" opacity=".7"/>
+    <path d="M 360 252 C 356 232 366 212 380 198" stroke="url(#h_rimL)" stroke-width="2.4" opacity=".6"/>
+    <!-- her legs, her skirt hem, his trouser edge -->
+    <path d="M 364 452 C 362 476 362 500 364 516" stroke="url(#h_rimL)" stroke-width="2" opacity=".5"/>
+    <path d="M 330 456 C 329 466 328 470 328 470" stroke="url(#h_rimL)" stroke-width="2" opacity=".4"/>
+    <path d="M 542 376 C 544 404 540 436 536 462" stroke="url(#h_rimR)" stroke-width="2.2" opacity=".5"/>
+  </g>
+
+  <!-- where the two heads touch, the light pools -->
+  <ellipse cx="452" cy="170" rx="42" ry="26" class="f-amber" opacity=".12" filter="url(#h_haze)"/>
+  <ellipse cx="436" cy="162" rx="22" ry="12" class="f-amber-core" opacity=".16" filter="url(#h_softer)"/>
+
+  <!-- dust in the air, because the light is real -->
+  <g class="f-amber-core" filter="url(#h_bloom)">
+    <circle cx="300" cy="206" r="1.7" opacity=".5"/>
+    <circle cx="268" cy="286" r="1.3" opacity=".38"/>
+    <circle cx="330" cy="140" r="1.5" opacity=".42"/>
+    <circle cx="596" cy="200" r="1.8" opacity=".5"/>
+    <circle cx="628" cy="300" r="1.3" opacity=".36"/>
+    <circle cx="566" cy="134" r="1.5" opacity=".44"/>
+    <circle cx="500" cy="88" r="1.4" opacity=".4"/>
+    <circle cx="398" cy="96" r="1.6" opacity=".44"/>
+    <circle cx="246" cy="398" r="1.2" opacity=".3"/>
+    <circle cx="660" cy="412" r="1.2" opacity=".3"/>
+    <circle cx="214" cy="178" r="1.1" opacity=".26"/>
+    <circle cx="690" cy="236" r="1.1" opacity=".26"/>
+  </g>
+
+</g>
+</svg>
+</div>
   </div>
 </div>
 
@@ -1634,14 +2308,14 @@
   /* ---------- 4a: 用力 ---------- */
   function tooHard(){
     scene = "hurt";
-    tween({ tag:"thumb", from:thumb, to:1, dur:130, ease:easeOut, step:setThumb });
+    tween({ tag:"thumb", from:thumb, to:1.9, dur:120, ease:easeOut, step:setThumb });
     jolt();
     ouch.classList.remove("show");
     void ouch.offsetWidth;
     ouch.classList.add("show");
 
     setTimeout(function(){
-      tween({ tag:"thumb", from:1, to:0, dur:900, ease:easeOut, step:setThumb });
+      tween({ tag:"thumb", from:1.9, to:0, dur:900, ease:easeOut, step:setThumb });
       say("…轻一点好不好");
     }, 620);
 
@@ -1932,18 +2606,20 @@
     var figure = car.querySelector("#figure");
     var lamps  = car.querySelectorAll("#taillight, #cargolight, .lamp");
 
+    /* the hatch is DRAWN open, so it starts folded down onto the body and
+       swings up to the pose the illustration already holds */
+    var GATE_SHUT = 68;
     if (gate){
-      var gb = gate.getBBox();                       // hinge along its top edge
       gate.style.transformBox = "fill-box";
-      gate.style.transformOrigin = "50% 100%";
-      gate.style.transform = "rotate(0deg)";
-      gate.style.opacity = "1";
-      void gate.getBBox();
+      gate.style.transformOrigin = "50% 0%";          // hinged at the roof
+      gate.style.transform = "rotate(" + GATE_SHUT + "deg)";
     }
+    /* and he comes UP out of the cargo space, not round the side of the car */
     if (figure){
+      figure.style.transformBox = "fill-box";
+      figure.style.transformOrigin = "50% 100%";
       figure.style.opacity = "0";
-      figure.style.transition = "opacity 1.4s ease, transform 1.6s cubic-bezier(.22,1,.36,1)";
-      figure.style.transform = "translateX(26px)";
+      figure.style.transform = "translate(-9%, 30%) scale(.84)";
     }
     lamps.forEach(function(l){
       l.style.opacity = "0";
@@ -1955,18 +2631,21 @@
 
     if (gate){
       setTimeout(function(){
-        tween({ tag:"gate", from:0, to:1, dur:1700, ease:easeOut, step:function(v){
-          gate.style.transition = "none";
-          gate.style.transform = "rotate(" + (-62 * v).toFixed(2) + "deg)";
+        tween({ tag:"gate", from:GATE_SHUT, to:0, dur:1600, ease:easeOut, step:function(v){
+          gate.style.transform = "rotate(" + v.toFixed(2) + "deg)";
         }});
-      }, 2200);
+      }, 2100);
     }
 
     if (figure){
       setTimeout(function(){
-        figure.style.opacity = "1";
-        figure.style.transform = "none";
-      }, gate ? 4300 : 2600);
+        tween({ tag:"fig", from:0, to:1, dur:1700, ease:easeOut, step:function(v){
+          figure.style.opacity = Math.min(1, v * 1.8).toFixed(3);
+          figure.style.transform =
+            "translate(" + (-9 + 9 * v).toFixed(2) + "%," + (30 - 30 * v).toFixed(2) + "%) " +
+            "scale(" + (.84 + .16 * v).toFixed(3) + ")";
+        }});
+      }, gate ? 4200 : 2500);
     }
 
     var qAt = (gate ? 6400 : 3800);
@@ -2215,21 +2894,35 @@
       var hp = hoops[i];
       if (hp.z - camZ < 90) hp.z += TUBE_DEPTH;
       d = hp.z - camZ;
-      a = Math.min(1, (TUBE_DEPTH - d) / (TUBE_DEPTH * .7)) * Math.min(1, (d - 90) / 700) * .22;
+      a = Math.min(1, (TUBE_DEPTH - d) / (TUBE_DEPTH * .7)) * Math.min(1, (d - 90) / 700) * .34;
       if (a <= .015) continue;
       pz = hp.z;
       var wx = warpX(pz, t), wy = warpY(pz, t);
-      sctx.strokeStyle = "rgba(255,226,180," + a.toFixed(3) + ")";
-      sctx.beginPath();
-      var started = false;
-      for (j = 0; j <= 46; j++){
-        var th = j / 46 * Math.PI * 2;
-        var rr = TUBE_R * ripple(pz, th, t);
-        q = proj(wx + Math.cos(th) * rr, wy + Math.sin(th) * rr, -pz, st, f, cx, cy);
-        if (!q){ started = false; continue; }
-        started ? sctx.lineTo(q[0], q[1]) : (sctx.moveTo(q[0], q[1]), started = true);
+      /* walk the bore in short arcs, each lit differently, so the ring reads
+         as light catching on a surface instead of a drawn circle */
+      var SEG = 14, PER = 6;
+      for (var sgi = 0; sgi < SEG; sgi++){
+        /* modulate by true angle and depth, with incommensurate rates, or the
+           dim parts line up ring to ring and the bore grows spokes */
+        var midth = (sgi + .5) / SEG * Math.PI * 2;
+        var bright = .3 + .7 * Math.pow(Math.max(0,
+            Math.sin(midth * 2.3 + pz * .00061 + t * .8) * .6 +
+            Math.sin(midth * 1.0 - pz * .00037 + t * .5) * .4 + .45), 1.6);
+        var sega = a * bright;
+        if (sega <= .010) continue;
+        sctx.strokeStyle = "rgba(255," + Math.round(226 + bright * 24) + "," + Math.round(182 + bright * 46) + "," + sega.toFixed(3) + ")";
+        sctx.lineWidth = .9 + bright * 2.6;
+        sctx.beginPath();
+        var open2 = false;
+        for (j = 0; j <= PER; j++){
+          var th = (sgi * PER + j) / (SEG * PER) * Math.PI * 2;
+          var rr = TUBE_R * ripple(pz, th, t);
+          q = proj(wx + Math.cos(th) * rr, wy + Math.sin(th) * rr, -pz, st, f, cx, cy);
+          if (!q){ open2 = false; continue; }
+          open2 ? sctx.lineTo(q[0], q[1]) : (sctx.moveTo(q[0], q[1]), open2 = true);
+        }
+        sctx.stroke();
       }
-      sctx.stroke();
     }
 
     /* the light itself, smeared into streaks by how fast it is going past */
@@ -2259,18 +2952,21 @@
 
     /* the anamorphic streak off the light ahead */
     if (core){
-      var fl = sctx.createLinearGradient(0, core[1], W, core[1]);
-      fl.addColorStop(0, "rgba(255,196,130,0)");
-      fl.addColorStop(.5, "rgba(255,232,196,.3)");
-      fl.addColorStop(1, "rgba(255,196,130,0)");
-      sctx.fillStyle = fl;
-      sctx.fillRect(0, core[1] - 2.2, W, 4.4);
-      var fl2 = sctx.createLinearGradient(0, core[1], W, core[1]);
-      fl2.addColorStop(0, "rgba(255,170,96,0)");
-      fl2.addColorStop(.5, "rgba(255,190,130,.1)");
-      fl2.addColorStop(1, "rgba(255,170,96,0)");
-      sctx.fillStyle = fl2;
-      sctx.fillRect(0, core[1] - 14, W, 28);
+      var reach = W * .34;
+      var hot = sctx.createLinearGradient(core[0] - reach, 0, core[0] + reach, 0);
+      hot.addColorStop(0,    "rgba(255,196,130,0)");
+      hot.addColorStop(.34,  "rgba(255,214,160,.10)");
+      hot.addColorStop(.5,   "rgba(255,244,220,.46)");
+      hot.addColorStop(.66,  "rgba(255,214,160,.10)");
+      hot.addColorStop(1,    "rgba(255,196,130,0)");
+      sctx.fillStyle = hot;
+      sctx.fillRect(core[0] - reach, core[1] - 1.6, reach * 2, 3.2);
+      var soft = sctx.createLinearGradient(core[0] - reach, 0, core[0] + reach, 0);
+      soft.addColorStop(0,   "rgba(255,170,96,0)");
+      soft.addColorStop(.5,  "rgba(255,198,140,.13)");
+      soft.addColorStop(1,   "rgba(255,170,96,0)");
+      sctx.fillStyle = soft;
+      sctx.fillRect(core[0] - reach, core[1] - 11, reach * 2, 22);
     }
 
     sctx.globalCompositeOperation = "source-over";
@@ -2407,11 +3103,12 @@
     var base = performance.now();          // one clock for the whole still, or
     fly0 = base - at * 1000;               // rendering cost drifts the moment
     for (var sf = 7; sf >= 0; sf--) flightFrame(base - sf * 16);
-  } else if (jump === "pose0" || jump === "pose1" || jump === "pose5"){
+  } else if (jump === "pose0" || jump === "pose1" || jump === "pose5" || jump === "pose6"){
     barsEl.classList.add("on");
     stage.classList.add("lit");
     setOpen(jump === "pose0" ? 0 : 1);
     if (jump === "pose5"){ setOpen(1); hand.style.setProperty("--palm-ink","0"); hand.style.setProperty("--clap-ink","1"); }
+    if (jump === "pose6"){ setOpen(1); setThumb(1); }
     if (jump !== "pose0") wrap.classList.add("thumb-live");
   } else if (jump === "words" || jump === "fly" || jump === "arrive"){
     stage.style.opacity = "0";
