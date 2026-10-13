@@ -1,59 +1,34 @@
-<title>Mandy 弹窗情书</title>
+<meta charset="utf-8">
+<title>拉开他</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Noto+Sans+SC:wght@400;500;700&family=Ma+Shan+Zheng&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@300;400;600&display=swap">
 
 <style>
   :root{
-    --ground:#FFF3EE;
-    --ground-2:#FFE3DA;
-    --surface:#FFFFFF;
-    --ink:#3A2130;
-    --ink-soft:#8A6474;
-    --line:#F2D9CF;
-    --h-rose:224 75 103;
-    --h-peach:235 145 78;
-    --h-lilac:156 130 224;
-    --h-mint:56 176 149;
-    --on-hue:255 248 245;
-    --focus:#E04B67;
-    --shadow:58 33 48;
+    --night:#0B0D1F;
+    --night-2:#171A3C;
+    --glow:255 201 120;
+    --glow-deep:255 158 94;
+    --skin:#E8A376;
+    --skin-lit:#F8CA9D;
+    --skin-hi:#FFEEDB;
+    --skin-mid:#D1865C;
+    --skin-shade:#A85C40;
+    --skin-deep:#6D3524;
+    --skin-bounce:#C87A52;
+    --skin-glow:#FFC98A;
+    --line:#5A2A1C;
+    --bg:#0B0D1F;
+    --dots:0;
+    --ink:#4A2A1C;
+    --text:#EFE2D4;
+    --text-soft:#9E9289;
+    --hurt:255 107 107;
 
-    --display:"ZCOOL KuaiLe","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
-    --body:"Noto Sans SC","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
-    --script:"Ma Shan Zheng","STKaiti","KaiTi",serif;
-  }
-  @media (prefers-color-scheme:dark){
-    :root:not([data-theme="light"]){
-      --ground:#1E141B;
-      --ground-2:#2C1B26;
-      --surface:#2F2029;
-      --ink:#FBEBE6;
-      --ink-soft:#C6A5B1;
-      --line:#46303D;
-      --h-rose:255 126 147;
-      --h-peach:255 178 115;
-      --h-lilac:192 168 255;
-      --h-mint:111 211 185;
-      --on-hue:42 22 32;
-      --focus:#FF7E93;
-      --shadow:8 3 6;
-    }
-  }
-  :root[data-theme="dark"]{
-    --ground:#1E141B;
-    --ground-2:#2C1B26;
-    --surface:#2F2029;
-    --ink:#FBEBE6;
-    --ink-soft:#C6A5B1;
-    --line:#46303D;
-    --h-rose:255 126 147;
-    --h-peach:255 178 115;
-    --h-lilac:192 168 255;
-    --h-mint:111 211 185;
-    --on-hue:42 22 32;
-    --focus:#FF7E93;
-    --shadow:8 3 6;
+    --brush:"Ma Shan Zheng","STKaiti","KaiTi",serif;
+    --serif:"Noto Serif SC","Songti SC","SimSun",serif;
   }
 
   *{box-sizing:border-box}
@@ -61,197 +36,580 @@
   body{
     margin:0;
     overflow:hidden;
-    font-family:var(--body);
-    color:var(--ink);
-    background:var(--ground);
-    background-image:radial-gradient(120% 90% at 50% 0%, var(--ground-2) 0%, var(--ground) 62%);
+    background:var(--night);
+    color:var(--text);
+    font-family:var(--serif);
     -webkit-font-smoothing:antialiased;
+    -webkit-tap-highlight-color:transparent;
   }
-  button{font:inherit;color:inherit;cursor:pointer}
-  :focus-visible{outline:2.5px solid var(--focus);outline-offset:3px;border-radius:8px}
+  button{font:inherit;color:inherit;cursor:pointer;background:none;border:none}
+  :focus-visible{outline:2px solid rgb(var(--glow));outline-offset:4px;border-radius:6px}
 
-  #sky{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:0}
+  #dust{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:1}
 
-  /* ---------- intro ---------- */
-  #intro{
-    position:fixed;inset:0;z-index:5;
+  /* the pool of candlelight the hand sits in */
+  #halo{
+    position:fixed;left:50%;top:50%;z-index:0;
+    width:min(150vmin,1100px);aspect-ratio:1;
+    transform:translate(-50%,-50%) scale(var(--halo-s,1));
+    background:radial-gradient(circle at 50% 46%,
+      rgb(var(--glow) / calc(.20 * var(--halo-a,1))) 0%,
+      rgb(var(--glow-deep) / calc(.11 * var(--halo-a,1))) 26%,
+      rgb(var(--glow-deep) / 0) 62%);
+    pointer-events:none;
+    will-change:transform;
+  }
+  #vignette{
+    position:fixed;inset:0;z-index:3;pointer-events:none;
+    background:radial-gradient(130% 95% at 50% 46%, rgb(11 13 31 / 0) 42%, rgb(11 13 31 / .72) 100%);
+  }
+
+  #stage{
+    position:fixed;inset:0;z-index:2;
     display:flex;flex-direction:column;align-items:center;justify-content:center;
-    gap:18px;padding:32px 24px;text-align:center;
-    transition:opacity .5s ease, transform .5s ease;
+    gap:clamp(14px,3.2vh,30px);
+    padding:max(18px,env(safe-area-inset-top)) 20px max(18px,env(safe-area-inset-bottom));
+    opacity:0;transition:opacity 1.4s ease;
   }
-  #intro.gone{opacity:0;transform:scale(.96);pointer-events:none}
-  .eyebrow{
-    margin:0;font-size:.72rem;letter-spacing:.34em;text-transform:uppercase;
-    color:rgb(var(--h-rose));font-weight:700;
-  }
-  #intro h1{
-    margin:0;font-family:var(--display);font-weight:400;
-    font-size:clamp(2rem,7.2vw,3.6rem);line-height:1.32;text-wrap:balance;
-    letter-spacing:.02em;
-  }
-  #intro h1 em{font-style:normal;color:rgb(var(--h-rose))}
-  .sub{margin:0;max-width:30ch;color:var(--ink-soft);font-size:1rem;line-height:1.7}
-  #start{
-    margin-top:6px;
-    border:none;border-radius:999px;
-    padding:16px 40px;
-    font-family:var(--display);font-size:1.22rem;letter-spacing:.06em;
-    color:rgb(var(--on-hue));
-    background:linear-gradient(135deg, rgb(var(--h-rose)), rgb(var(--h-peach)));
-    box-shadow:0 14px 30px -12px rgb(var(--h-rose) / .85);
-    transition:transform .22s cubic-bezier(.34,1.56,.64,1), box-shadow .22s ease;
-  }
-  #start:hover{transform:translateY(-3px) scale(1.03);box-shadow:0 20px 38px -14px rgb(var(--h-rose) / .9)}
-  #start:active{transform:translateY(0) scale(.98)}
-  .hint{margin:2px 0 0;font-size:.82rem;color:var(--ink-soft);opacity:.85}
+  #stage.lit{opacity:1}
 
-  /* ---------- windows ---------- */
-  #windows{position:fixed;inset:0;z-index:10;pointer-events:none}
-  .win{
-    position:absolute;pointer-events:auto;
-    width:calc(clamp(206px,44vw,276px) * var(--ws,1));
-    background:var(--surface);
-    border:1.5px solid var(--line);
-    border-radius:14px;
-    overflow:hidden;
-    transform:rotate(var(--rot)) scale(.55);
-    opacity:0;
-    box-shadow:0 14px 30px -12px rgb(var(--h) / .6), 0 2px 6px -2px rgb(var(--shadow) / .12);
-    transition:opacity .34s ease, transform .42s cubic-bezier(.34,1.42,.64,1);
+  /* ---------- the hand ---------- */
+  #handwrap{
+    position:relative;
+    width:min(74vw,340px);
+    flex:0 0 auto;
+    touch-action:none;
+    transform:translateY(var(--jolt-y,0)) rotate(var(--jolt-r,0deg));
+  }
+  #handwrap svg{display:block;width:100%;height:auto;overflow:visible}
+  #handwrap.grabbable{cursor:grab}
+  #handwrap.grabbing{cursor:grabbing}
+
+  .ink{
+    font-family:var(--brush);
+    fill:var(--ink);
+    text-anchor:middle;
+    dominant-baseline:central;
+    pointer-events:none;
+    letter-spacing:2px;
+  }
+
+  #f-thumb{transition:filter .5s ease}
+  #handwrap.thumb-live #f-thumb{
+    cursor:pointer;
+    filter:drop-shadow(0 0 10px rgb(var(--glow) / .85)) drop-shadow(0 0 24px rgb(var(--glow) / .45));
+    animation:breathe 2.4s ease-in-out infinite;
+  }
+  @keyframes breathe{0%,100%{opacity:1}50%{opacity:.82}}
+
+  /* ---------- words ---------- */
+  #hint{
+    margin:0;min-height:1.6em;
+    font-size:clamp(.82rem,2.6vw,.95rem);
+    font-weight:300;letter-spacing:.3em;text-indent:.3em;
+    color:var(--text-soft);
+    opacity:0;transition:opacity .9s ease;
+    text-align:center;
+  }
+  #hint.show{opacity:1}
+
+  #choices{
+    display:flex;gap:clamp(10px,3vw,18px);flex-wrap:wrap;justify-content:center;
+    opacity:0;transform:translateY(14px);pointer-events:none;
+    transition:opacity .7s ease,transform .7s cubic-bezier(.22,1,.36,1);
+  }
+  #choices.show{opacity:1;transform:none;pointer-events:auto}
+  #choices button{
+    padding:13px 26px;border-radius:999px;
+    border:1px solid rgb(var(--glow) / .42);
+    background:rgb(var(--glow) / .05);
+    font-size:clamp(.92rem,3vw,1.02rem);font-weight:400;letter-spacing:.12em;
+    color:var(--text);
+    transition:border-color .3s ease,background .3s ease,transform .3s cubic-bezier(.22,1,.36,1);
+  }
+  #choices button:hover{
+    border-color:rgb(var(--glow) / .9);
+    background:rgb(var(--glow) / .13);
+    transform:translateY(-2px);
+  }
+  #choices button:active{transform:translateY(0)}
+
+  #ouch{
+    position:fixed;left:50%;top:38%;z-index:6;
+    transform:translate(-50%,-50%) scale(.6);
+    font-family:var(--brush);
+    font-size:clamp(4rem,22vw,10rem);
+    color:rgb(var(--hurt));
+    text-shadow:0 0 40px rgb(var(--hurt) / .55);
+    opacity:0;pointer-events:none;
+  }
+  #ouch.show{animation:ouch 1.5s cubic-bezier(.22,1,.36,1) forwards}
+  @keyframes ouch{
+    0%{opacity:0;transform:translate(-50%,-50%) scale(.5) rotate(-8deg)}
+    18%{opacity:1;transform:translate(-50%,-50%) scale(1.12) rotate(4deg)}
+    30%{transform:translate(-50%,-50%) scale(1) rotate(-2deg)}
+    72%{opacity:1}
+    100%{opacity:0;transform:translate(-50%,-50%) scale(1.04)}
+  }
+
+  /* ---------- the hand becomes the words ---------- */
+  #burst{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:5}
+
+  /* a time tunnel: each line spirals out of the vanishing point toward you */
+  #letters{
+    position:fixed;inset:0;z-index:4;pointer-events:none;overflow:hidden;
+    perspective:760px;perspective-origin:50% 46%;
+  }
+  .letter{
+    position:absolute;left:50%;top:46%;margin:0;
+    font-family:var(--brush);
+    font-size:clamp(1.1rem,4.2vw,1.66rem);
+    line-height:1.5;white-space:nowrap;
+    color:var(--text);
+    text-shadow:0 0 16px rgb(var(--glow) / .6), 0 0 44px rgb(var(--glow) / .3);
+    opacity:0;will-change:transform,opacity;
+    animation:tunnel 9s linear forwards;
+  }
+  @keyframes tunnel{
+    0%{
+      opacity:0;
+      transform:rotate(var(--a0)) translateX(24px) rotate(calc(-1 * var(--a0)))
+                translateZ(-1500px) translate(-50%,-50%);
+    }
+    11%{opacity:1}
+    70%{opacity:1}
+    100%{
+      opacity:0;
+      transform:rotate(calc(var(--a0) + 400deg)) translateX(300px) rotate(calc(-1 * var(--a0) - 400deg))
+                translateZ(470px) translate(-50%,-50%);
+    }
+  }
+
+  #final{
+    position:fixed;inset:0;z-index:8;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:clamp(20px,5vh,40px);padding:32px 24px;text-align:center;
+    opacity:0;pointer-events:none;transition:opacity 2s ease;
+  }
+  #final.show{opacity:1;pointer-events:auto}
+  #final .line{
+    margin:0;font-family:var(--brush);
+    font-size:clamp(2rem,9.6vw,4.6rem);line-height:1.38;
+    color:var(--text);text-wrap:balance;
+    text-shadow:0 0 30px rgb(var(--glow) / .55), 0 0 80px rgb(var(--glow) / .28);
+  }
+  #final .sig{
+    margin:0;font-family:var(--serif);font-weight:300;
+    font-size:.8rem;letter-spacing:.42em;text-indent:.42em;
+    color:var(--text-soft);
+  }
+  #again{
+    padding:12px 28px;border-radius:999px;
+    border:1px solid rgb(var(--glow) / .34);
+    font-size:.86rem;font-weight:300;letter-spacing:.16em;
+    color:var(--text-soft);
+    transition:border-color .3s ease,color .3s ease;
+  }
+  #again:hover{border-color:rgb(var(--glow) / .8);color:var(--text)}
+
+  /* ---------- the flight down the hole ---------- */
+  #flight{
+    position:fixed;inset:0;z-index:6;
+    opacity:0;pointer-events:none;
+    perspective:820px;perspective-origin:50% 50%;
+  }
+  #flight.on{opacity:1}
+  #streaks{position:absolute;inset:0;width:100%;height:100%}
+  #cam{
+    position:absolute;left:50%;top:50%;width:0;height:0;
+    transform-style:preserve-3d;
+  }
+  .ring{
+    position:absolute;left:0;top:0;
+    border-radius:50%;
+    border:2.5px solid rgb(var(--glow) / .5);
+    box-shadow:0 0 26px rgb(var(--glow) / .3), inset 0 0 30px rgb(var(--glow-deep) / .22);
     will-change:transform,opacity;
   }
-  .win.in{opacity:1;transform:rotate(var(--rot)) scale(1)}
-  .win.out{opacity:0;transform:rotate(var(--rot)) scale(.5) translateY(10px);transition-duration:.28s}
-  .win.dragging{transition:none;cursor:grabbing}
+  .vision{
+    position:absolute;left:0;top:0;
+    width:1120px;height:747px;
+    margin:-373px 0 0 -560px;
+    opacity:0;
+    will-change:transform,opacity;
+  }
+  .vision svg{display:block;width:100%;height:100%;overflow:visible}
 
-  .bar{
-    display:flex;align-items:center;gap:8px;
-    padding:8px 8px 8px 12px;
-    background:rgb(var(--h));
-    color:rgb(var(--on-hue));
-    cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;
-  }
-  .win.dragging .bar{cursor:grabbing}
-  .bar .heart{font-size:.9rem;line-height:1;opacity:.9}
-  .bar .name{
-    flex:1;min-width:0;
-    font-size:.74rem;font-weight:500;letter-spacing:.09em;
-    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-    opacity:.95;
-  }
-  .bar .x{
-    flex:none;width:22px;height:22px;padding:0;
+  /* placeholder art, replaced once the illustrations land */
+  .vision.stub{
     display:grid;place-items:center;
-    border:none;border-radius:7px;
-    font-size:.9rem;line-height:1;
-    color:rgb(var(--on-hue));
-    background:rgb(var(--on-hue) / .16);
-    transition:background .16s ease,transform .16s ease;
-  }
-  .bar .x:hover{background:rgb(var(--on-hue) / .34);transform:scale(1.1)}
-
-  .msg{
-    margin:0;padding:20px 18px 22px;
-    font-family:var(--display);font-weight:400;
-    font-size:1.12rem;line-height:1.66;letter-spacing:.02em;
-    text-wrap:balance;
+    border-radius:28px;
+    background:radial-gradient(60% 60% at 50% 50%, rgb(var(--glow) / .16), rgb(var(--glow) / 0) 70%);
+    font-family:var(--brush);font-size:3rem;color:rgb(var(--glow));
+    box-shadow:inset 0 0 90px rgb(var(--glow) / .18);
   }
 
-  /* ---------- dock ---------- */
-  #dock{
-    position:fixed;z-index:200;
-    left:50%;bottom:22px;transform:translate(-50%,140%);
-    display:flex;align-items:center;gap:14px;
-    padding:9px 9px 9px 20px;
-    background:var(--surface);
-    border:1.5px solid var(--line);
-    border-radius:999px;
-    box-shadow:0 18px 40px -16px rgb(var(--shadow) / .45);
-    transition:transform .5s cubic-bezier(.34,1.3,.64,1);
-  }
-  #dock.up{transform:translate(-50%,0)}
-  #count{font-size:.86rem;color:var(--ink-soft);font-variant-numeric:tabular-nums;white-space:nowrap}
-  #count b{color:var(--ink);font-weight:700}
-  #closeAll{
-    border:none;border-radius:999px;
-    padding:11px 22px;white-space:nowrap;
-    font-size:.9rem;font-weight:700;letter-spacing:.04em;
-    color:rgb(var(--on-hue));
-    background:rgb(var(--h-rose));
-    transition:transform .18s ease, filter .18s ease;
-  }
-  #closeAll:hover{transform:translateY(-2px);filter:brightness(1.06)}
-  #closeAll:active{transform:translateY(0)}
-
-  /* ---------- finale ---------- */
-  #finale{
-    position:fixed;inset:0;z-index:300;
+  /* ---------- where the wind drops her ---------- */
+  #arrival{
+    position:fixed;inset:0;z-index:7;
     display:flex;flex-direction:column;align-items:center;justify-content:center;
-    gap:26px;padding:32px 24px;text-align:center;
-    background:radial-gradient(120% 90% at 50% 40%, var(--ground-2) 0%, var(--ground) 70%);
-    opacity:0;pointer-events:none;
-    transition:opacity .7s ease;
+    gap:clamp(16px,4vh,34px);padding:28px 20px max(28px,env(safe-area-inset-bottom));
+    opacity:0;pointer-events:none;transition:opacity 1.5s ease;
   }
-  #finale.show{opacity:1;pointer-events:auto}
-  #finale .seal{
-    font-size:2.4rem;line-height:1;
-    animation:beat 1.9s ease-in-out infinite;
+  #arrival.show{opacity:1;pointer-events:auto}
+  #car{
+    width:min(94vw,860px);flex:0 0 auto;
+    opacity:0;transform:translateY(16px) scale(.985);
+    transition:opacity 1.6s ease, transform 1.8s cubic-bezier(.22,1,.36,1);
   }
-  @keyframes beat{0%,100%{transform:scale(1)}14%{transform:scale(1.16)}28%{transform:scale(1)}42%{transform:scale(1.1)}}
-  #finale p.line{
-    margin:0;font-family:var(--script);
-    font-size:clamp(2.1rem,8.4vw,4.2rem);line-height:1.4;
-    color:var(--ink);text-wrap:balance;
+  #car.in{opacity:1;transform:none}
+  #car svg{display:block;width:100%;height:auto;overflow:visible}
+  #car.stub{
+    height:min(44vh,330px);border-radius:24px;
+    display:grid;place-items:center;
+    background:radial-gradient(60% 70% at 50% 60%, rgb(var(--glow) / .14), rgb(var(--glow) / 0) 72%);
+    font-family:var(--brush);font-size:2.4rem;color:rgb(var(--glow) / .9);
   }
-  #finale .from{margin:0;font-size:.86rem;letter-spacing:.28em;text-transform:uppercase;color:var(--ink-soft)}
-  #again{
-    border:1.5px solid var(--line);border-radius:999px;
-    padding:13px 30px;background:var(--surface);
-    font-size:.92rem;font-weight:500;letter-spacing:.06em;color:var(--ink);
-    transition:transform .18s ease,border-color .18s ease;
+  #question{
+    margin:0;font-family:var(--brush);
+    font-size:clamp(1.8rem,8vw,4.1rem);line-height:1.34;text-wrap:balance;
+    color:var(--text);
+    text-shadow:0 0 34px rgb(var(--glow) / .6), 0 0 90px rgb(var(--glow) / .3);
+    opacity:0;transform:translateY(14px);
+    transition:opacity 1.8s ease, transform 1.8s cubic-bezier(.22,1,.36,1);
   }
-  #again:hover{transform:translateY(-2px);border-color:rgb(var(--h-rose))}
+  #question.in{opacity:1;transform:none}
+  #arrival .sig{
+    margin:0;font-family:var(--serif);font-weight:300;
+    font-size:.78rem;letter-spacing:.42em;text-indent:.42em;color:var(--text-soft);
+    opacity:0;transition:opacity 1.6s ease;
+  }
+  #arrival .sig.in{opacity:.7}
 
-  @media (max-width:560px){
-    .win{width:calc(clamp(188px,50vw,242px) * var(--ws,1))}
-    .msg{padding:13px 14px 15px;font-size:1rem;line-height:1.55}
-    .bar{padding:6px 6px 6px 10px}
-    .bar .name{font-size:.7rem}
-    #dock{bottom:14px;gap:10px;padding-left:16px}
+  /* ---------- 未完待续 ---------- */
+  #next{
+    position:fixed;inset:0;z-index:7;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:clamp(18px,4vh,34px);padding:32px 24px;text-align:center;
+    opacity:0;pointer-events:none;transition:opacity 1.6s ease;
   }
+  #next.show{opacity:1;pointer-events:auto}
+  #next .beat{
+    margin:0;font-family:var(--brush);
+    color:var(--text);
+    opacity:0;transform:translateY(12px);
+    transition:opacity 1.1s ease,transform 1.1s cubic-bezier(.22,1,.36,1);
+  }
+  #next .beat.show{opacity:1;transform:none}
+  #next .b1{font-size:clamp(2.6rem,11vw,5rem);line-height:1}
+  #next .b2{font-size:clamp(1.3rem,5.4vw,2.1rem);line-height:1.6;color:rgb(var(--glow))}
+  #next .tbc{
+    margin:0;font-family:var(--serif);font-weight:300;
+    font-size:.8rem;letter-spacing:.42em;text-indent:.42em;
+    color:var(--text-soft);
+    opacity:0;transition:opacity 1.4s ease;
+  }
+  #next .tbc.show{opacity:.75}
 
   @media (prefers-reduced-motion:reduce){
-    *,*::before,*::after{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important}
+    *,*::before,*::after{animation-duration:.001ms !important;animation-iteration-count:1 !important}
   }
 </style>
 
-<canvas id="sky" aria-hidden="true"></canvas>
+<div id="halo"></div>
+<canvas id="dust" aria-hidden="true"></canvas>
+<div id="vignette"></div>
 
-<section id="intro">
-  <p class="eyebrow">for mandy &#9829;</p>
-  <h1>有 <em>17</em> 句话<br>想一起跳出来找你</h1>
-  <p class="sub">按一下，它们会挤满整个屏幕。每个都能拖着走，也能一键全部关掉。</p>
-  <button id="start" type="button">点我 &#128140;</button>
-  <p class="hint">建议在电脑或手机浏览器里打开</p>
-</section>
+<div id="stage">
+  <div id="handwrap">
+    <!-- ============================================================
+         HAND RIG — swapped in from the bake-off.
+         Contract: root svg carries --open (0 = fist, 1 = open palm)
+         and --thumb (0 = rest, 1 = turned). Every joint angle is a
+         calc() off those two. #f-thumb must stay hit-testable.
+         ============================================================ -->
+    <svg id="hand" viewBox="0 0 400 560" style="--open:0;--thumb:0" aria-label="一只手">
+      <style>
+/* ---- joint rig: transform-box view-box => origins are absolute SVG user units ---- */
+.finger,.finger .seg2,.finger .seg3,#f-thumb,#f-thumb .seg2{transform-box:view-box}
+#f-pinky{transform-origin:259px 308px;transform:rotate(calc(86deg - var(--open) * 73deg))}
+#f-pinky > .seg2{transform-origin:259px 248px;transform:rotate(calc(98deg - var(--open) * 95deg))}
+#f-pinky > .seg2 > .seg3{transform-origin:259px 208px;transform:rotate(calc(64deg - var(--open) * 62deg))}
+#f-ring{transform-origin:223px 286px;transform:rotate(calc(92deg - var(--open) * 86deg))}
+#f-ring > .seg2{transform-origin:223px 206px;transform:rotate(calc(106deg - var(--open) * 104deg))}
+#f-ring > .seg2 > .seg3{transform-origin:223px 156px;transform:rotate(calc(72deg - var(--open) * 71deg))}
+#f-middle{transform-origin:183px 278px;transform:rotate(calc(90deg - var(--open) * 91deg))}
+#f-middle > .seg2{transform-origin:183px 190px;transform:rotate(calc(104deg - var(--open) * 104deg))}
+#f-middle > .seg2 > .seg3{transform-origin:183px 136px;transform:rotate(calc(70deg - var(--open) * 70deg))}
+#f-index{transform-origin:139px 292px;transform:rotate(calc(88deg - var(--open) * 95deg))}
+#f-index > .seg2{transform-origin:139px 210px;transform:rotate(calc(102deg - var(--open) * 105deg))}
+#f-index > .seg2 > .seg3{transform-origin:139px 162px;transform:rotate(calc(68deg - var(--open) * 70deg))}
+#f-thumb{transform-origin:114px 400px;transform:rotate(calc(58deg - var(--open) * 94deg - var(--thumb) * 40deg))}
+#f-thumb > .seg2{transform-origin:114px 336px;transform:rotate(calc(34deg - var(--open) * 44deg))}
 
-<div id="windows"></div>
+/* ---- paint: every colour resolves through a :root custom property ---- */
+.c-hi{stop-color:var(--skin-hi)}
+.c-lit{stop-color:var(--skin-lit)}
+.c-skin{stop-color:var(--skin)}
+.c-mid{stop-color:var(--skin-mid)}
+.c-shade{stop-color:var(--skin-shade)}
+.c-deep{stop-color:var(--skin-deep)}
+.c-bounce{stop-color:var(--skin-bounce)}
+.c-glow{stop-color:var(--skin-glow)}
+.c-bg{stop-color:var(--bg)}
+.wrist{fill:url(#gWrist)}
+.palm{fill:url(#gPalm)}
+.palmedge{fill:url(#gShade);opacity:.55}
+.sg{fill:url(#gSeg)}
+.j{fill:url(#gJoint)}
+.hl{fill:url(#gHi);opacity:.5}
+.pad{fill:url(#gHi);opacity:.42}
+.sh{fill:url(#gShade);opacity:.5}
+.cr{fill:url(#gDeep);opacity:calc(var(--open)*0.4)}
+.thenar{fill:url(#gThenar)}
+.hypo{fill:url(#gShade);opacity:.6}
+.hollow{fill:url(#gShade);opacity:.42}
+.palmhi{fill:url(#gHi);opacity:.4}
+.knuck{fill:url(#gHi);opacity:calc((1 - var(--open))*0.45)}
+.wristshade{fill:url(#gDeep);opacity:.4}
+.web{fill:url(#gDeep);opacity:calc(var(--open)*0.5)}
+.crease{fill:none;stroke:var(--skin-deep);stroke-width:4.5;stroke-linecap:round;opacity:calc(var(--open)*0.26)}
+.rim{fill:none;stroke:var(--skin-glow);stroke-width:3.2;stroke-linecap:round;opacity:.3}
+.fade{fill:url(#gFade)}
+        #ink-fist{opacity:calc(1 - var(--open) * 2.6)}
+        #ink-palm{opacity:calc((var(--open) - .62) * 2.7 * var(--palm-ink, 1))}
+        #ink-clap{opacity:var(--clap-ink, 0)}
+      </style>
+<defs>
+<linearGradient id="gSeg" x1="0" y1="0.04" x2="1" y2="0.52">
+<stop class="c-hi" offset="0"/><stop class="c-lit" offset="0.07"/><stop class="c-skin" offset="0.28"/>
+<stop class="c-mid" offset="0.62"/><stop class="c-shade" offset="0.9"/><stop class="c-bounce" offset="1"/>
+</linearGradient>
+<radialGradient id="gJoint" cx="0.36" cy="0.3" r="0.78">
+<stop class="c-lit" offset="0"/><stop class="c-skin" offset="0.4"/><stop class="c-mid" offset="0.74"/><stop class="c-shade" offset="1"/>
+</radialGradient>
+<linearGradient id="gPalm" x1="0.04" y1="0.1" x2="0.96" y2="0.72">
+<stop class="c-lit" offset="0"/><stop class="c-skin" offset="0.32"/><stop class="c-mid" offset="0.64"/>
+<stop class="c-shade" offset="0.9"/><stop class="c-bounce" offset="1"/>
+</linearGradient>
+<linearGradient id="gWrist" x1="0" y1="0" x2="1" y2="0.18">
+<stop class="c-lit" offset="0"/><stop class="c-skin" offset="0.26"/><stop class="c-mid" offset="0.66"/><stop class="c-shade" offset="1"/>
+</linearGradient>
+<radialGradient id="gHi" cx="0.42" cy="0.34" r="0.64">
+<stop class="c-hi" offset="0" stop-opacity=".92"/><stop class="c-lit" offset="0.52" stop-opacity=".26"/>
+<stop class="c-lit" offset="1" stop-opacity="0"/>
+</radialGradient>
+<radialGradient id="gShade" cx="0.5" cy="0.5" r="0.5">
+<stop class="c-shade" offset="0" stop-opacity=".55"/><stop class="c-shade" offset="0.6" stop-opacity=".3"/>
+<stop class="c-shade" offset="1" stop-opacity="0"/>
+</radialGradient>
+<radialGradient id="gDeep" cx="0.5" cy="0.5" r="0.5">
+<stop class="c-deep" offset="0" stop-opacity=".6"/><stop class="c-deep" offset="1" stop-opacity="0"/>
+</radialGradient>
+<radialGradient id="gThenar" cx="0.4" cy="0.3" r="0.72">
+<stop class="c-hi" offset="0" stop-opacity=".5"/><stop class="c-lit" offset="0.55" stop-opacity=".22"/>
+<stop class="c-lit" offset="1" stop-opacity="0"/>
+</radialGradient>
+<linearGradient id="gFade" x1="0" y1="0" x2="0" y2="1">
+<stop class="c-bg" offset="0" stop-opacity="0"/><stop class="c-bg" offset="0.5" stop-opacity=".45"/><stop class="c-bg" offset="1" stop-opacity="1"/>
+</linearGradient>
 
-<div id="dock">
-  <span id="count">还剩 <b>0</b> 个窗口</span>
-  <button id="closeAll" type="button">全部关掉</button>
+</defs>
+<g id="hand-body">
+  <path class="wrist" d="M146 456 C138 488 134 520 136 560 L256 560 C258 520 254 488 246 456 Z"/>
+  <ellipse class="sh" cx="226" cy="512" rx="23" ry="46"/>
+  <rect class="fade" x="118" y="498" width="176" height="64"/>
+  <path class="palm" d="M118 298 C103 318 94 344 92 370 C91 398 94 422 100 442
+    C110 458 126 466 146 470 L244 470 C264 462 280 452 288 438
+    C295 418 297 392 294 366 C291 336 280 312 270 298
+    C252 284 216 270 184 268 C156 266 132 278 118 298 Z"/>
+  <ellipse class="palmedge" cx="274" cy="392" rx="18" ry="70" transform="rotate(4 274 392)"/>
+  <ellipse class="thenar" cx="128" cy="386" rx="31" ry="52" transform="rotate(-9 128 386)"/>
+  <ellipse class="palmhi" cx="156" cy="332" rx="52" ry="42"/>
+  <ellipse class="hypo" cx="269" cy="400" rx="19" ry="56" transform="rotate(4 269 400)"/>
+  <ellipse class="hollow" cx="196" cy="328" rx="68" ry="26"/>
+  <ellipse class="wristshade" cx="194" cy="458" rx="54" ry="20"/>
+  <path class="crease" d="M258 300 C228 320 180 330 138 324"/>
+  <path class="crease" d="M128 300 C110 318 102 334 101 352"/>
+  <ellipse class="web" cx="161" cy="289" rx="13" ry="9"/>
+  <ellipse class="web" cx="203" cy="279" rx="13" ry="9"/>
+  <ellipse class="web" cx="241" cy="289" rx="12" ry="8"/>
+  <ellipse class="web" cx="132" cy="308" rx="14" ry="10"/>
+  <path class="rim" d="M118 298 C103 318 94 344 92 370 C91 398 94 422 100 442"/>
+  <g class="finger" id="f-pinky">
+    <circle class="j" cx="259.0" cy="308.0" r="15.8"/>
+    <path class="sg" d="M243.0 308.0 C243.0 320.5 275.0 320.5 275.0 308.0 C275.9 286.4 274.9 270.8 274.0 248.0 C274.0 233.0 244.0 233.0 244.0 248.0 C243.1 270.8 242.1 286.4 243.0 308.0 Z"/>
+    <ellipse class="hl" cx="253.6" cy="280.4" rx="7.4" ry="21.6"/>
+    <ellipse class="sh" cx="267.0" cy="278.0" rx="6.7" ry="24.0"/>
+    <ellipse class="knuck" cx="255.8" cy="302.6" rx="8.0" ry="5.4"/>
+    <ellipse class="cr" cx="259.0" cy="308.0" rx="12.2" ry="4.8"/>
+    <g class="seg2">
+      <circle class="j" cx="259.0" cy="248.0" r="14.8"/>
+      <path class="sg" d="M244.0 248.0 C244.0 259.7 274.0 259.7 274.0 248.0 C274.9 233.6 273.4 223.2 272.5 208.0 C272.5 194.5 245.5 194.5 245.5 208.0 C244.6 223.2 243.1 233.6 244.0 248.0 Z"/>
+      <ellipse class="hl" cx="253.9" cy="229.6" rx="6.9" ry="14.4"/>
+      <ellipse class="sh" cx="266.5" cy="228.0" rx="6.3" ry="16.0"/>
+      <ellipse class="knuck" cx="256.0" cy="244.4" rx="7.5" ry="5.1"/>
+      <ellipse class="cr" cx="259.0" cy="248.0" rx="11.4" ry="4.5"/>
+      <g class="seg3">
+        <circle class="j" cx="259.0" cy="208.0" r="13.4"/>
+        <path class="sg" d="M245.5 208.0 C245.5 218.5 272.5 218.5 272.5 208.0 C273.4 196.8 271.7 200.0 270.5 189.1 C270.5 173.3 247.5 173.3 247.5 189.1 C246.3 200.0 244.6 196.8 245.5 208.0 Z"/>
+        <ellipse class="hl" cx="254.4" cy="193.7" rx="6.2" ry="11.2"/>
+        <ellipse class="sh" cx="265.8" cy="192.5" rx="5.7" ry="12.4"/>
+        <ellipse class="knuck" cx="256.3" cy="205.2" rx="6.8" ry="4.6"/>
+        <ellipse class="cr" cx="259.0" cy="208.0" rx="10.3" ry="4.0"/>
+        <ellipse class="pad" cx="259.0" cy="194.2" rx="8.3" ry="11.5"/>
+        </g>
+    </g>
+  </g>
+  <g class="finger" id="f-ring">
+    <circle class="j" cx="223.0" cy="286.0" r="18.8"/>
+    <path class="sg" d="M204.0 286.0 C204.0 300.8 242.0 300.8 242.0 286.0 C242.9 257.2 241.4 236.4 240.5 206.0 C240.5 188.5 205.5 188.5 205.5 206.0 C204.6 236.4 203.1 257.2 204.0 286.0 Z"/>
+    <ellipse class="hl" cx="216.5" cy="249.2" rx="8.7" ry="28.8"/>
+    <ellipse class="sh" cx="232.5" cy="246.0" rx="8.0" ry="32.0"/>
+    <ellipse class="knuck" cx="219.2" cy="278.8" rx="9.5" ry="6.5"/>
+    <ellipse class="cr" cx="223.0" cy="286.0" rx="14.4" ry="5.7"/>
+    <g class="seg2">
+      <circle class="j" cx="223.0" cy="206.0" r="17.3"/>
+      <path class="sg" d="M205.5 206.0 C205.5 219.7 240.5 219.7 240.5 206.0 C241.4 188.0 239.4 175.0 238.5 156.0 C238.5 140.5 207.5 140.5 207.5 156.0 C206.6 175.0 204.6 188.0 205.5 206.0 Z"/>
+      <ellipse class="hl" cx="217.1" cy="183.0" rx="8.1" ry="18.0"/>
+      <ellipse class="sh" cx="231.8" cy="181.0" rx="7.3" ry="20.0"/>
+      <ellipse class="knuck" cx="219.5" cy="201.5" rx="8.8" ry="6.0"/>
+      <ellipse class="cr" cx="223.0" cy="206.0" rx="13.3" ry="5.2"/>
+      <g class="seg3">
+        <circle class="j" cx="223.0" cy="156.0" r="15.3"/>
+        <path class="sg" d="M207.5 156.0 C207.5 168.1 238.5 168.1 238.5 156.0 C239.4 142.7 237.7 146.0 236.5 133.2 C236.5 114.7 209.5 114.7 209.5 133.2 C208.3 146.0 206.6 142.7 207.5 156.0 Z"/>
+        <ellipse class="hl" cx="217.7" cy="139.0" rx="7.1" ry="13.3"/>
+        <ellipse class="sh" cx="230.8" cy="137.5" rx="6.5" ry="14.8"/>
+        <ellipse class="knuck" cx="219.9" cy="152.7" rx="7.8" ry="5.3"/>
+        <ellipse class="cr" cx="223.0" cy="156.0" rx="11.8" ry="4.6"/>
+        <ellipse class="pad" cx="223.0" cy="139.2" rx="9.7" ry="13.5"/>
+        </g>
+    </g>
+  </g>
+  <g class="finger" id="f-middle">
+    <circle class="j" cx="183.0" cy="278.0" r="20.3"/>
+    <path class="sg" d="M162.5 278.0 C162.5 294.0 203.5 294.0 203.5 278.0 C204.4 246.3 202.9 223.4 202.0 190.0 C202.0 171.0 164.0 171.0 164.0 190.0 C163.1 223.4 161.6 246.3 162.5 278.0 Z"/>
+    <ellipse class="hl" cx="176.0" cy="237.5" rx="9.4" ry="31.7"/>
+    <ellipse class="sh" cx="193.2" cy="234.0" rx="8.6" ry="35.2"/>
+    <ellipse class="knuck" cx="178.9" cy="270.1" rx="10.2" ry="7.0"/>
+    <ellipse class="cr" cx="183.0" cy="278.0" rx="15.6" ry="6.1"/>
+    <g class="seg2">
+      <circle class="j" cx="183.0" cy="190.0" r="18.8"/>
+      <path class="sg" d="M164.0 190.0 C164.0 204.8 202.0 204.8 202.0 190.0 C202.9 170.6 200.9 156.5 200.0 136.0 C200.0 119.0 166.0 119.0 166.0 136.0 C165.1 156.5 163.1 170.6 164.0 190.0 Z"/>
+      <ellipse class="hl" cx="176.5" cy="165.2" rx="8.7" ry="19.4"/>
+      <ellipse class="sh" cx="192.5" cy="163.0" rx="8.0" ry="21.6"/>
+      <ellipse class="knuck" cx="179.2" cy="185.1" rx="9.5" ry="6.5"/>
+      <ellipse class="cr" cx="183.0" cy="190.0" rx="14.4" ry="5.7"/>
+      <g class="seg3">
+        <circle class="j" cx="183.0" cy="136.0" r="16.8"/>
+        <path class="sg" d="M166.0 136.0 C166.0 149.3 200.0 149.3 200.0 136.0 C200.9 121.6 198.7 125.0 197.5 111.2 C197.5 91.4 168.5 91.4 168.5 111.2 C167.3 125.0 165.1 121.6 166.0 136.0 Z"/>
+        <ellipse class="hl" cx="177.2" cy="117.6" rx="7.8" ry="14.4"/>
+        <ellipse class="sh" cx="191.5" cy="116.0" rx="7.1" ry="16.0"/>
+        <ellipse class="knuck" cx="179.6" cy="132.4" rx="8.5" ry="5.8"/>
+        <ellipse class="cr" cx="183.0" cy="136.0" rx="12.9" ry="5.1"/>
+        <ellipse class="pad" cx="183.0" cy="117.8" rx="10.4" ry="14.5"/>
+        </g>
+    </g>
+  </g>
+  <g class="finger" id="f-index">
+    <circle class="j" cx="139.0" cy="292.0" r="19.8"/>
+    <path class="sg" d="M119.0 292.0 C119.0 307.6 159.0 307.6 159.0 292.0 C159.9 262.5 158.4 241.2 157.5 210.0 C157.5 191.5 120.5 191.5 120.5 210.0 C119.6 241.2 118.1 262.5 119.0 292.0 Z"/>
+    <ellipse class="hl" cx="132.2" cy="254.3" rx="9.2" ry="29.5"/>
+    <ellipse class="sh" cx="149.0" cy="251.0" rx="8.4" ry="32.8"/>
+    <ellipse class="knuck" cx="135.0" cy="284.6" rx="10.0" ry="6.8"/>
+    <ellipse class="cr" cx="139.0" cy="292.0" rx="15.2" ry="6.0"/>
+    <g class="seg2">
+      <circle class="j" cx="139.0" cy="210.0" r="18.3"/>
+      <path class="sg" d="M120.5 210.0 C120.5 224.4 157.5 224.4 157.5 210.0 C158.4 192.7 156.4 180.2 155.5 162.0 C155.5 145.5 122.5 145.5 122.5 162.0 C121.6 180.2 119.6 192.7 120.5 210.0 Z"/>
+      <ellipse class="hl" cx="132.7" cy="187.9" rx="8.5" ry="17.3"/>
+      <ellipse class="sh" cx="148.2" cy="186.0" rx="7.8" ry="19.2"/>
+      <ellipse class="knuck" cx="135.3" cy="205.7" rx="9.2" ry="6.3"/>
+      <ellipse class="cr" cx="139.0" cy="210.0" rx="14.1" ry="5.5"/>
+      <g class="seg3">
+        <circle class="j" cx="139.0" cy="162.0" r="16.3"/>
+        <path class="sg" d="M122.5 162.0 C122.5 174.9 155.5 174.9 155.5 162.0 C156.4 148.0 154.2 151.0 153.0 137.7 C153.0 118.5 125.0 118.5 125.0 137.7 C123.8 151.0 121.6 148.0 122.5 162.0 Z"/>
+        <ellipse class="hl" cx="133.4" cy="144.1" rx="7.6" ry="14.0"/>
+        <ellipse class="sh" cx="147.2" cy="142.5" rx="6.9" ry="15.6"/>
+        <ellipse class="knuck" cx="135.7" cy="158.5" rx="8.2" ry="5.6"/>
+        <ellipse class="cr" cx="139.0" cy="162.0" rx="12.5" ry="5.0"/>
+        <ellipse class="pad" cx="139.0" cy="144.0" rx="10.1" ry="14.0"/>
+        </g>
+    </g>
+  </g>
+  <g class="finger" id="f-thumb">
+    <circle class="j" cx="114.0" cy="400.0" r="24.8"/>
+    <path class="sg" d="M89.0 400.0 C89.0 419.5 139.0 419.5 139.0 400.0 C139.9 377.0 135.9 360.3 135.0 336.0 C135.0 315.0 93.0 315.0 93.0 336.0 C92.1 360.3 88.1 377.0 89.0 400.0 Z"/>
+    <ellipse class="hl" cx="105.5" cy="370.6" rx="11.5" ry="23.0"/>
+    <ellipse class="sh" cx="126.5" cy="368.0" rx="10.5" ry="25.6"/>
+    <ellipse class="knuck" cx="109.0" cy="394.2" rx="12.5" ry="8.5"/>
+    <ellipse class="cr" cx="114.0" cy="400.0" rx="19.0" ry="7.5"/>
+    <g class="seg2">
+      <circle class="j" cx="114.0" cy="336.0" r="20.8"/>
+      <path class="sg" d="M93.0 336.0 C93.0 352.4 135.0 352.4 135.0 336.0 C135.9 318.0 132.7 321.0 131.5 304.4 C131.5 280.4 96.5 280.4 96.5 304.4 C95.3 321.0 92.1 318.0 93.0 336.0 Z"/>
+      <ellipse class="hl" cx="106.9" cy="313.0" rx="9.7" ry="18.0"/>
+      <ellipse class="sh" cx="124.5" cy="311.0" rx="8.8" ry="20.0"/>
+      <ellipse class="knuck" cx="109.8" cy="331.5" rx="10.5" ry="7.1"/>
+      <ellipse class="cr" cx="114.0" cy="336.0" rx="16.0" ry="6.3"/>
+      <ellipse class="pad" cx="114.0" cy="312.2" rx="12.6" ry="17.5"/>
+      </g>
+  </g>
+</g>
+      <text id="ink-fist" class="ink" x="212" y="404" font-size="44">拉开他</text>
+      <text id="ink-palm" class="ink" x="200" y="392" font-size="38">转动大拇指</text>
+      <text id="ink-clap" class="ink" x="200" y="392" font-size="38">拍一下手掌</text>
+    </svg>
+  </div>
+
+  <p id="hint"></p>
+
+  <div id="choices">
+    <button type="button" data-force="soft">轻轻的转动</button>
+    <button type="button" data-force="hard">用力的转动</button>
+  </div>
 </div>
 
-<section id="finale">
-  <div class="seal">&#128149;</div>
+<div id="flight" aria-hidden="true">
+  <canvas id="streaks"></canvas>
+  <div id="cam">
+    <div class="vision stub" id="v-kings" data-shot="kings">王者</div>
+    <div class="vision stub" id="v-hug" data-shot="hug">相拥</div>
+  </div>
+</div>
+
+<canvas id="burst" aria-hidden="true"></canvas>
+<div id="letters" aria-hidden="true"></div>
+
+<div id="ouch">疼</div>
+
+<section id="arrival">
+  <div id="car" class="stub">特斯拉</div>
+  <p id="question">你可以做我女朋友吗</p>
+  <p class="sig">always &amp; forever</p>
+  <button id="again2" type="button" style="padding:11px 26px;border-radius:999px;border:1px solid rgb(var(--glow) / .32);font-size:.84rem;font-weight:300;letter-spacing:.16em;color:var(--text-soft)">再看一遍</button>
+</section>
+
+<section id="final">
   <p class="line">老婆我会永远爱着你</p>
-  <p class="from">always &amp; forever</p>
-  <button id="again" type="button">再来一次</button>
+  <p class="sig">always &amp; forever</p>
+  <button id="again" type="button">再看一遍</button>
 </section>
 
 <script>
 (function(){
   "use strict";
+
+  var hand    = document.getElementById("hand");
+  var wrap    = document.getElementById("handwrap");
+  var stage   = document.getElementById("stage");
+  var halo    = document.getElementById("halo");
+  var hintEl  = document.getElementById("hint");
+  var choices = document.getElementById("choices");
+  var ouch    = document.getElementById("ouch");
+  var nextEl  = document.getElementById("next");
+  var burst   = document.getElementById("burst");
+  var letters = document.getElementById("letters");
+  var finalEl = document.getElementById("final");
+  var reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   var LINES = [
     "Mandy 老婆要早点睡觉",
@@ -272,327 +630,661 @@
     "我要永远守护老婆",
     "老婆我会永远爱着你"
   ];
-  var HUES = ["rose","peach","lilac","mint"];
 
-  var stage   = document.getElementById("windows");
-  var intro   = document.getElementById("intro");
-  var dock    = document.getElementById("dock");
-  var countEl = document.getElementById("count").querySelector("b");
-  var finale  = document.getElementById("finale");
-  var reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var PULL = 230;              // px of upward drag for a full unfurl
+  var scene = "fist";
+  var open = 0, thumb = 0;
+  var dragging = false, grabY = 0, grabOpen = 0;
+  var idleTimer = null;
 
-  var wins = [];
-  var top_z = 100;
-  var timers = [];
-  var order = [];
-  var running = false;
+  /* ---------- tiny tween engine ---------- */
+  var tweens = [];
+  function tween(o){
+    var t = {
+      from: o.from, to: o.to,
+      dur: reduced ? Math.min(o.dur, 120) : o.dur,
+      ease: o.ease || easeOut,
+      step: o.step, done: o.done,
+      t0: performance.now(), tag: o.tag
+    };
+    tweens = tweens.filter(function(x){ return x.tag !== t.tag; });
+    tweens.push(t);
+    return t;
+  }
+  function easeOut(p){ return 1 - Math.pow(1 - p, 3); }
+  function easeInOut(p){ return p < .5 ? 4*p*p*p : 1 - Math.pow(-2*p + 2, 3) / 2; }
+  function easeBack(p){ var c = 1.70158, s = c + 1; return 1 + s*Math.pow(p-1,3) + c*Math.pow(p-1,2); }
 
-  function clearTimers(){ timers.forEach(clearTimeout); timers = []; }
-  function later(fn, ms){ timers.push(setTimeout(fn, ms)); }
-
-  function updateCount(){
-    var n = wins.filter(function(w){ return w.alive; }).length;
-    countEl.textContent = n;
-    return n;
+  function runTweens(now){
+    for (var i = tweens.length - 1; i >= 0; i--){
+      var t = tweens[i];
+      var p = t.dur <= 0 ? 1 : Math.min(1, (now - t.t0) / t.dur);
+      t.step(t.from + (t.to - t.from) * t.ease(p));
+      if (p >= 1){ tweens.splice(i, 1); if (t.done) t.done(); }
+    }
   }
 
-  /* ---- shuffled cells + heavy jitter: windows land all over, never in reading order ---- */
-  function shuffle(n){
-    var a = [], i, j, t;
-    for (i = 0; i < n; i++) a.push(i);
-    for (i = n - 1; i > 0; i--){
-      j = Math.floor(Math.random() * (i + 1));
-      t = a[i]; a[i] = a[j]; a[j] = t;
-    }
-    return a;
+  function setOpen(v){ open = v; hand.style.setProperty("--open", v.toFixed(4)); paintHalo(); }
+  function setThumb(v){ thumb = v; hand.style.setProperty("--thumb", v.toFixed(4)); }
+
+  /* the light swells as the hand opens */
+  function paintHalo(){
+    halo.style.setProperty("--halo-a", (.72 + open * .5).toFixed(3));
+    halo.style.setProperty("--halo-s", (.9 + open * .16).toFixed(3));
   }
 
-  /* ---- every line shows up 2-3 times, shuffled, closer kept for last ---- */
-  function buildDeck(){
-    /* a laptop can carry 2-3 copies of everything; a phone screen drowns in that */
-    var roomy = window.innerWidth >= 900;
-    var base  = roomy ? 2 : 1;
-    var deck = [], i, k, reps;
-    for (i = 0; i < LINES.length; i++){
-      reps = base + Math.floor(Math.random() * 2);
-      for (k = 0; k < reps; k++) deck.push(LINES[i]);
-    }
+  function say(text){
+    if (hintEl.textContent === text) return;
+    hintEl.classList.remove("show");
+    setTimeout(function(){
+      hintEl.textContent = text;
+      if (text) hintEl.classList.add("show");
+    }, text ? 420 : 0);
+  }
+  function idle(ms, fn){
+    clearTimeout(idleTimer);
+    idleTimer = setTimeout(fn, ms);
+  }
 
-    var idx = shuffle(deck.length), out = [], i2;
-    for (i2 = 0; i2 < idx.length; i2++) out.push(deck[idx[i2]]);
+  /* ---------- scene 1: pull it open ---------- */
+  function armPull(){
+    scene = "fist";
+    wrap.classList.add("grabbable");
+    idle(1800, function(){ if (scene === "fist" && open < .04) say("往上拉"); });
+  }
 
-    /* nudge apart any two copies that landed back to back */
-    var a, b;
-    for (a = 1; a < out.length; a++){
-      if (out[a] !== out[a - 1]) continue;
-      for (b = a + 2; b < out.length; b++){
-        if (out[b] === out[a] || out[b] === out[a - 1]) continue;
-        if (out[b - 1] === out[a] || (out[b + 1] && out[b + 1] === out[a])) continue;
-        var t = out[a]; out[a] = out[b]; out[b] = t;
-        break;
-      }
-    }
+  wrap.addEventListener("pointerdown", function(e){
+    if (scene !== "fist") return;
+    dragging = true;
+    grabY = e.clientY;
+    grabOpen = open;
+    wrap.setPointerCapture(e.pointerId);
+    wrap.classList.add("grabbing");
+    tweens = tweens.filter(function(t){ return t.tag !== "open"; });
+    say("");
+    clearTimeout(idleTimer);
+  });
 
-    /* the closing line is the last thing she sees */
-    var last = LINES[LINES.length - 1];
-    var at = out.lastIndexOf(last);
-    if (at > -1 && at !== out.length - 1){
-      out.splice(at, 1);
-      out.push(last);
+  wrap.addEventListener("pointermove", function(e){
+    if (!dragging) return;
+    var v = grabOpen + (grabY - e.clientY) / PULL;
+    setOpen(Math.max(0, Math.min(1, v)));
+  });
+
+  function releasePull(e){
+    if (!dragging) return;
+    dragging = false;
+    wrap.classList.remove("grabbing");
+    try { wrap.releasePointerCapture(e.pointerId); } catch (err) {}
+
+    if (open > .5){
+      wrap.classList.remove("grabbable");
+      tween({ tag:"open", from:open, to:1, dur:620, ease:easeBack,
+        step:setOpen, done:toPalm });
+    } else {
+      tween({ tag:"open", from:open, to:0, dur:520, ease:easeOut,
+        step:setOpen, done:armPull });
     }
-    if (out[out.length - 2] === last){
-      for (b = out.length - 3; b >= 0; b--){
-        if (out[b] !== last && out[b - 1] !== last){
-          var t2 = out[out.length - 2]; out[out.length - 2] = out[b]; out[b] = t2;
-          break;
-        }
+  }
+  wrap.addEventListener("pointerup", releasePull);
+  wrap.addEventListener("pointercancel", releasePull);
+
+  /* keyboard path, so the surprise is never a dead end */
+  document.addEventListener("keydown", function(e){
+    if (scene !== "fist") return;
+    if (e.key === "ArrowUp" || e.key === "Enter" || e.key === " "){
+      e.preventDefault();
+      wrap.classList.remove("grabbable");
+      say("");
+      tween({ tag:"open", from:open, to:1, dur:900, ease:easeBack, step:setOpen, done:toPalm });
+    }
+  });
+
+  /* ---------- scene 2: turn the thumb ---------- */
+  function toPalm(){
+    scene = "palm";
+    setOpen(1);
+    wrap.classList.add("thumb-live");
+    idle(900, function(){ say("点一下大拇指"); });
+  }
+
+  wrap.addEventListener("click", function(e){
+    if (scene === "palm"){
+      if (e.target.closest && e.target.closest("#f-thumb")) toChoice();
+      return;
+    }
+    if (scene === "clap") dissolve(e.clientX, e.clientY);
+  });
+
+  /* ---------- scene 3: how hard? ---------- */
+  function toChoice(){
+    scene = "choice";
+    clearTimeout(idleTimer);
+    wrap.classList.remove("thumb-live");
+    say("");
+    choices.classList.add("show");
+  }
+
+  choices.addEventListener("click", function(e){
+    var btn = e.target.closest("button");
+    if (!btn || scene !== "choice") return;
+    choices.classList.remove("show");
+    if (btn.dataset.force === "hard") tooHard();
+    else justRight();
+  });
+
+  /* ---------- 4a: 用力 ---------- */
+  function tooHard(){
+    scene = "hurt";
+    tween({ tag:"thumb", from:thumb, to:1, dur:130, ease:easeOut, step:setThumb });
+    jolt();
+    ouch.classList.remove("show");
+    void ouch.offsetWidth;
+    ouch.classList.add("show");
+
+    setTimeout(function(){
+      tween({ tag:"thumb", from:1, to:0, dur:900, ease:easeOut, step:setThumb });
+      say("…轻一点好不好");
+    }, 620);
+
+    setTimeout(function(){
+      say("");
+      scene = "choice";
+      choices.classList.add("show");
+    }, 2300);
+  }
+
+  function jolt(){
+    if (reduced) return;
+    var t0 = performance.now(), dur = 520;
+    (function shake(now){
+      var p = (now - t0) / dur;
+      if (p >= 1){ wrap.style.setProperty("--jolt-y","0px"); wrap.style.setProperty("--jolt-r","0deg"); return; }
+      var decay = Math.pow(1 - p, 2.2);
+      wrap.style.setProperty("--jolt-y", (Math.sin(p * 46) * 13 * decay).toFixed(2) + "px");
+      wrap.style.setProperty("--jolt-r", (Math.sin(p * 38) * 3.4 * decay).toFixed(2) + "deg");
+      requestAnimationFrame(shake);
+    })(t0);
+  }
+
+  /* ---------- 4b: 轻轻 ---------- */
+  function justRight(){
+    scene = "turn";
+    tween({ tag:"thumb", from:thumb, to:1, dur:reduced ? 300 : 2000, ease:easeInOut,
+      step:function(v){
+        setThumb(v);
+        halo.style.setProperty("--halo-a", (1.22 + v * 1.5).toFixed(3));
+        halo.style.setProperty("--halo-s", (1.06 + v * .3).toFixed(3));
+      },
+      done:toClap });
+  }
+
+  /* ---------- scene 5: 拍一下手掌 ---------- */
+  function toClap(){
+    scene = "clap";
+    tween({ tag:"ink", from:0, to:1, dur:1000, ease:easeOut, step:function(v){
+      hand.style.setProperty("--palm-ink", (1 - v).toFixed(3));
+      hand.style.setProperty("--clap-ink", v.toFixed(3));
+    }});
+    wrap.style.cursor = "pointer";
+    idle(2400, function(){ if (scene === "clap") say("拍一下"); });
+  }
+
+  /* ---------- scene 6: the hand comes apart ---------- */
+  var parts = [], pmode = "idle", pt0 = 0, lastT = 0;
+
+  function sampleHand(){
+    var out = [], shapes = hand.querySelectorAll("path,ellipse,rect,circle,polygon");
+    var pt = hand.createSVGPoint();
+    for (var i = 0; i < shapes.length && out.length < 1700; i++){
+      var el = shapes[i], cs = getComputedStyle(el);
+      if (cs.display === "none" || parseFloat(cs.opacity) < .08 || cs.fill === "none") continue;
+      var bb; try { bb = el.getBBox(); } catch (err) { continue; }
+      if (!(bb.width > 0 && bb.height > 0)) continue;
+      var m = el.getScreenCTM(); if (!m) continue;
+      var want = Math.max(5, Math.min(220, Math.round(bb.width * bb.height / 300)));
+      var tries = 0, got = 0;
+      while (got < want && tries < want * 12){
+        tries++;
+        pt.x = bb.x + Math.random() * bb.width;
+        pt.y = bb.y + Math.random() * bb.height;
+        var inside = true;
+        try { inside = el.isPointInFill(pt); } catch (err) { inside = true; }
+        if (!inside) continue;
+        got++;
+        out.push({ x: m.a * pt.x + m.c * pt.y + m.e, y: m.b * pt.x + m.d * pt.y + m.f });
       }
     }
     return out;
   }
 
-  function place(rec){
-    var el = rec.el, cell = order.length ? order[rec.i] : rec.i;
-    var vw = window.innerWidth, vh = window.innerHeight;
-    var w  = el.offsetWidth, h = el.offsetHeight;
-    var margin = 8, dockRoom = 86;
+  function dissolve(cx0, cy0){
+    scene = "dissolve";
+    clearTimeout(idleTimer);
+    say("");
+    wrap.style.cursor = "";
 
-    var cols = Math.max(1, Math.round(vw / (w + 10)));
-    var rows = Math.ceil(rec.n / cols);
-    var col  = cell % cols;
-    var row  = Math.floor(cell / cols);
-
-    var cellW = (vw - margin * 2) / cols;
-    var cellH = (vh - margin - dockRoom) / rows;
-
-    var x = margin + col * cellW + (cellW - w) / 2 + rec.jx * cellW * .9;
-    var y = margin + row * cellH + (cellH - h) / 2 + rec.jy * cellH * .6;
-
-    x = Math.min(Math.max(x, margin), Math.max(margin, vw - w - margin));
-    y = Math.min(Math.max(y, margin), Math.max(margin, vh - h - dockRoom + 18));
-
-    el.style.left = Math.round(x) + "px";
-    el.style.top  = Math.round(y) + "px";
-  }
-
-  function makeWindow(text, i, n){
-    var el = document.createElement("div");
-    el.className = "win";
-    el.style.setProperty("--h", "var(--h-" + HUES[i % HUES.length] + ")");
-    el.style.setProperty("--rot", (reduced ? 0 : (Math.random() * 14 - 7)).toFixed(2) + "deg");
-    el.style.setProperty("--ws", (.92 + Math.random() * .2).toFixed(3));
-    el.style.zIndex = ++top_z;
-
-    var bar = document.createElement("div");
-    bar.className = "bar";
-
-    var heart = document.createElement("span");
-    heart.className = "heart";
-    heart.textContent = "♥";
-
-    var name = document.createElement("span");
-    name.className = "name";
-    name.textContent = "给老婆 · " + (i + 1 < 10 ? "0" : "") + (i + 1);
-
-    var x = document.createElement("button");
-    x.className = "x";
-    x.type = "button";
-    x.setAttribute("aria-label", "关掉这个窗口");
-    x.textContent = "✕";
-
-    bar.appendChild(heart); bar.appendChild(name); bar.appendChild(x);
-
-    var msg = document.createElement("p");
-    msg.className = "msg";
-    msg.textContent = text;
-
-    el.appendChild(bar); el.appendChild(msg);
-    stage.appendChild(el);
-
-    var rec = { el: el, alive: true, i: i, n: n, jx: Math.random() - .5, jy: Math.random() - .5 };
-
-    x.addEventListener("click", function(ev){ ev.stopPropagation(); close(rec, true); });
-    el.addEventListener("pointerdown", function(){ el.style.zIndex = ++top_z; });
-    drag(el, bar);
-
-    place(rec);
-    return rec;
-  }
-
-  /* ---- drag by the title bar ---- */
-  function drag(el, handle){
-    var sx = 0, sy = 0, ox = 0, oy = 0, id = null;
-
-    handle.addEventListener("pointerdown", function(e){
-      if (e.target.closest(".x")) return;
-      id = e.pointerId;
-      handle.setPointerCapture(id);
-      sx = e.clientX; sy = e.clientY;
-      ox = parseFloat(el.style.left) || 0;
-      oy = parseFloat(el.style.top)  || 0;
-      el.classList.add("dragging");
-    });
-
-    handle.addEventListener("pointermove", function(e){
-      if (id === null || e.pointerId !== id) return;
-      var nx = ox + (e.clientX - sx);
-      var ny = oy + (e.clientY - sy);
-      nx = Math.min(Math.max(nx, -el.offsetWidth * .4), window.innerWidth  - el.offsetWidth * .6);
-      ny = Math.min(Math.max(ny, 0),                    window.innerHeight - 44);
-      el.style.left = Math.round(nx) + "px";
-      el.style.top  = Math.round(ny) + "px";
-    });
-
-    function done(e){
-      if (id === null || (e && e.pointerId !== id)) return;
-      try { handle.releasePointerCapture(id); } catch (err) {}
-      id = null;
-      el.classList.remove("dragging");
-    }
-    handle.addEventListener("pointerup", done);
-    handle.addEventListener("pointercancel", done);
-  }
-
-  function close(rec, checkEnd){
-    if (!rec.alive) return;
-    rec.alive = false;
-    rec.el.classList.remove("in");
-    rec.el.classList.add("out");
-    later(function(){ if (rec.el.parentNode) rec.el.parentNode.removeChild(rec.el); }, 320);
-    if (checkEnd && updateCount() === 0) endShow();
-  }
-
-  function closeAll(){
-    var live = wins.filter(function(w){ return w.alive; });
-    if (!live.length) { endShow(); return; }
-    var step = Math.max(16, Math.round(950 / live.length));
-    live.forEach(function(rec, k){
-      later(function(){ close(rec, false); updateCount(); }, k * step);
-    });
-    later(endShow, live.length * step + 340);
-  }
-
-  function endShow(){
-    if (!running) return;
-    running = false;
-    dock.classList.remove("up");
-    finale.classList.add("show");
-  }
-
-  function startShow(){
-    clearTimers();
-    running = true;
-    finale.classList.remove("show");
-    intro.classList.add("gone");
-    stage.innerHTML = "";
-    wins = [];
-    top_z = 100;
-
-    var deck = buildDeck();
-    var n = deck.length;
-    order = shuffle(n);
-
-    /* gentle at first, then it floods */
-    var delays = [], acc = 0, g;
-    for (var d = 0; d < n; d++){
-      delays.push(Math.round(acc));
-      g = 230 - 165 * (d / Math.max(1, n - 1));
-      acc += reduced ? 40 : g;
+    var pts = sampleHand();
+    if (!pts.length){                       // nothing to sample: skip straight to the words
+      stage.style.opacity = "0";
+      setTimeout(runLetters, 700);
+      return;
     }
 
-    deck.forEach(function(text, i){
-      later(function(){
-        var rec = makeWindow(text, i, n);
-        wins.push(rec);
-        requestAnimationFrame(function(){ rec.el.classList.add("in"); });
-        updateCount();
-        if (i === 0) later(function(){ dock.classList.add("up"); }, 260);
-      }, delays[i]);
+    parts = pts.map(function(p){
+      var dx = p.x - cx0, dy = p.y - cy0, d = Math.hypot(dx, dy) || 1;
+      var sp = 90 + Math.random() * 230;
+      return {
+        x: p.x, y: p.y,
+        vx: dx / d * sp + (Math.random() - .5) * 70,
+        vy: dy / d * sp + (Math.random() - .5) * 70 - 70,
+        wait: d * 0.0016,                   // a shockwave rippling out from where she touched
+        a: .5 + Math.random() * .5,
+        sz: .6 + Math.random() * 1.8
+      };
+    });
+    pmode = "burst"; pt0 = performance.now(); lastT = pt0;
+
+    stage.style.transition = "opacity .34s ease";
+    stage.style.opacity = "0";
+
+    setTimeout(toVortex, 900);
+    setTimeout(runLetters, 1700);
+  }
+
+  function toVortex(){
+    var cx = window.innerWidth / 2, cy = window.innerHeight * .46;
+    for (var i = 0; i < parts.length; i++){
+      var p = parts[i], dx = p.x - cx, dy = (p.y - cy) / .62;
+      p.rad = Math.max(40, Math.hypot(dx, dy));
+      p.ang = Math.atan2(dy, dx);
+      p.spin = .9 + Math.random() * .6;
+      p.vr = -(26 + Math.random() * 70);
+    }
+    pmode = "vortex";
+  }
+
+  function stepParts(now){
+    var dt = Math.min(.05, (now - lastT) / 1000); lastT = now;
+    var cx = window.innerWidth / 2, cy = window.innerHeight * .46;
+    var i, p;
+
+    if (pmode === "burst"){
+      var el = (now - pt0) / 1000;
+      for (i = 0; i < parts.length; i++){
+        p = parts[i];
+        if (el < p.wait) continue;
+        p.x += p.vx * dt; p.y += p.vy * dt;
+        p.vx *= .965; p.vy = p.vy * .965 + 40 * dt;
+      }
+    } else if (pmode === "vortex"){
+      for (i = 0; i < parts.length; i++){
+        p = parts[i];
+        p.ang += p.spin * (150 / (p.rad + 90)) * dt * 5.4;
+        p.rad += p.vr * dt;
+        if (p.rad < 24){                    // swallowed by the mouth, thrown back out wide
+          p.rad = Math.max(window.innerWidth, window.innerHeight) * (.45 + Math.random() * .3);
+          p.ang = Math.random() * Math.PI * 2;
+        }
+        p.x = cx + Math.cos(p.ang) * p.rad;
+        p.y = cy + Math.sin(p.ang) * p.rad * .62;
+      }
+    }
+  }
+
+  function drawParts(){
+    bctx.clearRect(0, 0, BW, BH);
+    if (pmode === "idle" || !parts.length) return;
+    var cx = window.innerWidth / 2, cy = window.innerHeight * .46;
+    var reach = Math.max(window.innerWidth, window.innerHeight) * .6;
+    bctx.globalCompositeOperation = "lighter";
+    for (var i = 0; i < parts.length; i++){
+      var p = parts[i];
+      var d = Math.hypot(p.x - cx, p.y - cy);
+      var hot = Math.max(0, 1 - d / reach);
+      var a = p.a * (pmode === "vortex" ? (.18 + hot * .82) : 1) * fade;
+      if (a <= .01) continue;
+      bctx.fillStyle = "rgba(255," + Math.round(186 + hot * 54) + "," + Math.round(104 + hot * 70) + "," + a.toFixed(3) + ")";
+      bctx.beginPath();
+      bctx.arc(p.x, p.y, p.sz * (1 + hot * .5), 0, Math.PI * 2);
+      bctx.fill();
+    }
+    bctx.globalCompositeOperation = "source-over";
+  }
+
+  /* ---------- scene 7: the words come out of the hole ---------- */
+  var fade = 1;
+
+  function runLetters(){
+    scene = "letters";
+    var flying = LINES.slice(0, LINES.length - 1);
+    flying.forEach(function(t, i){
+      setTimeout(function(){ spawnLetter(t, i); }, i * 1150);
+    });
+    setTimeout(toFinal, (flying.length - 1) * 1150 + 7400);
+  }
+
+  function spawnLetter(text, i){
+    var el = document.createElement("p");
+    el.className = "letter";
+    el.textContent = text;
+    el.style.setProperty("--a0", ((i * 137.5) % 360).toFixed(1) + "deg");
+    letters.appendChild(el);
+    setTimeout(function(){ if (el.parentNode) el.parentNode.removeChild(el); }, 9600);
+  }
+
+  /* the last line holds alone for a beat, then the camera falls into the hole */
+  function toFinal(){
+    scene = "lastword";
+    finalEl.querySelector(".sig").style.display = "none";
+    finalEl.querySelector("#again").style.display = "none";
+    finalEl.classList.add("show");
+    setTimeout(function(){
+      finalEl.style.transition = "opacity 1.1s ease";
+      finalEl.classList.remove("show");
+      setTimeout(diveIn, 700);
+    }, 3000);
+  }
+
+  function toArrival(){
+    var ar = document.getElementById("arrival");
+    var car = document.getElementById("car");
+    var q = document.getElementById("question");
+    ar.classList.add("show");
+    halo.style.setProperty("--halo-a", ".9");
+    halo.style.setProperty("--halo-s", "1.1");
+    setTimeout(function(){ car.classList.add("in"); }, 700);
+    setTimeout(function(){ q.classList.add("in"); }, 3400);
+    setTimeout(function(){ ar.querySelector(".sig").classList.add("in"); }, 5200);
+  }
+
+  document.getElementById("again").addEventListener("click", function(){ location.reload(); });
+  document.getElementById("again2").addEventListener("click", function(){ location.reload(); });
+
+  /* ============================================================
+     scene 8: first-person flight down the hole
+     ============================================================ */
+  var flight  = document.getElementById("flight");
+  var cam     = document.getElementById("cam");
+  var streaks = document.getElementById("streaks");
+  var sctx    = streaks.getContext("2d");
+
+  var YAW_SIGN = 1;                  // +1 puts a +X panel in front of you when you look right; -1 swings it behind your head
+  var RINGS = 58, GAP = 260;
+
+  /* t = seconds since the dive began. sp = forward speed in px/s. */
+  var SHOT = [
+    { t: 0.0,  yaw:   0, pitch:  0, roll:   0, sp:  260 },
+    { t: 1.3,  yaw:   0, pitch:  0, roll:   0, sp: 1500 },
+    { t: 2.6,  yaw: -23, pitch:  4, roll:  -3, sp: 1500 },   // 左顾
+    { t: 4.0,  yaw:  19, pitch: -3, roll:   2, sp: 1500 },   // 右盼
+    { t: 5.2,  yaw:   0, pitch:  0, roll:   0, sp: 1600 },
+    { t: 6.4,  yaw:  62, pitch: -2, roll:   5, sp: 1300 },   // 猛地向右 — 王者
+    { t: 9.8,  yaw:  58, pitch:  0, roll:   4, sp: 1300 },
+    { t:11.0,  yaw:   0, pitch:  0, roll:   0, sp: 1700 },
+    { t:12.4,  yaw: -15, pitch:  3, roll:  -2, sp: 1700 },
+    { t:13.6,  yaw:  64, pitch: -3, roll:   6, sp: 1250 },   // 再向右 — 相拥
+    { t:17.0,  yaw:  60, pitch:  0, roll:   5, sp: 1250 },
+    { t:18.2,  yaw:   0, pitch:  0, roll:   0, sp: 1900 },
+    { t:19.4,  yaw:   7, pitch: 36, roll: -27, sp: 5200 },   // 被一阵风拽起来
+    { t:20.8,  yaw:  -5, pitch: 11, roll:   9, sp: 7200 },
+    { t:21.9,  yaw:   0, pitch:  0, roll:   0, sp: 9400 }
+  ];
+  var SHOT_END = SHOT[SHOT.length - 1].t;
+
+  function smooth(p){ return p * p * (3 - 2 * p); }
+
+  function shotAt(t){
+    if (t <= SHOT[0].t) return SHOT[0];
+    for (var i = 1; i < SHOT.length; i++){
+      if (t > SHOT[i].t) continue;
+      var a = SHOT[i - 1], b = SHOT[i];
+      var k = smooth((t - a.t) / (b.t - a.t));
+      return {
+        yaw:   a.yaw   + (b.yaw   - a.yaw)   * k,
+        pitch: a.pitch + (b.pitch - a.pitch) * k,
+        roll:  a.roll  + (b.roll  - a.roll)  * k,
+        sp:    a.sp    + (b.sp    - a.sp)    * k
+      };
+    }
+    return SHOT[SHOT.length - 1];
+  }
+
+  /* integrate the speed curve once, so panels can be parked at the depth
+     the camera will actually have reached at the moment we look at them */
+  var ZTAB = [], ZSTEP = 0.02;
+  (function buildZ(){
+    var z = 0;
+    for (var t = 0; t <= SHOT_END + ZSTEP; t += ZSTEP){
+      ZTAB.push(z);
+      z += shotAt(t).sp * ZSTEP;
+    }
+  })();
+  function zAt(t){
+    var i = Math.max(0, Math.min(ZTAB.length - 1, Math.round(t / ZSTEP)));
+    return ZTAB[i];
+  }
+
+  var rings = [], visions = [];
+
+  function buildTunnel(){
+    var frag = document.createDocumentFragment();
+    for (var i = 0; i < RINGS; i++){
+      var el = document.createElement("div");
+      el.className = "ring";
+      frag.appendChild(el);
+      rings.push({ el: el, z: i * GAP, phase: i * 0.42, hue: i });
+    }
+    cam.appendChild(frag);
+
+    visions = [
+      { el: document.getElementById("v-kings"), z: zAt(8.1)  + 277, x: 520, rot: -62 },
+      { el: document.getElementById("v-hug"),   z: zAt(15.3) + 287, x: 540, rot: -64 }
+    ];
+    visions.forEach(function(v){
+      v.el.style.transform = "translateZ(" + (-v.z) + "px) translateX(" + v.x + "px) rotateY(" + v.rot + "deg)";
     });
   }
 
-  function reset(){
-    clearTimers();
-    stage.innerHTML = "";
-    wins = [];
-    updateCount();
-    finale.classList.remove("show");
-    intro.classList.remove("gone");
+  /* one field of view for every screen: P scales with the viewport */
+  function sizeLens(){
+    var P = Math.max(400, Math.min(1120, window.innerWidth * .82));
+    flight.style.perspective = P.toFixed(0) + "px";
+    letters.style.perspective = (P * .93).toFixed(0) + "px";
   }
 
-  document.getElementById("start").addEventListener("click", startShow);
-  document.getElementById("closeAll").addEventListener("click", closeAll);
-  document.getElementById("again").addEventListener("click", reset);
-  document.addEventListener("keydown", function(e){
-    if (e.key === "Escape" && running) closeAll();
-  });
-
-  window.addEventListener("resize", function(){
-    wins.forEach(function(rec){ if (rec.alive) place(rec); });
-  });
-
-  /* ---- drifting hearts ---- */
-  var cv = document.getElementById("sky"), ctx = cv.getContext("2d");
-  var dots = [], W = 0, H = 0, tint = [];
-
-  function readTint(){
-    var cs = getComputedStyle(document.documentElement);
-    tint = ["--h-rose","--h-peach","--h-lilac","--h-mint"].map(function(v){
-      return "rgba(" + cs.getPropertyValue(v).trim().split(/\s+/).join(",") + ",";
-    });
+  function sizeStreaks(){
+    var r = Math.min(window.devicePixelRatio || 1, 2);
+    streaks.width = window.innerWidth * r;
+    streaks.height = window.innerHeight * r;
+    sctx.setTransform(r, 0, 0, r, 0, 0);
   }
-  function sizeCanvas(){
+
+  var flying = false, fly0 = 0, camZ = 0, flash = 0;
+
+  function diveIn(){
+    scene = "flight";
+    buildTunnel();
+    sizeLens();
+    sizeStreaks();
+    flight.classList.add("on");
+    letters.style.transition = "opacity .9s ease";
+    letters.style.opacity = "0";
+    tween({ tag:"vfade", from:1, to:0, dur:1200, ease:easeInOut, step:function(v){
+      fade = v;
+      halo.style.setProperty("--halo-a", (v * 1.4).toFixed(3));
+    }, done:function(){ pmode = "idle"; parts = []; } });
+    flying = true;
+    fly0 = performance.now();
+  }
+
+  function flightFrame(now){
+    if (!flying) return;
+    var t = (now - fly0) / 1000;
+    var st = shotAt(t);
+    camZ = zAt(Math.min(t, SHOT_END));
+    if (t > SHOT_END) camZ += st.sp * (t - SHOT_END);
+
+    cam.style.transform =
+      "rotateZ(" + st.roll.toFixed(2) + "deg) " +
+      "rotateX(" + st.pitch.toFixed(2) + "deg) " +
+      "rotateY(" + (YAW_SIGN * st.yaw).toFixed(2) + "deg) " +
+      "translateZ(" + camZ.toFixed(1) + "px)";
+
+    var span = RINGS * GAP, i, r, d;
+    for (i = 0; i < rings.length; i++){
+      r = rings[i];
+      d = r.z - camZ;
+      if (d < 60){ r.z += span; d = r.z - camZ; }
+      var size = 520 + Math.sin(r.phase + t * .5) * 170;
+      var a = d > span * .86 ? 0 : Math.min(1, (span - d) / (span * .5)) * Math.min(1, (d - 60) / 420);
+      r.el.style.width = size + "px";
+      r.el.style.height = size + "px";
+      r.el.style.opacity = a.toFixed(3);
+      r.el.style.transform =
+        "translateZ(" + (-r.z) + "px) rotateZ(" + ((r.phase * 46 + t * 26) % 360).toFixed(1) + "deg) translate(-50%,-50%)";
+    }
+
+    for (i = 0; i < visions.length; i++){
+      var v = visions[i];
+      d = v.z - camZ;
+      var o;
+      if (d > 4600 || d < -1900) o = 0;
+      else if (d > 2000)  o = (4600 - d) / 2600;      // swimming up out of the dark ahead
+      else if (d > -700)  o = 1;                      // right beside you
+      else                o = (d + 1900) / 1200;      // falling away behind
+      v.el.style.opacity = Math.max(0, Math.min(1, o)).toFixed(3);
+    }
+
+    drawStreaks(st.sp, t);
+
+    if (t > SHOT_END + .35 && scene === "flight") arrive();
+  }
+
+  function drawStreaks(sp, t){
+    var W = window.innerWidth, H = window.innerHeight, cx = W / 2, cy = H / 2;
+    sctx.clearRect(0, 0, W, H);
+    var n = 150, len = Math.min(.62, sp / 11000);
+    sctx.lineCap = "round";
+    for (var i = 0; i < n; i++){
+      var a = (i * 2.39996 + t * .12) % (Math.PI * 2);
+      var rr = ((i * 0.6180339 + t * (sp / 2600)) % 1);
+      var r0 = 60 + rr * rr * Math.max(W, H) * .95;
+      var r1 = r0 * (1 + len);
+      var al = (1 - rr) * .5 * Math.min(1, sp / 1400);
+      if (al < .012) continue;
+      sctx.strokeStyle = "rgba(255," + Math.round(200 - rr * 40) + "," + Math.round(140 - rr * 40) + "," + al.toFixed(3) + ")";
+      sctx.lineWidth = .8 + (1 - rr) * 2.1;
+      sctx.beginPath();
+      sctx.moveTo(cx + Math.cos(a) * r0, cy + Math.sin(a) * r0 * .92);
+      sctx.lineTo(cx + Math.cos(a) * r1, cy + Math.sin(a) * r1 * .92);
+      sctx.stroke();
+    }
+    if (flash > .002){
+      sctx.fillStyle = "rgba(255,224,180," + flash.toFixed(3) + ")";
+      sctx.fillRect(0, 0, W, H);
+    }
+  }
+
+  function arrive(){
+    scene = "arrive";
+    tween({ tag:"flash", from:0, to:1, dur:420, ease:easeOut, step:function(v){ flash = v; },
+      done:function(){
+        flying = false;
+        flight.classList.remove("on");
+        toArrival();
+        tween({ tag:"flash", from:1, to:0, dur:1500, ease:easeInOut, step:function(v){
+          flash = v;
+          sctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+          if (v > .002){
+            sctx.fillStyle = "rgba(255,224,180," + v.toFixed(3) + ")";
+            sctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
+          }
+        }});
+      }});
+  }
+
+  /* ---------- dust in the light ---------- */
+  var cv = document.getElementById("dust"), ctx = cv.getContext("2d");
+  var motes = [], W = 0, H = 0;
+
+  function sizeDust(){
     var r = Math.min(window.devicePixelRatio || 1, 2);
     W = window.innerWidth; H = window.innerHeight;
     cv.width = W * r; cv.height = H * r;
     ctx.setTransform(r, 0, 0, r, 0, 0);
   }
-  function seed(){
-    dots = [];
-    var count = Math.round(Math.min(34, Math.max(14, W / 46)));
-    for (var i = 0; i < count; i++){
-      dots.push({
+  function seedDust(){
+    motes = [];
+    var n = Math.round(Math.min(46, Math.max(18, W / 34)));
+    for (var i = 0; i < n; i++){
+      motes.push({
         x: Math.random() * W,
         y: Math.random() * H,
-        s: 7 + Math.random() * 16,
-        v: .16 + Math.random() * .42,
-        a: .07 + Math.random() * .13,
+        r: .6 + Math.random() * 1.9,
+        v: .07 + Math.random() * .26,
+        a: .12 + Math.random() * .4,
         p: Math.random() * Math.PI * 2,
-        w: .004 + Math.random() * .009,
-        c: Math.floor(Math.random() * 4)
+        w: .003 + Math.random() * .007
       });
     }
   }
-  function heart(x, y, s){
-    ctx.beginPath();
-    ctx.moveTo(x, y + s * .3);
-    ctx.bezierCurveTo(x, y - s * .2, x - s * .62, y - s * .26, x - s * .62, y + s * .16);
-    ctx.bezierCurveTo(x - s * .62, y + s * .56, x, y + s * .8, x, y + s);
-    ctx.bezierCurveTo(x, y + s * .8, x + s * .62, y + s * .56, x + s * .62, y + s * .16);
-    ctx.bezierCurveTo(x + s * .62, y - s * .26, x, y - s * .2, x, y + s * .3);
-    ctx.closePath();
-    ctx.fill();
-  }
-  function paint(move){
+  function drawDust(move){
     ctx.clearRect(0, 0, W, H);
-    for (var i = 0; i < dots.length; i++){
-      var d = dots[i];
+    var cx = W / 2, cy = H * .46, reach = Math.min(W, H) * .62;
+    for (var i = 0; i < motes.length; i++){
+      var m = motes[i];
       if (move){
-        d.y -= d.v;
-        d.p += d.w;
-        if (d.y < -d.s * 1.4){ d.y = H + d.s; d.x = Math.random() * W; }
+        m.y -= m.v; m.p += m.w;
+        if (m.y < -4){ m.y = H + 4; m.x = Math.random() * W; }
       }
-      ctx.fillStyle = tint[d.c] + d.a.toFixed(3) + ")";
-      heart(d.x + Math.sin(d.p) * 14, d.y, d.s);
+      var x = m.x + Math.sin(m.p) * 16;
+      var d = Math.hypot(x - cx, m.y - cy);
+      var fall = Math.max(0, 1 - d / reach);          // only dust inside the light shows
+      if (fall <= 0) continue;
+      ctx.beginPath();
+      ctx.fillStyle = "rgba(255,214,150," + (m.a * fall * fall).toFixed(3) + ")";
+      ctx.arc(x, m.y, m.r, 0, Math.PI * 2);
+      ctx.fill();
     }
   }
-  function loop(){ paint(true); requestAnimationFrame(loop); }
+  function dustLoop(){ drawDust(true); requestAnimationFrame(dustLoop); }
 
-  function boot(){ readTint(); sizeCanvas(); seed(); paint(false); }
-  boot();
-  if (!reduced) loop();
-  window.addEventListener("resize", function(){ sizeCanvas(); seed(); paint(false); });
-  var mq = matchMedia("(prefers-color-scheme: dark)");
-  (mq.addEventListener ? mq.addEventListener.bind(mq, "change") : mq.addListener.bind(mq))(function(){ readTint(); });
+  /* ---------- raise the lights ---------- */
+  var bctx = burst.getContext("2d"), BW = 0, BH = 0;
+  function sizeBurst(){
+    var r = Math.min(window.devicePixelRatio || 1, 2);
+    BW = window.innerWidth; BH = window.innerHeight;
+    burst.width = BW * r; burst.height = BH * r;
+    bctx.setTransform(r, 0, 0, r, 0, 0);
+  }
+
+  function frame(now){
+    runTweens(now);
+    stepParts(now);
+    drawParts();
+    flightFrame(now);
+    requestAnimationFrame(frame);
+  }
+
+  sizeDust(); seedDust(); drawDust(false); sizeBurst(); sizeLens();
+  window.addEventListener("resize", function(){
+    sizeDust(); seedDust(); drawDust(false); sizeBurst(); sizeStreaks(); sizeLens();
+  });
+
+  setOpen(0); setThumb(0);
+  requestAnimationFrame(frame);
+  if (!reduced) dustLoop();
+
+  /* jump straight to a scene for previewing: #words / #fly / #arrive */
+  var jump = (location.hash || "").slice(1);
+  if (jump === "words" || jump === "fly" || jump === "arrive"){
+    stage.style.opacity = "0";
+    if (jump === "words") setTimeout(runLetters, 400);
+    if (jump === "fly")   setTimeout(diveIn, 400);
+    if (jump === "arrive") setTimeout(function(){ sizeStreaks(); toArrival(); }, 400);
+  } else {
+    setTimeout(function(){ stage.classList.add("lit"); armPull(); }, 260);
+  }
 })();
 </script>
