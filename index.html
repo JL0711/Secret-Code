@@ -254,6 +254,28 @@
     will-change:transform,opacity;
   }
   .memory svg{display:block;width:100%;height:100%;overflow:visible}
+  .memory:not(.lit) *{animation-play-state:paused !important}
+
+  /* a photo slot, for when a real screenshot replaces the drawn memory */
+  .memory.photo{display:grid;place-items:center}
+  .memory.photo img{
+    width:100%;height:100%;object-fit:cover;display:block;
+    -webkit-mask-image:radial-gradient(68% 64% at 50% 48%, #000 46%, rgb(0 0 0 / .72) 70%, transparent 97%);
+    mask-image:radial-gradient(68% 64% at 50% 48%, #000 46%, rgb(0 0 0 / .72) 70%, transparent 97%);
+    filter:saturate(.86) contrast(1.06) brightness(.94)
+           sepia(.18) hue-rotate(-6deg)
+           drop-shadow(0 0 60px rgb(var(--glow) / .34));
+    animation:photoBreathe 9s ease-in-out infinite;
+  }
+  .memory.photo::after{                       /* amber bath so it belongs to the tunnel */
+    content:"";position:absolute;inset:0;pointer-events:none;
+    background:radial-gradient(70% 66% at 50% 46%, rgb(var(--glow) / .16), rgb(var(--glow) / 0) 72%);
+    mix-blend-mode:screen;
+  }
+  @keyframes photoBreathe{
+    0%,100%{transform:scale(1)}
+    50%{transform:scale(1.035)}
+  }
 
   /* placeholder art, replaced once the illustrations land */
   .memory.stub{
@@ -1548,767 +1570,1277 @@
   <canvas id="streaks"></canvas>
   <div id="cam">
     <div class="memory" id="v-kings" data-shot="kings">
-<svg class="memory-art" viewBox="0 0 900 600" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" preserveAspectRatio="xMidYMid meet">
+<svg class="rideshot" viewBox="0 0 900 600" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" preserveAspectRatio="xMidYMid meet">
 <style>#v-kings /* ===================================================================
-   RE-SKIN BLOCK — every colour in this illustration comes from here.
-   Scoped to the .memory-art element itself (no :root), #v-kings so several
-   copies can live on one page and be themed independently.
+   RE-SKIN BLOCK — every colour resolves from here. Scoped to .rideshot
+   itself (never :root) so many copies can share one page.
    =================================================================== */
-.memory-art{--mem-night:        #0B0D1F;  /* the dark the memory sits in        */
-  --mem-ink:          #110E1E;  /* deepest form shadow                */
-  --mem-shadow:       #05060D;  /* cast shadow on the ground          */
-  --mem-glow-core:    #FFE9CC;  /* heart of the light ahead           */
-  --mem-glow:         #FFC98A;  /* candle amber, the key light        */
-  --mem-glow-deep:    #FF9E5E;  /* amber falling off into the dark    */
-  --mem-rim:          #FFD6A3;  /* rim light on turning edges         */
-  --mem-rim-hot:      #FFF6E8;  /* hottest specular edge              */
-  --mem-crimson:      #6E1A2A;  /* archer's robe, lit mass            */
-  --mem-crimson-deep: #3B0F1C;  /* archer's robe, core shadow         */
-  --mem-crimson-lit:  #B4383A;  /* archer's robe, fold catching light */
-  --mem-gold:         #F2BE72;  /* trim, sash edge, bow gilding       */
-  --mem-gold-deep:    #A86C2C;  /* trim in shadow                     */
-  --mem-sage:         #5E7D6C;  /* healer's robe, lit mass            */
-  --mem-sage-deep:    #1D2B29;  /* healer's robe, core shadow         */
-  --mem-sage-lit:     #A9C3A6;  /* healer's robe, pale outer layer    */
-  --mem-pearl:        #EFE9D8;  /* white under-layer, blossoms        */
-  --mem-hair:         #3B2630;  /* hair mass                          */
-  --mem-hair-deep:    #191320;  /* hair, deepest                      */
-  --mem-hair-lit:     #7A4E33;  /* hair, light passing through        */
-  --mem-deer-top:     #E6CEAC;  /* white deer, sunward flank          */
-  --mem-deer:         #C9A981;  /* white deer, mid                    */
-  --mem-deer-deep:    #44332D;  /* white deer, underside              */
-  --mem-deer-lit:     #FFF3E0;  /* white deer, catchlight             */
-  --mem-skin:         #7E4A33;  /* skin in shadow                     */
-  --mem-skin-lit:     #E9AA7B;  /* skin catching the glow             */
-  --mem-petal:        #FFD3A8;  /* drifting petals                    */
-  --mem-mask-on:      #FFFFFF;  /* mask luminance: keep               */
-  --mem-mask-off:     #000000;  /* mask luminance: drop               */}
+.rideshot{
+  --rs-night:        #0B0D1F;  /* the dark the memory hangs in        */
+  --rs-ink:          #16111C;  /* deepest form shadow                 */
+  --rs-shadow:       #04050C;  /* cast shadow on the ground           */
+  --rs-core:         #FFEAD0;  /* heart of the light ahead of them    */
+  --rs-glow:         #FFC98A;  /* candle amber — THE key light        */
+  --rs-deep:         #FF9E5E;  /* amber falling away into the dark    */
+  --rs-rim:          #FFD6A3;  /* rim light on a turning edge         */
+  --rs-hot:          #FFF6E8;  /* hottest specular edge               */
+  --rs-crim:         #5E1826;  /* archer's robe, lit mass             */
+  --rs-crim-deep:    #250A15;  /* archer's robe, core shadow          */
+  --rs-crim-lit:     #A8382F;  /* archer's robe, fold catching light  */
+  --rs-gold:         #F4C178;  /* trim, sash edge, bow gilding        */
+  --rs-gold-deep:    #7C4E18;  /* trim in shadow                      */
+  --rs-sage:         #4E6A5C;  /* deer-girl's robe, lit mass          */
+  --rs-sage-deep:    #16211F;  /* deer-girl's robe, core shadow       */
+  --rs-sage-lit:     #BFD4B8;  /* deer-girl's robe, pale outer layer  */
+  --rs-pearl:        #F3EEDE;  /* white under-layer, blossoms         */
+  --rs-hair:         #2A1A22;  /* hair mass                           */
+  --rs-hair-deep:    #120D18;  /* hair, deepest                       */
+  --rs-hair-lit:     #6B4028;  /* hair with light passing through it  */
+  --rs-deer-top:     #D4B68D;  /* white deer, sunward flank           */
+  --rs-deer:         #6A5543;  /* white deer, mid                     */
+  --rs-deer-deep:    #191312;  /* white deer, underside               */
+  --rs-deer-lit:     #FFF4E2;  /* white deer, catchlight              */
+  --rs-skin:         #4A2A1E;  /* skin turned away from the light     */
+  --rs-skin-lit:     #FFC89A;  /* skin catching the glow              */
+  --rs-petal:        #FFD3A8;  /* drifting petals                     */
+  --rs-link:         #C9F0B4;  /* the thread between them, her end    */
+  --rs-link-gold:    #FFE4A6;  /* the thread between them, his end    */
+  --rs-link-hot:     #F6FFE8;  /* the shimmer running along it        */
+  --rs-on:           #FFFFFF;  /* mask luminance: keep                */
+  --rs-off:          #000000;  /* mask luminance: drop                */
+}
 #v-kings /* ---- flat fills ---- */
-.memory-art .f-ink{fill:var(--mem-ink)}
-#v-kings .memory-art .f-shadow{fill:var(--mem-shadow)}
-#v-kings .memory-art .f-glow{fill:var(--mem-glow)}
-#v-kings .memory-art .f-glow-deep{fill:var(--mem-glow-deep)}
-#v-kings .memory-art .f-core{fill:var(--mem-glow-core)}
-#v-kings .memory-art .f-rim{fill:var(--mem-rim)}
-#v-kings .memory-art .f-hot{fill:var(--mem-rim-hot)}
-#v-kings .memory-art .f-crim{fill:var(--mem-crimson)}
-#v-kings .memory-art .f-crim-deep{fill:var(--mem-crimson-deep)}
-#v-kings .memory-art .f-crim-lit{fill:var(--mem-crimson-lit)}
-#v-kings .memory-art .f-gold{fill:var(--mem-gold)}
-#v-kings .memory-art .f-gold-deep{fill:var(--mem-gold-deep)}
-#v-kings .memory-art .f-sage{fill:var(--mem-sage)}
-#v-kings .memory-art .f-sage-deep{fill:var(--mem-sage-deep)}
-#v-kings .memory-art .f-sage-lit{fill:var(--mem-sage-lit)}
-#v-kings .memory-art .f-pearl{fill:var(--mem-pearl)}
-#v-kings .memory-art .f-hair{fill:var(--mem-hair)}
-#v-kings .memory-art .f-hair-deep{fill:var(--mem-hair-deep)}
-#v-kings .memory-art .f-deer-lit{fill:var(--mem-deer-lit)}
-#v-kings .memory-art .f-deer-deep{fill:var(--mem-deer-deep)}
-#v-kings .memory-art .f-skin{fill:var(--mem-skin)}
-#v-kings .memory-art .f-skin-lit{fill:var(--mem-skin-lit)}
-#v-kings .memory-art .f-petal{fill:var(--mem-petal)}
-#v-kings .memory-art .f-mask-on{fill:var(--mem-mask-on)}
-#v-kings .memory-art .f-mask-off{fill:var(--mem-mask-off)}
+.rideshot .f-ink{fill:var(--rs-ink)}
+#v-kings .rideshot .f-shadow{fill:var(--rs-shadow)}
+#v-kings .rideshot .f-glow{fill:var(--rs-glow)}
+#v-kings .rideshot .f-deep{fill:var(--rs-deep)}
+#v-kings .rideshot .f-core{fill:var(--rs-core)}
+#v-kings .rideshot .f-rim{fill:var(--rs-rim)}
+#v-kings .rideshot .f-hot{fill:var(--rs-hot)}
+#v-kings .rideshot .f-crim{fill:var(--rs-crim)}
+#v-kings .rideshot .f-crim-lit{fill:var(--rs-crim-lit)}
+#v-kings .rideshot .f-gold{fill:var(--rs-gold)}
+#v-kings .rideshot .f-sage-lit{fill:var(--rs-sage-lit)}
+#v-kings .rideshot .f-pearl{fill:var(--rs-pearl)}
+#v-kings .rideshot .f-deer-lit{fill:var(--rs-deer-lit)}
+#v-kings .rideshot .f-deer-deep{fill:var(--rs-deer-deep)}
+#v-kings .rideshot .f-petal{fill:var(--rs-petal)}
+#v-kings .rideshot .f-link{fill:var(--rs-link)}
 #v-kings /* ---- strokes ---- */
-.memory-art .s-rim{fill:none;stroke:var(--mem-rim);stroke-linecap:round;stroke-linejoin:round}
-#v-kings .memory-art .s-hot{fill:none;stroke:var(--mem-rim-hot);stroke-linecap:round;stroke-linejoin:round}
-#v-kings .memory-art .s-glow{fill:none;stroke:var(--mem-glow);stroke-linecap:round;stroke-linejoin:round}
-#v-kings .memory-art .s-gold{fill:none;stroke:var(--mem-gold);stroke-linecap:round;stroke-linejoin:round}
-#v-kings .memory-art .s-gold-deep{fill:none;stroke:var(--mem-gold-deep);stroke-linecap:round;stroke-linejoin:round}
-#v-kings .memory-art .s-ink{fill:none;stroke:var(--mem-ink);stroke-linecap:round;stroke-linejoin:round}
-#v-kings .memory-art .s-deer{fill:none;stroke:var(--mem-deer-lit);stroke-linecap:round;stroke-linejoin:round}
-#v-kings .memory-art .s-skin{fill:none;stroke:var(--mem-skin-lit);stroke-linecap:round;stroke-linejoin:round}
-#v-kings .memory-art .s-pearl{fill:none;stroke:var(--mem-pearl);stroke-linecap:round;stroke-linejoin:round}
+.rideshot .s-rim{fill:none;stroke:var(--rs-rim);stroke-linecap:round;stroke-linejoin:round}
+#v-kings .rideshot .s-glow{fill:none;stroke:var(--rs-glow);stroke-linecap:round;stroke-linejoin:round}
+#v-kings .rideshot .s-gold{fill:none;stroke:var(--rs-gold);stroke-linecap:round;stroke-linejoin:round}
+#v-kings .rideshot .s-deer{fill:none;stroke:var(--rs-deer-lit);stroke-linecap:round;stroke-linejoin:round}
+#v-kings .rideshot .s-skin{fill:none;stroke:var(--rs-skin-lit);stroke-linecap:round;stroke-linejoin:round}
+#v-kings .rideshot .s-pearl{fill:none;stroke:var(--rs-pearl);stroke-linecap:round;stroke-linejoin:round}
+#v-kings .rideshot .s-sage{fill:none;stroke:var(--rs-sage-lit);stroke-linecap:round;stroke-linejoin:round}
+#v-kings .rideshot .s-link{fill:none;stroke:var(--rs-link);stroke-linecap:round;stroke-linejoin:round}
+#v-kings .rideshot .s-linkhot{fill:none;stroke:var(--rs-link-hot);stroke-linecap:round;stroke-linejoin:round}
+#v-kings .rideshot .grain{mix-blend-mode:overlay}
 #v-kings /* ---- gradient stops ---- */
-.memory-art .st-ink{stop-color:var(--mem-ink)}
-#v-kings .memory-art .st-shadow{stop-color:var(--mem-shadow)}
-#v-kings .memory-art .st-glow{stop-color:var(--mem-glow)}
-#v-kings .memory-art .st-deep{stop-color:var(--mem-glow-deep)}
-#v-kings .memory-art .st-core{stop-color:var(--mem-glow-core)}
-#v-kings .memory-art .st-hot{stop-color:var(--mem-rim-hot)}
-#v-kings .memory-art .st-rim{stop-color:var(--mem-rim)}
-#v-kings .memory-art .st-crim{stop-color:var(--mem-crimson)}
-#v-kings .memory-art .st-crim-deep{stop-color:var(--mem-crimson-deep)}
-#v-kings .memory-art .st-crim-lit{stop-color:var(--mem-crimson-lit)}
-#v-kings .memory-art .st-gold{stop-color:var(--mem-gold)}
-#v-kings .memory-art .st-sage{stop-color:var(--mem-sage)}
-#v-kings .memory-art .st-sage-deep{stop-color:var(--mem-sage-deep)}
-#v-kings .memory-art .st-sage-lit{stop-color:var(--mem-sage-lit)}
-#v-kings .memory-art .st-pearl{stop-color:var(--mem-pearl)}
-#v-kings .memory-art .st-hair{stop-color:var(--mem-hair)}
-#v-kings .memory-art .st-hair-deep{stop-color:var(--mem-hair-deep)}
-#v-kings .memory-art .st-hair-lit{stop-color:var(--mem-hair-lit)}
-#v-kings .memory-art .st-deer-top{stop-color:var(--mem-deer-top)}
-#v-kings .memory-art .st-deer{stop-color:var(--mem-deer)}
-#v-kings .memory-art .st-deer-deep{stop-color:var(--mem-deer-deep)}
-#v-kings .memory-art .st-skin{stop-color:var(--mem-skin)}
-#v-kings .memory-art .st-skin-lit{stop-color:var(--mem-skin-lit)}
-#v-kings .memory-art .st-on{stop-color:var(--mem-mask-on)}
-#v-kings .memory-art .st-off{stop-color:var(--mem-mask-off)}</style>
+.rideshot .st-ink{stop-color:var(--rs-ink)}
+#v-kings .rideshot .st-shadow{stop-color:var(--rs-shadow)}
+#v-kings .rideshot .st-glow{stop-color:var(--rs-glow)}
+#v-kings .rideshot .st-deep{stop-color:var(--rs-deep)}
+#v-kings .rideshot .st-core{stop-color:var(--rs-core)}
+#v-kings .rideshot .st-hot{stop-color:var(--rs-hot)}
+#v-kings .rideshot .st-rim{stop-color:var(--rs-rim)}
+#v-kings .rideshot .st-crim{stop-color:var(--rs-crim)}
+#v-kings .rideshot .st-crim-deep{stop-color:var(--rs-crim-deep)}
+#v-kings .rideshot .st-crim-lit{stop-color:var(--rs-crim-lit)}
+#v-kings .rideshot .st-gold{stop-color:var(--rs-gold)}
+#v-kings .rideshot .st-gold-deep{stop-color:var(--rs-gold-deep)}
+#v-kings .rideshot .st-sage{stop-color:var(--rs-sage)}
+#v-kings .rideshot .st-sage-deep{stop-color:var(--rs-sage-deep)}
+#v-kings .rideshot .st-sage-lit{stop-color:var(--rs-sage-lit)}
+#v-kings .rideshot .st-pearl{stop-color:var(--rs-pearl)}
+#v-kings .rideshot .st-hair{stop-color:var(--rs-hair)}
+#v-kings .rideshot .st-hair-deep{stop-color:var(--rs-hair-deep)}
+#v-kings .rideshot .st-hair-lit{stop-color:var(--rs-hair-lit)}
+#v-kings .rideshot .st-deer-top{stop-color:var(--rs-deer-top)}
+#v-kings .rideshot .st-deer{stop-color:var(--rs-deer)}
+#v-kings .rideshot .st-deer-deep{stop-color:var(--rs-deer-deep)}
+#v-kings .rideshot .st-deer-lit{stop-color:var(--rs-deer-lit)}
+#v-kings .rideshot .st-skin{stop-color:var(--rs-skin)}
+#v-kings .rideshot .st-skin-lit{stop-color:var(--rs-skin-lit)}
+#v-kings .rideshot .st-link{stop-color:var(--rs-link)}
+#v-kings .rideshot .st-link-gold{stop-color:var(--rs-link-gold)}
+#v-kings .rideshot .st-on{stop-color:var(--rs-on)}
+#v-kings .rideshot .st-off{stop-color:var(--rs-off)}
+#v-kings /* ===================================================================
+   MOTION.  Every animated group is wrapped in the pin pattern
+       <g transform="translate(px py)"><g class="px anim">
+          <g transform="translate(-px -py)"> …absolute coords… </g>
+       </g></g>
+   so `transform-origin:0 0` pins the rotation exactly where I want it
+   and the artwork keeps its absolute coordinates.
+   Every keyframe set starts and ends on the same value — the loop is
+   seamless — EXCEPT the bowstring, #v-kings whose discontinuity IS the release:
+   one frame of straight string, #v-kings then the snap.
+   =================================================================== */
+.rideshot .px{transform-origin:0 0}
+#v-kings /* --- the arrow, #v-kings already gone ------------------------------------- */
+@keyframes rs-arrow{
+  0%   {transform:translate(-136px,-24px);opacity:0}
+  9%   {opacity:1}
+  58%  {opacity:1}
+  100% {transform:translate(180px,32px);opacity:0}
+}
+@keyframes k_rs-trail{
+  0%   {transform:scaleX(.30)}
+  22%  {transform:scaleX(1.06)}
+  100% {transform:scaleX(1.62)}
+}
+@keyframes k_rs-flash{
+  0%   {opacity:0;transform:scale(.4)}
+  4%   {opacity:1;transform:scale(1.3)}
+  18%  {opacity:.2;transform:scale(.9)}
+  40%  {opacity:0;transform:scale(.6)}
+  100% {opacity:0;transform:scale(.4)}
+}
+#v-kings /* --- the bowstring, #v-kings snapped past straight ------------------------ */
+@keyframes rs-string{
+  0%   {transform:scaleX(1)}
+  5%   {transform:scaleX(-1)}
+  10%  {transform:scaleX(.62)}
+  15%  {transform:scaleX(-.36)}
+  20%  {transform:scaleX(.18)}
+  26%  {transform:scaleX(0)}
+  100% {transform:scaleX(0)}
+}
+@keyframes k_rs-limb{
+  0%   {transform:rotate(0deg)}
+  5%   {transform:rotate(2.8deg)}
+  12%  {transform:rotate(-1.5deg)}
+  20%  {transform:rotate(.6deg)}
+  30%  {transform:rotate(0deg)}
+  100% {transform:rotate(0deg)}
+}
+#v-kings /* --- cloth.  six ripples, #v-kings no two the same period ------------------ */
+@keyframes rs-rip-a{
+  0%,100%{transform:rotate(0deg) skewY(0deg)}
+  25%    {transform:rotate(3.2deg) skewY(-3.4deg)}
+  50%    {transform:rotate(-.6deg) skewY(2.4deg)}
+  75%    {transform:rotate(-3.4deg) skewY(-1.5deg)}
+}
+@keyframes k_rs-rip-b{
+  0%,100%{transform:rotate(0deg) skewY(0deg)}
+  30%    {transform:rotate(-2.6deg) skewY(3deg)}
+  58%    {transform:rotate(1.3deg) skewY(-1.6deg)}
+  80%    {transform:rotate(2.8deg) skewY(1.8deg)}
+}
+@keyframes k_rs-rip-c{
+  0%,100%{transform:rotate(0deg) skewY(0deg) scaleX(1)}
+  22%    {transform:rotate(2.1deg) skewY(-2.5deg) scaleX(1.035)}
+  48%    {transform:rotate(-1.8deg) skewY(2.1deg) scaleX(.975)}
+  74%    {transform:rotate(1.4deg) skewY(-1.2deg) scaleX(1.02)}
+}
+@keyframes k_rs-rip-d{
+  0%,100%{transform:rotate(0deg) skewY(0deg)}
+  26%    {transform:rotate(-3.6deg) skewY(2.8deg)}
+  55%    {transform:rotate(1.8deg) skewY(-3.2deg)}
+  78%    {transform:rotate(-1.2deg) skewY(1.4deg)}
+}
+@keyframes k_rs-rip-e{
+  0%,100%{transform:rotate(0deg) skewY(0deg)}
+  33%    {transform:rotate(2.4deg) skewY(2.2deg)}
+  66%    {transform:rotate(-2.6deg) skewY(-1.8deg)}
+}
+@keyframes k_rs-rip-f{
+  0%,100%{transform:rotate(0deg) skewY(0deg)}
+  28%    {transform:rotate(-1.8deg) skewY(-2.8deg)}
+  52%    {transform:rotate(2.4deg) skewY(1.7deg)}
+  80%    {transform:rotate(.8deg) skewY(-1deg)}
+}
+#v-kings /* hair — a lagging wave, #v-kings slower and heavier than the ribbons */
+@keyframes rs-hairwave{
+  0%,100%{transform:rotate(0deg) skewY(0deg)}
+  34%    {transform:rotate(1.7deg) skewY(-2deg)}
+  68%    {transform:rotate(-2deg) skewY(1.6deg)}
+}
+#v-kings /* --- the deer's bound --------------------------------------------- */
+@keyframes rs-bound{
+  0%,100%{transform:translate(0px,0px) rotate(0deg)}
+  18%    {transform:translate(4px,-15px) rotate(-2.6deg)}
+  42%    {transform:translate(1px,-19px) rotate(-1.2deg)}
+  68%    {transform:translate(-4px,-3px) rotate(1.8deg)}
+  86%    {transform:translate(-1px,5px) rotate(.8deg)}
+}
+@keyframes k_rs-hind{
+  0%,100%{transform:rotate(0deg)}
+  24%    {transform:rotate(24deg)}
+  52%    {transform:rotate(6deg)}
+  76%    {transform:rotate(-7deg)}
+}
+@keyframes k_rs-fore{
+  0%,100%{transform:rotate(0deg)}
+  24%    {transform:rotate(-19deg)}
+  54%    {transform:rotate(12deg)}
+  80%    {transform:rotate(3deg)}
+}
+@keyframes k_rs-deerhead{
+  0%,100%{transform:rotate(0deg)}
+  26%    {transform:rotate(8deg)}
+  62%    {transform:rotate(-6deg)}
+}
+@keyframes k_rs-lag{
+  0%,100%{transform:rotate(0deg) translate(0px,0px)}
+  30%    {transform:rotate(-3.4deg) translate(3px,4px)}
+  64%    {transform:rotate(3deg) translate(-3px,-4px)}
+}
+#v-kings /* --- the link of light -------------------------------------------- */
+@keyframes rs-shimmer{ to{stroke-dashoffset:-288} }
+@keyframes k_rs-shimmer2{ to{stroke-dashoffset:-196} }
+@keyframes k_rs-shimmer3{ to{stroke-dashoffset:-276} }
+@keyframes k_rs-breathe{
+  0%,100%{opacity:.72}
+  50%    {opacity:1}
+}
+#v-kings /* --- light, #v-kings blossom, #v-kings dust ----------------------------------------- */
+@keyframes rs-glowbreathe{
+  0%,100%{transform:scale(1);opacity:.92}
+  50%    {transform:scale(1.045);opacity:1}
+}
+@keyframes k_rs-spin-a{
+  0%,100%{transform:translate(0px,0px) rotate(0deg)}
+  50%    {transform:translate(-30px,-15px) rotate(190deg)}
+}
+@keyframes k_rs-spin-b{
+  0%,100%{transform:translate(0px,0px) rotate(0deg)}
+  50%    {transform:translate(-38px,10px) rotate(-220deg)}
+}
+@keyframes k_rs-spin-c{
+  0%,100%{transform:translate(0px,0px) rotate(0deg)}
+  33%    {transform:translate(-20px,-16px) rotate(130deg)}
+  66%    {transform:translate(-34px,7px) rotate(250deg)}
+}
+@keyframes k_rs-drift-a{
+  0%,100%{transform:translate(0px,0px) rotate(0deg)}
+  50%    {transform:translate(-16px,-11px) rotate(16deg)}
+}
+@keyframes k_rs-drift-b{
+  0%,100%{transform:translate(0px,0px) rotate(0deg)}
+  50%    {transform:translate(13px,-15px) rotate(-19deg)}
+}
+@keyframes k_rs-drift-c{
+  0%,100%{transform:translate(0px,0px) rotate(0deg)}
+  33%    {transform:translate(-11px,-9px) rotate(12deg)}
+  66%    {transform:translate(9px,-16px) rotate(-10deg)}
+}
+@keyframes k_rs-mote{
+  0%   {transform:translate(0px,6px);opacity:0}
+  30%  {opacity:.9}
+  100% {transform:translate(-10px,-40px);opacity:0}
+}
+#v-kings /* --- bind the motion to the artwork -------------------------------- */
+.rideshot .a-arrow{animation:rs-arrow 1.1s linear infinite;animation-delay:-.45s}
+#v-kings .rideshot .a-trail{animation:k_rs-trail 1.1s linear infinite;animation-delay:-.45s}
+#v-kings .rideshot .a-flash{animation:k_rs-flash 1.1s linear infinite;animation-delay:-.45s}
+#v-kings .rideshot .a-string{animation:rs-string 1.1s linear infinite;animation-delay:-.45s}
+#v-kings .rideshot .a-string-ghost{animation:rs-string 1.1s linear infinite;animation-delay:-.428s;opacity:.55}
+#v-kings .rideshot .a-limb{animation:k_rs-limb 1.1s linear infinite;animation-delay:-.45s}
+#v-kings .rideshot .a-rib1{animation:rs-rip-a 1.7s ease-in-out infinite}
+#v-kings .rideshot .a-rib2{animation:k_rs-rip-d 2.1s ease-in-out infinite;animation-delay:-.6s}
+#v-kings .rideshot .a-rib3{animation:k_rs-rip-e 2.45s ease-in-out infinite;animation-delay:-1.5s}
+#v-kings .rideshot .a-sash1{animation:k_rs-rip-b 2.3s ease-in-out infinite;animation-delay:-1.1s}
+#v-kings .rideshot .a-sash2{animation:k_rs-rip-f 1.9s ease-in-out infinite;animation-delay:-.3s}
+#v-kings .rideshot .a-hem{animation:k_rs-rip-c 2.6s ease-in-out infinite;animation-delay:-.9s}
+#v-kings .rideshot .a-hem2{animation:k_rs-rip-e 2.2s ease-in-out infinite;animation-delay:-1.6s}
+#v-kings .rideshot .a-hem3{animation:rs-rip-a 1.95s ease-in-out infinite;animation-delay:-.75s}
+#v-kings .rideshot .a-sleeve1{animation:k_rs-rip-d 2.0s ease-in-out infinite;animation-delay:-1.3s}
+#v-kings .rideshot .a-sleeve2{animation:k_rs-rip-b 1.75s ease-in-out infinite;animation-delay:-.45s}
+#v-kings .rideshot .a-hair{animation:rs-hairwave 3.2s ease-in-out infinite;animation-delay:-1.4s}
+#v-kings .rideshot .a-bound{animation:rs-bound 1.5s ease-in-out infinite}
+#v-kings .rideshot .a-hind{animation:k_rs-hind 1.5s ease-in-out infinite}
+#v-kings .rideshot .a-fore{animation:k_rs-fore 1.5s ease-in-out infinite}
+#v-kings .rideshot .a-dhead{animation:k_rs-deerhead 1.5s ease-in-out infinite}
+#v-kings .rideshot .a-glag{animation:k_rs-lag 1.5s ease-in-out infinite;animation-delay:-.34s}
+#v-kings .rideshot .a-ghair{animation:rs-hairwave 2.8s ease-in-out infinite;animation-delay:-1.1s}
+#v-kings .rideshot .a-gslv{animation:k_rs-rip-f 2.2s ease-in-out infinite;animation-delay:-.8s}
+#v-kings .rideshot .a-gskirt{animation:k_rs-rip-c 2.55s ease-in-out infinite;animation-delay:-1.9s}
+#v-kings .rideshot .a-shim{stroke-dasharray:30 258;animation:rs-shimmer 2s linear infinite}
+#v-kings .rideshot .a-shim3{stroke-dasharray:6 86;animation:k_rs-shimmer3 2.4s linear infinite;animation-delay:-1.3s}
+#v-kings .rideshot .a-shim2{stroke-dasharray:18 178;animation:k_rs-shimmer2 2.6s linear infinite;animation-delay:-.7s}
+#v-kings .rideshot .a-link{animation:k_rs-breathe 2.9s ease-in-out infinite}
+#v-kings .rideshot .a-glowb{animation:rs-glowbreathe 7s ease-in-out infinite}
+#v-kings .rideshot .a-glowb2{animation:rs-glowbreathe 9.5s ease-in-out infinite;animation-delay:-3s}
+#v-kings .rideshot .a-bl1{animation:k_rs-spin-a 4.6s linear infinite}
+#v-kings .rideshot .a-bl2{animation:k_rs-spin-b 6.1s linear infinite;animation-delay:-2.1s}
+#v-kings .rideshot .a-bl3{animation:k_rs-spin-c 7.4s linear infinite;animation-delay:-3.4s}
+#v-kings .rideshot .a-bl4{animation:k_rs-spin-a 5.3s linear infinite;animation-delay:-1.4s}
+#v-kings .rideshot .a-bl5{animation:k_rs-spin-b 8.2s linear infinite;animation-delay:-5.5s}
+#v-kings .rideshot .a-bl6{animation:k_rs-spin-c 6.7s linear infinite;animation-delay:-.9s}
+#v-kings .rideshot .a-bl7{animation:k_rs-spin-a 9.1s linear infinite;animation-delay:-4.2s}
+#v-kings .rideshot .a-bl8{animation:k_rs-spin-b 5.8s linear infinite;animation-delay:-3.1s}
+#v-kings .rideshot .a-dr1{animation:k_rs-drift-a 8.5s ease-in-out infinite}
+#v-kings .rideshot .a-dr2{animation:k_rs-drift-b 11s ease-in-out infinite;animation-delay:-4s}
+#v-kings .rideshot .a-dr3{animation:k_rs-drift-c 13.5s ease-in-out infinite;animation-delay:-7s}
+#v-kings .rideshot .a-dr4{animation:k_rs-drift-a 10.2s ease-in-out infinite;animation-delay:-2.5s}
+#v-kings .rideshot .a-mt1{animation:k_rs-mote 5.4s linear infinite}
+#v-kings .rideshot .a-mt2{animation:k_rs-mote 6.8s linear infinite;animation-delay:-2.4s}
+#v-kings .rideshot .a-mt3{animation:k_rs-mote 4.7s linear infinite;animation-delay:-3.3s}
+#v-kings .rideshot .a-mt4{animation:k_rs-mote 7.9s linear infinite;animation-delay:-5.1s}
+#v-kings .rideshot .a-mt5{animation:k_rs-mote 6.1s linear infinite;animation-delay:-1.2s}
+#v-kings .rideshot .a-mt6{animation:k_rs-mote 5.0s linear infinite;animation-delay:-4.4s}
+#v-kings /* every authored pose is already a good STILL, #v-kings so switching the motion
+   off leaves a finished picture rather than a half-built one */
+@media (prefers-reduced-motion: reduce){
+  .rideshot *{animation:none !important}
+}</style>
 
 <defs>
-  <!-- ========== LIGHT ========== -->
-  <radialGradient id="k_g-ambient" gradientUnits="userSpaceOnUse" cx="0" cy="0" r="1"
-      gradientTransform="translate(462 332) scale(438 338)">
-    <stop offset="0"    class="st-core" stop-opacity=".80"/>
-    <stop offset=".20"  class="st-glow" stop-opacity=".58"/>
-    <stop offset=".44"  class="st-deep" stop-opacity=".30"/>
-    <stop offset=".72"  class="st-deep" stop-opacity=".10"/>
-    <stop offset="1"    class="st-deep" stop-opacity="0"/>
+  <!-- ========== THE LIGHT AHEAD OF THEM ========== -->
+  <radialGradient id="k_g-amb" gradientUnits="userSpaceOnUse" cx="0" cy="0" r="1"
+      gradientTransform="translate(556 314) scale(428 336)">
+    <stop offset="0"   class="st-core" stop-opacity=".62"/>
+    <stop offset=".20" class="st-glow" stop-opacity=".48"/>
+    <stop offset=".46" class="st-deep" stop-opacity=".25"/>
+    <stop offset=".74" class="st-deep" stop-opacity=".08"/>
+    <stop offset="1"   class="st-deep" stop-opacity="0"/>
   </radialGradient>
 
   <radialGradient id="k_g-core" gradientUnits="userSpaceOnUse" cx="0" cy="0" r="1"
-      gradientTransform="translate(461 356) scale(172 186)">
-    <stop offset="0"    class="st-hot"  stop-opacity=".92"/>
-    <stop offset=".30"  class="st-core" stop-opacity=".58"/>
-    <stop offset=".66"  class="st-glow" stop-opacity=".22"/>
-    <stop offset="1"    class="st-glow" stop-opacity="0"/>
+      gradientTransform="translate(712 304) scale(176 190)">
+    <stop offset="0"   class="st-hot"  stop-opacity=".90"/>
+    <stop offset=".26" class="st-core" stop-opacity=".56"/>
+    <stop offset=".62" class="st-glow" stop-opacity=".21"/>
+    <stop offset="1"   class="st-glow" stop-opacity="0"/>
   </radialGradient>
 
   <radialGradient id="k_g-ground" gradientUnits="userSpaceOnUse" cx="0" cy="0" r="1"
-      gradientTransform="translate(470 508) scale(404 116)">
-    <stop offset="0"    class="st-core" stop-opacity=".60"/>
-    <stop offset=".30"  class="st-glow" stop-opacity=".38"/>
-    <stop offset=".62"  class="st-deep" stop-opacity=".15"/>
-    <stop offset="1"    class="st-deep" stop-opacity="0"/>
+      gradientTransform="translate(520 470) scale(380 112)">
+    <stop offset="0"   class="st-core" stop-opacity=".52"/>
+    <stop offset=".30" class="st-glow" stop-opacity=".33"/>
+    <stop offset=".62" class="st-deep" stop-opacity=".13"/>
+    <stop offset="1"   class="st-deep" stop-opacity="0"/>
   </radialGradient>
 
   <radialGradient id="k_g-haze" gradientUnits="userSpaceOnUse" cx="0" cy="0" r="1"
-      gradientTransform="translate(468 472) scale(336 42)">
-    <stop offset="0"    class="st-hot"  stop-opacity=".46"/>
-    <stop offset=".48"  class="st-glow" stop-opacity=".20"/>
-    <stop offset="1"    class="st-glow" stop-opacity="0"/>
+      gradientTransform="translate(556 448) scale(344 44)">
+    <stop offset="0"   class="st-hot"  stop-opacity=".38"/>
+    <stop offset=".48" class="st-glow" stop-opacity=".16"/>
+    <stop offset="1"   class="st-glow" stop-opacity="0"/>
   </radialGradient>
 
-  <radialGradient id="k_g-haze-front" gradientUnits="userSpaceOnUse" cx="0" cy="0" r="1"
-      gradientTransform="translate(462 516) scale(360 34)">
-    <stop offset="0"    class="st-glow" stop-opacity=".22"/>
-    <stop offset="1"    class="st-glow" stop-opacity="0"/>
+  <radialGradient id="k_g-pool" gradientUnits="userSpaceOnUse" cx="0" cy="0" r="1"
+      gradientTransform="translate(306 352) scale(228 162)">
+    <stop offset="0"   class="st-glow" stop-opacity=".30"/>
+    <stop offset=".46" class="st-deep" stop-opacity=".16"/>
+    <stop offset="1"   class="st-deep" stop-opacity="0"/>
   </radialGradient>
 
-  <radialGradient id="k_g-bokeh" gradientUnits="userSpaceOnUse" cx="0" cy="0" r="1"
-      gradientTransform="scale(1)">
+  <radialGradient id="k_g-bokeh" gradientUnits="userSpaceOnUse" cx="0" cy="0" r="1">
     <stop offset="0"   class="st-glow" stop-opacity=".55"/>
     <stop offset=".62" class="st-glow" stop-opacity=".22"/>
     <stop offset="1"   class="st-deep" stop-opacity="0"/>
   </radialGradient>
 
-  <!-- ========== FIGURE FORM ========== -->
-  <linearGradient id="k_g-arch" gradientUnits="userSpaceOnUse" x1="364" y1="186" x2="348" y2="532">
+  <!-- ========== ARCHER ========== -->
+  <linearGradient id="k_g-arch" gradientUnits="userSpaceOnUse" x1="586" y1="196" x2="524" y2="470">
     <stop offset="0"   class="st-crim"/>
-    <stop offset=".40" class="st-crim-deep"/>
-    <stop offset="1"   class="st-ink"/>
+    <stop offset=".24" class="st-crim-deep"/>
+    <stop offset=".66" class="st-ink"/>
+    <stop offset="1"   class="st-shadow"/>
   </linearGradient>
-  <linearGradient id="k_g-arch-warm" gradientUnits="userSpaceOnUse" x1="318" y1="0" x2="418" y2="0">
+  <linearGradient id="k_g-arch-warm" gradientUnits="userSpaceOnUse" x1="506" y1="0" x2="664" y2="0">
     <stop offset="0"   class="st-deep" stop-opacity="0"/>
-    <stop offset=".60" class="st-deep" stop-opacity=".16"/>
-    <stop offset="1"   class="st-glow" stop-opacity=".50"/>
+    <stop offset=".70" class="st-deep" stop-opacity=".12"/>
+    <stop offset=".90" class="st-deep" stop-opacity=".34"/>
+    <stop offset="1"   class="st-glow" stop-opacity=".58"/>
   </linearGradient>
-  <linearGradient id="k_g-arch-sleeve" gradientUnits="userSpaceOnUse" x1="296" y1="200" x2="322" y2="330">
+  <linearGradient id="k_g-cloth" gradientUnits="userSpaceOnUse" x1="604" y1="306" x2="396" y2="452">
     <stop offset="0"   class="st-crim"/>
-    <stop offset=".55" class="st-crim-deep"/>
-    <stop offset="1"   class="st-ink"/>
+    <stop offset=".30" class="st-crim-deep"/>
+    <stop offset=".80" class="st-ink" stop-opacity=".55"/>
+    <stop offset="1"   class="st-ink" stop-opacity="0"/>
   </linearGradient>
-  <linearGradient id="k_g-ribbon" gradientUnits="userSpaceOnUse" x1="350" y1="120" x2="190" y2="180">
-    <stop offset="0"   class="st-crim"/>
-    <stop offset=".55" class="st-crim-deep"/>
-    <stop offset="1"   class="st-ink"/>
+  <linearGradient id="k_g-ribbon" gradientUnits="userSpaceOnUse" x1="574" y1="174" x2="398" y2="196">
+    <stop offset="0"   class="st-crim-lit"/>
+    <stop offset=".30" class="st-crim"/>
+    <stop offset=".72" class="st-crim-deep"/>
+    <stop offset="1"   class="st-crim-deep" stop-opacity="0"/>
   </linearGradient>
-  <linearGradient id="k_g-train" gradientUnits="userSpaceOnUse" x1="300" y1="430" x2="212" y2="528">
-    <stop offset="0"   class="st-crim-deep"/>
-    <stop offset="1"   class="st-ink"/>
+  <linearGradient id="k_g-sash" gradientUnits="userSpaceOnUse" x1="614" y1="304" x2="400" y2="424">
+    <stop offset="0"   class="st-gold"/>
+    <stop offset=".16" class="st-gold-deep"/>
+    <stop offset=".60" class="st-crim-deep"/>
+    <stop offset="1"   class="st-ink" stop-opacity="0"/>
   </linearGradient>
-
-  <linearGradient id="k_g-heal" gradientUnits="userSpaceOnUse" x1="549" y1="194" x2="549" y2="520">
-    <stop offset="0"   class="st-sage"/>
-    <stop offset=".40" class="st-sage-deep"/>
-    <stop offset="1"   class="st-ink"/>
-  </linearGradient>
-  <linearGradient id="k_g-heal-warm" gradientUnits="userSpaceOnUse" x1="606" y1="0" x2="508" y2="0">
-    <stop offset="0"   class="st-deep" stop-opacity="0"/>
-    <stop offset=".58" class="st-deep" stop-opacity=".16"/>
-    <stop offset="1"   class="st-glow" stop-opacity=".52"/>
-  </linearGradient>
-  <linearGradient id="k_g-hair" gradientUnits="userSpaceOnUse" x1="549" y1="138" x2="549" y2="444">
+  <linearGradient id="k_g-hair-a" gradientUnits="userSpaceOnUse" x1="584" y1="198" x2="446" y2="256">
     <stop offset="0"   class="st-hair-lit"/>
-    <stop offset=".26" class="st-hair"/>
+    <stop offset=".18" class="st-hair"/>
+    <stop offset=".76" class="st-hair-deep"/>
+    <stop offset="1"   class="st-hair-deep" stop-opacity="0"/>
+  </linearGradient>
+  <linearGradient id="k_g-knot" gradientUnits="userSpaceOnUse" x1="598" y1="146" x2="570" y2="180">
+    <stop offset="0"   class="st-hair-lit"/>
+    <stop offset=".4"  class="st-hair"/>
     <stop offset="1"   class="st-hair-deep"/>
   </linearGradient>
-  <linearGradient id="k_g-veil" gradientUnits="userSpaceOnUse" x1="534" y1="216" x2="430" y2="340">
-    <stop offset="0"   class="st-core" stop-opacity=".40"/>
-    <stop offset=".45" class="st-glow" stop-opacity=".20"/>
-    <stop offset="1"   class="st-glow" stop-opacity="0"/>
+
+  <!-- ========== DEER-GIRL ========== -->
+  <linearGradient id="k_g-girl" gradientUnits="userSpaceOnUse" x1="300" y1="278" x2="188" y2="400">
+    <stop offset="0"   class="st-sage"/>
+    <stop offset=".18" class="st-sage-deep"/>
+    <stop offset=".72" class="st-ink"/>
+    <stop offset="1"   class="st-shadow"/>
   </linearGradient>
-  <linearGradient id="k_g-underskirt" gradientUnits="userSpaceOnUse" x1="549" y1="458" x2="549" y2="506">
-    <stop offset="0"   class="st-pearl" stop-opacity=".46"/>
-    <stop offset="1"   class="st-sage-lit" stop-opacity=".06"/>
+  <linearGradient id="k_g-girl-warm" gradientUnits="userSpaceOnUse" x1="196" y1="0" x2="308" y2="0">
+    <stop offset="0"   class="st-deep" stop-opacity="0"/>
+    <stop offset=".70" class="st-deep" stop-opacity=".12"/>
+    <stop offset=".90" class="st-deep" stop-opacity=".30"/>
+    <stop offset="1"   class="st-glow" stop-opacity=".50"/>
+  </linearGradient>
+  <linearGradient id="k_g-arm" gradientUnits="userSpaceOnUse" x1="300" y1="252" x2="286" y2="300">
+    <stop offset="0"   class="st-sage"/>
+    <stop offset=".34" class="st-sage-deep"/>
+    <stop offset="1"   class="st-ink"/>
   </linearGradient>
 
-  <linearGradient id="k_g-deer" gradientUnits="userSpaceOnUse" x1="668" y1="310" x2="660" y2="504">
+  <linearGradient id="k_g-sheer" gradientUnits="userSpaceOnUse" x1="282" y1="344" x2="146" y2="420">
+    <stop offset="0"   class="st-sage-lit" stop-opacity=".38"/>
+    <stop offset=".55" class="st-sage-lit" stop-opacity=".16"/>
+    <stop offset="1"   class="st-sage-lit" stop-opacity="0"/>
+  </linearGradient>
+  <linearGradient id="k_g-hair-g" gradientUnits="userSpaceOnUse" x1="284" y1="276" x2="150" y2="398">
+    <stop offset="0"   class="st-hair-lit"/>
+    <stop offset=".20" class="st-hair"/>
+    <stop offset=".80" class="st-hair-deep"/>
+    <stop offset="1"   class="st-hair-deep" stop-opacity="0"/>
+  </linearGradient>
+
+  <!-- ========== DEER — a white animal read as a rim-lit silhouette ===== -->
+  <linearGradient id="k_g-deer" gradientUnits="userSpaceOnUse" x1="218" y1="333" x2="224" y2="389">
     <stop offset="0"   class="st-deer-top"/>
-    <stop offset=".34" class="st-deer"/>
-    <stop offset="1"   class="st-deer-deep"/>
+    <stop offset=".32" class="st-deer"/>
+    <stop offset=".70" class="st-deer-deep"/>
+    <stop offset="1"   class="st-ink"/>
   </linearGradient>
-  <linearGradient id="k_g-deer-leg" gradientUnits="userSpaceOnUse" x1="668" y1="396" x2="668" y2="504">
+  <linearGradient id="k_g-deer-neck" gradientUnits="userSpaceOnUse" x1="360" y1="256" x2="342" y2="332">
     <stop offset="0"   class="st-deer"/>
-    <stop offset="1"   class="st-deer-deep"/>
+    <stop offset=".34" class="st-deer-deep"/>
+    <stop offset="1"   class="st-ink"/>
   </linearGradient>
 
-  <!-- ========== RIM MASKS: light only on the edges turned to the glow ===== -->
-  <linearGradient id="k_g-rim-arch" gradientUnits="userSpaceOnUse" x1="300" y1="0" x2="414" y2="0">
-    <stop offset="0"   class="st-on" stop-opacity=".10"/>
-    <stop offset=".46" class="st-on" stop-opacity=".26"/>
-    <stop offset="1"   class="st-on" stop-opacity="1"/>
+  <!-- ========== SKIN / HANDS ========== -->
+  <linearGradient id="k_g-skin-a" gradientUnits="userSpaceOnUse" x1="582" y1="0" x2="616" y2="0">
+    <stop offset="0"   class="st-ink"/>
+    <stop offset=".50" class="st-skin"/>
+    <stop offset="1"   class="st-skin-lit"/>
   </linearGradient>
-  <mask id="k_m-rim-arch" maskUnits="userSpaceOnUse" x="150" y="60" width="360" height="520">
-    <rect x="150" y="60" width="360" height="520" fill="url(#k_g-rim-arch)"/>
+  <linearGradient id="k_g-hand-a" gradientUnits="userSpaceOnUse" x1="658" y1="0" x2="690" y2="0">
+    <stop offset="0"   class="st-ink"/>
+    <stop offset=".55" class="st-skin"/>
+    <stop offset="1"   class="st-skin-lit"/>
+  </linearGradient>
+  <linearGradient id="k_g-skin-g" gradientUnits="userSpaceOnUse" x1="272" y1="0" x2="304" y2="0">
+    <stop offset="0"   class="st-ink"/>
+    <stop offset=".48" class="st-skin"/>
+    <stop offset="1"   class="st-skin-lit"/>
+  </linearGradient>
+
+  <!-- ========== THE LINK ========== -->
+  <linearGradient id="k_g-link" gradientUnits="userSpaceOnUse" x1="420" y1="207" x2="626" y2="268">
+    <stop offset="0"   class="st-link"/>
+    <stop offset=".50" class="st-link"/>
+    <stop offset="1"   class="st-link-gold"/>
+  </linearGradient>
+
+  <!-- ========== THE ARROW ========== -->
+  <linearGradient id="k_g-trail" gradientUnits="userSpaceOnUse" x1="792" y1="300" x2="566" y2="260">
+    <stop offset="0"   class="st-hot"  stop-opacity=".95"/>
+    <stop offset=".14" class="st-core" stop-opacity=".70"/>
+    <stop offset=".44" class="st-glow" stop-opacity=".30"/>
+    <stop offset=".78" class="st-deep" stop-opacity=".09"/>
+    <stop offset="1"   class="st-deep" stop-opacity="0"/>
+  </linearGradient>
+
+  <!-- ===== RIM MASKS: light only lands on edges turned to the glow ==== -->
+  <linearGradient id="k_g-rmA" gradientUnits="userSpaceOnUse" x1="700" y1="0" x2="470" y2="0">
+    <stop offset="0"   class="st-on" stop-opacity="1"/>
+    <stop offset=".46" class="st-on" stop-opacity=".46"/>
+    <stop offset="1"   class="st-on" stop-opacity=".10"/>
+  </linearGradient>
+  <mask id="k_m-rimA" maskUnits="userSpaceOnUse" x="0" y="0" width="900" height="600">
+    <rect x="0" y="0" width="900" height="600" fill="url(#k_g-rmA)"/>
   </mask>
 
-  <linearGradient id="k_g-rim-heal" gradientUnits="userSpaceOnUse" x1="614" y1="0" x2="506" y2="0">
-    <stop offset="0"   class="st-on" stop-opacity=".09"/>
-    <stop offset=".46" class="st-on" stop-opacity=".26"/>
-    <stop offset="1"   class="st-on" stop-opacity="1"/>
+  <linearGradient id="k_g-rmL" gradientUnits="userSpaceOnUse" x1="420" y1="0" x2="110" y2="0">
+    <stop offset="0"   class="st-on" stop-opacity="1"/>
+    <stop offset=".44" class="st-on" stop-opacity=".52"/>
+    <stop offset="1"   class="st-on" stop-opacity=".14"/>
   </linearGradient>
-  <mask id="k_m-rim-heal" maskUnits="userSpaceOnUse" x="470" y="100" width="260" height="470">
-    <rect x="470" y="100" width="260" height="470" fill="url(#k_g-rim-heal)"/>
+  <mask id="k_m-rimL" maskUnits="userSpaceOnUse" x="0" y="0" width="900" height="600">
+    <rect x="0" y="0" width="900" height="600" fill="url(#k_g-rmL)"/>
   </mask>
 
-  <linearGradient id="k_g-rim-deer" gradientUnits="userSpaceOnUse" x1="724" y1="0" x2="606" y2="0">
-    <stop offset="0"   class="st-on" stop-opacity=".12"/>
-    <stop offset=".50" class="st-on" stop-opacity=".40"/>
-    <stop offset="1"   class="st-on" stop-opacity="1"/>
-  </linearGradient>
-  <mask id="k_m-rim-deer" maskUnits="userSpaceOnUse" x="560" y="180" width="220" height="360">
-    <rect x="560" y="180" width="220" height="360" fill="url(#k_g-rim-deer)"/>
-  </mask>
-
-  <!-- ground mask: shadows exist only where there is light to block ======= -->
-  <radialGradient id="k_g-groundmask" gradientUnits="userSpaceOnUse" cx="0" cy="0" r="1"
-      gradientTransform="translate(470 512) scale(400 150)">
+  <!-- shadows exist only where there is light for them to interrupt -->
+  <radialGradient id="k_g-gmask" gradientUnits="userSpaceOnUse" cx="0" cy="0" r="1"
+      gradientTransform="translate(516 486) scale(404 150)">
     <stop offset="0"   class="st-on"/>
     <stop offset=".52" class="st-on" stop-opacity=".92"/>
     <stop offset="1"   class="st-on" stop-opacity="0"/>
   </radialGradient>
-  <mask id="k_m-ground" maskUnits="userSpaceOnUse" x="0" y="380" width="900" height="220">
-    <rect x="0" y="380" width="900" height="220" fill="url(#k_g-groundmask)"/>
+  <mask id="k_m-ground" maskUnits="userSpaceOnUse" x="0" y="360" width="900" height="240">
+    <rect x="0" y="360" width="900" height="240" fill="url(#k_g-gmask)"/>
   </mask>
 
-  <!-- the whole memory dissolves at its edges ============================= -->
-  <radialGradient id="k_g-vignette" gradientUnits="userSpaceOnUse" cx="0" cy="0" r="1"
-      gradientTransform="translate(456 318) scale(506 396)">
+  <!-- the memory has no rectangle: it stops existing toward the edges -->
+  <radialGradient id="k_g-vig" gradientUnits="userSpaceOnUse" cx="0" cy="0" r="1"
+      gradientTransform="translate(470 300) scale(440 300)">
     <stop offset="0"   class="st-on"/>
-    <stop offset=".50" class="st-on"/>
-    <stop offset=".78" class="st-on" stop-opacity=".60"/>
+    <stop offset=".58" class="st-on"/>
+    <stop offset=".88" class="st-on" stop-opacity=".46"/>
     <stop offset="1"   class="st-on" stop-opacity="0"/>
   </radialGradient>
-  <mask id="k_m-vignette" maskUnits="userSpaceOnUse" x="0" y="0" width="900" height="600">
-    <rect x="0" y="0" width="900" height="600" fill="url(#k_g-vignette)"/>
+  <mask id="k_m-vig" maskUnits="userSpaceOnUse" x="-120" y="-120" width="1140" height="840">
+    <rect x="-120" y="-120" width="1140" height="840" fill="url(#k_g-vig)"/>
   </mask>
 
   <!-- ========== BLURS ========== -->
   <filter id="k_f-soft" x="-40%" y="-40%" width="180%" height="180%">
-    <feGaussianBlur stdDeviation="6"/>
-  </filter>
+    <feGaussianBlur stdDeviation="6"/></filter>
   <filter id="k_f-softer" x="-50%" y="-50%" width="200%" height="200%">
-    <feGaussianBlur stdDeviation="15"/>
-  </filter>
+    <feGaussianBlur stdDeviation="14"/></filter>
+  <filter id="k_f-tight" x="-40%" y="-60%" width="180%" height="220%">
+    <feGaussianBlur stdDeviation="3"/></filter>
   <filter id="k_f-haze" x="-60%" y="-60%" width="220%" height="220%">
-    <feGaussianBlur stdDeviation="26"/>
-  </filter>
+    <feGaussianBlur stdDeviation="26"/></filter>
   <filter id="k_f-bloom" x="-50%" y="-50%" width="200%" height="200%">
-    <feGaussianBlur stdDeviation="4"/>
-  </filter>
+    <feGaussianBlur stdDeviation="4"/></filter>
   <filter id="k_f-bloom-wide" x="-60%" y="-60%" width="220%" height="220%">
-    <feGaussianBlur stdDeviation="11"/>
+    <feGaussianBlur stdDeviation="10"/></filter>
+  <filter id="k_f-grain" x="0%" y="0%" width="100%" height="100%">
+    <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" stitchTiles="stitch"/>
+    <feColorMatrix type="saturate" values="0"/>
   </filter>
-  <filter id="k_f-dot" x="-300%" y="-300%" width="700%" height="700%">
-    <feGaussianBlur stdDeviation="3.2" result="b"/>
-    <feMerge>
-      <feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/>
-    </feMerge>
-  </filter>
+  <radialGradient id="k_g-grainmask" gradientUnits="userSpaceOnUse" cx="0" cy="0" r="1"
+      gradientTransform="translate(478 316) scale(400 268)">
+    <stop offset="0"  class="st-on" stop-opacity=".85"/>
+    <stop offset=".6" class="st-on" stop-opacity=".42"/>
+    <stop offset="1"  class="st-on" stop-opacity="0"/>
+  </radialGradient>
+  <mask id="k_m-grain" maskUnits="userSpaceOnUse" x="0" y="0" width="900" height="600">
+    <rect x="0" y="0" width="900" height="600" fill="url(#k_g-grainmask)"/>
+  </mask>
 </defs>
 
-<!-- =====================================================================
-     EVERYTHING lives inside the vignette mask, so the memory has no
-     rectangle: it simply stops existing toward the frame.
-     ===================================================================== -->
-<g mask="url(#k_m-vignette)">
+<!-- ======================================================================
+     Everything lives inside the vignette mask, so the illustration has no
+     border: it simply stops existing toward the edges of the frame.
+     ====================================================================== -->
+<g mask="url(#k_m-vig)">
+<g transform="translate(470 320) scale(1.04) translate(-470 -320)">
 
-  <!-- ========== 1. the light they are walking into ========== -->
-  <ellipse cx="462" cy="332" rx="438" ry="338" fill="url(#k_g-ambient)"/>
-  <ellipse cx="470" cy="508" rx="404" ry="116" fill="url(#k_g-ground)"/>
-  <ellipse cx="461" cy="356" rx="172" ry="186" fill="url(#k_g-core)"/>
+  <!-- =============== 1. THE LIGHT =============== -->
+  <g transform="translate(556 314)"><g class="px a-glowb"><g transform="translate(-556 -314)">
+    <ellipse cx="556" cy="314" rx="428" ry="336" fill="url(#k_g-amb)"/>
+  </g></g></g>
+  <g transform="translate(520 470)"><g class="px a-glowb2"><g transform="translate(-520 -470)">
+    <ellipse cx="520" cy="470" rx="380" ry="112" fill="url(#k_g-ground)"/>
+  </g></g></g>
+  <g transform="translate(712 304)"><g class="px a-glowb"><g transform="translate(-712 -304)">
+    <ellipse cx="712" cy="304" rx="176" ry="190" fill="url(#k_g-core)"/>
+  </g></g></g>
 
-  <!-- soft bokeh, depth behind the figures -->
-  <g filter="url(#k_f-haze)" opacity=".55">
-    <circle cx="258" cy="252" r="26" fill="url(#k_g-bokeh)"/>
-    <circle cx="690" cy="236" r="22" fill="url(#k_g-bokeh)"/>
-    <circle cx="760" cy="330" r="30" fill="url(#k_g-bokeh)"/>
-    <circle cx="186" cy="356" r="20" fill="url(#k_g-bokeh)"/>
-    <circle cx="470" cy="190" r="34" fill="url(#k_g-bokeh)"/>
+  <ellipse cx="306" cy="352" rx="228" ry="162" fill="url(#k_g-pool)"/>
+
+  <g filter="url(#k_f-haze)" opacity=".5">
+    <circle cx="206" cy="212" r="26" fill="url(#k_g-bokeh)"/>
+    <circle cx="790" cy="202" r="24" fill="url(#k_g-bokeh)"/>
+    <circle cx="832" cy="376" r="30" fill="url(#k_g-bokeh)"/>
+    <circle cx="136" cy="340" r="20" fill="url(#k_g-bokeh)"/>
+    <circle cx="470" cy="150" r="32" fill="url(#k_g-bokeh)"/>
+    <circle cx="648" cy="474" r="26" fill="url(#k_g-bokeh)"/>
   </g>
 
-  <!-- ========== 2. the ground ========== -->
-  <ellipse cx="468" cy="472" rx="336" ry="42" fill="url(#k_g-haze)"/>
-  <g filter="url(#k_f-soft)" opacity=".5">
-    <ellipse cx="392" cy="494" rx="132" ry="5" class="f-glow" opacity=".30"/>
-    <ellipse cx="596" cy="486" rx="104" ry="4" class="f-core" opacity=".26"/>
-    <ellipse cx="300" cy="520" rx="96"  ry="4" class="f-glow-deep" opacity=".22"/>
-    <ellipse cx="664" cy="520" rx="110" ry="5" class="f-glow" opacity=".18"/>
-    <ellipse cx="470" cy="540" rx="180" ry="6" class="f-glow-deep" opacity=".14"/>
+  <!-- =============== 2. THE GROUND =============== -->
+  <ellipse cx="556" cy="448" rx="344" ry="44" fill="url(#k_g-haze)"/>
+  <g filter="url(#k_f-soft)">
+    <ellipse cx="620" cy="462" rx="132" ry="5" class="f-glow" opacity=".22"/>
+    <ellipse cx="434" cy="482" rx="112" ry="5" class="f-core" opacity=".17"/>
+    <ellipse cx="300" cy="502" rx="100" ry="4" class="f-deep" opacity=".15"/>
+    <ellipse cx="706" cy="492" rx="112" ry="5" class="f-glow" opacity=".13"/>
+    <ellipse cx="510" cy="524" rx="190" ry="6" class="f-deep" opacity=".10"/>
   </g>
 
-  <!-- ========== 3. long shadows reaching toward the viewer ========== -->
+  <!-- =============== 3. SHADOWS REACHING BACK TOWARD US =============== -->
   <g mask="url(#k_m-ground)">
-    <g filter="url(#k_f-softer)" opacity=".85">
-      <path class="f-shadow" d="M 310 506 C 340 502 366 508 374 518 C 358 550 322 582 272 600 L 184 600 C 238 572 286 540 310 506 Z"/>
-      <path class="f-shadow" d="M 522 490 C 548 486 574 490 582 500 C 588 532 598 566 616 600 L 538 600 C 526 562 520 526 522 490 Z"/>
-      <path class="f-shadow" d="M 634 492 C 664 488 698 490 708 500 C 724 530 748 564 778 596 L 692 600 C 668 564 646 526 634 492 Z"/>
-      <path class="f-shadow" d="M 246 514 C 268 512 286 516 290 524 C 272 544 244 562 212 574 L 150 566 C 192 548 226 532 246 514 Z" opacity=".7"/>
+    <g filter="url(#k_f-softer)" opacity=".62">
+      <!-- the archer's braced stance throws two legs of shadow at us -->
+      <path class="f-shadow" d="M 650 452 C 668 450 682 456 686 466 C 674 498 648 540 608 584 L 544 592 C 592 540 632 492 650 452 Z"/>
+      <path class="f-shadow" d="M 450 476 C 468 474 482 480 486 490 C 472 518 450 552 420 588 L 356 586 C 400 544 432 508 450 476 Z"/>
+      <!-- the deer is airborne: its shadow sits apart, underneath it -->
+      <path class="f-shadow" opacity=".62" d="M 196 496 C 248 488 312 490 342 500 C 354 516 342 538 308 556 C 264 576 202 576 168 560 C 142 544 148 514 196 496 Z"/>
     </g>
-    <!-- contact shadows: the bit that makes them actually touch the ground -->
-    <g filter="url(#k_f-soft)" opacity=".8">
-      <ellipse cx="346" cy="518" rx="62" ry="11" class="f-shadow"/>
-      <ellipse cx="549" cy="500" rx="52" ry="9"  class="f-shadow"/>
-      <ellipse cx="668" cy="500" rx="48" ry="8"  class="f-shadow"/>
+    <g filter="url(#k_f-tight)" opacity=".85">
+      <ellipse cx="660" cy="458" rx="26" ry="5" class="f-shadow"/>
+      <ellipse cx="450" cy="482" rx="22" ry="5" class="f-shadow"/>
+    </g>
+    <g filter="url(#k_f-soft)" opacity=".45">
+      <ellipse cx="272" cy="508" rx="92" ry="11" class="f-shadow"/>
+      <ellipse cx="124" cy="514" rx="34" ry="7" class="f-shadow"/>
     </g>
   </g>
 
-  <!-- ========== 4. petals drifting behind them ========== -->
+  <!-- =============== 4. PETALS BEHIND THEM =============== -->
   <g class="f-petal">
-    <ellipse cx="152" cy="252" rx="6"   ry="3"   opacity=".26" transform="rotate(-24 152 252)"/>
-    <ellipse cx="206" cy="416" rx="5"   ry="2.4" opacity=".22" transform="rotate(32 206 416)"/>
-    <ellipse cx="268" cy="188" rx="5.4" ry="2.6" opacity=".30" transform="rotate(-12 268 188)"/>
-    <ellipse cx="316" cy="124" rx="4.6" ry="2.2" opacity=".26" transform="rotate(44 316 124)"/>
-    <ellipse cx="430" cy="146" rx="6.2" ry="3"   opacity=".46" transform="rotate(-30 430 146)"/>
-    <ellipse cx="468" cy="110" rx="5"   ry="2.4" opacity=".34" transform="rotate(18 468 110)"/>
-    <ellipse cx="438" cy="236" rx="6.6" ry="3.2" opacity=".62" transform="rotate(-48 438 236)"/>
-    <ellipse cx="490" cy="300" rx="5.6" ry="2.8" opacity=".58" transform="rotate(26 490 300)"/>
-    <ellipse cx="452" cy="404" rx="7"   ry="3.4" opacity=".54" transform="rotate(-16 452 404)"/>
-    <ellipse cx="424" cy="330" rx="4.8" ry="2.3" opacity=".48" transform="rotate(60 424 330)"/>
-    <ellipse cx="636" cy="152" rx="5.8" ry="2.8" opacity=".30" transform="rotate(-36 636 152)"/>
-    <ellipse cx="716" cy="206" rx="5"   ry="2.4" opacity=".26" transform="rotate(22 716 206)"/>
-    <ellipse cx="770" cy="276" rx="6.4" ry="3.1" opacity=".24" transform="rotate(-20 770 276)"/>
-    <ellipse cx="812" cy="348" rx="5.2" ry="2.5" opacity=".18" transform="rotate(40 812 348)"/>
-    <ellipse cx="744" cy="412" rx="6"   ry="2.9" opacity=".22" transform="rotate(-8 744 412)"/>
-    <ellipse cx="796" cy="462" rx="5.4" ry="2.6" opacity=".16" transform="rotate(34 796 462)"/>
-    <ellipse cx="118" cy="360" rx="5.6" ry="2.7" opacity=".18" transform="rotate(-42 118 360)"/>
-    <ellipse cx="226" cy="498" rx="6"   ry="2.9" opacity=".20" transform="rotate(14 226 498)"/>
-    <ellipse cx="352" cy="92"  rx="4.4" ry="2.1" opacity=".22" transform="rotate(-52 352 92)"/>
-    <ellipse cx="560" cy="106" rx="5"   ry="2.4" opacity=".24" transform="rotate(28 560 106)"/>
+    <g transform="translate(130 232)"><g class="px a-dr1"><g transform="translate(-130 -232)">
+      <ellipse cx="130" cy="232" rx="6"   ry="2.9" opacity=".22" transform="rotate(-24 130 232)"/>
+      <ellipse cx="232" cy="158" rx="5.4" ry="2.6" opacity=".26" transform="rotate(-12 232 158)"/>
+      <ellipse cx="428" cy="118" rx="6.2" ry="3"   opacity=".40" transform="rotate(-30 428 118)"/>
+      <ellipse cx="104" cy="352" rx="5.6" ry="2.7" opacity=".16" transform="rotate(-42 104 352)"/>
+    </g></g></g>
+    <g transform="translate(176 412)"><g class="px a-dr2"><g transform="translate(-176 -412)">
+      <ellipse cx="176" cy="412" rx="5"   ry="2.4" opacity=".20" transform="rotate(32 176 412)"/>
+      <ellipse cx="500" cy="112" rx="5"   ry="2.4" opacity=".30" transform="rotate(18 500 112)"/>
+      <ellipse cx="790" cy="258" rx="6.4" ry="3.1" opacity=".26" transform="rotate(-20 790 258)"/>
+      <ellipse cx="212" cy="498" rx="6"   ry="2.9" opacity=".18" transform="rotate(14 212 498)"/>
+    </g></g></g>
+    <g transform="translate(470 210)"><g class="px a-dr3"><g transform="translate(-470 -210)">
+      <ellipse cx="470" cy="210" rx="6.6" ry="3.2" opacity=".50" transform="rotate(-48 470 210)"/>
+      <ellipse cx="676" cy="142" rx="5.8" ry="2.8" opacity=".30" transform="rotate(-36 676 142)"/>
+      <ellipse cx="830" cy="330" rx="5.2" ry="2.5" opacity=".20" transform="rotate(40 830 330)"/>
+      <ellipse cx="340" cy="106" rx="4.4" ry="2.1" opacity=".20" transform="rotate(-52 340 106)"/>
+    </g></g></g>
+    <g transform="translate(754 404)"><g class="px a-dr4"><g transform="translate(-754 -404)">
+      <ellipse cx="754" cy="404" rx="6"   ry="2.9" opacity=".22" transform="rotate(-8 754 404)"/>
+      <ellipse cx="816" cy="458" rx="5.4" ry="2.6" opacity=".14" transform="rotate(34 816 458)"/>
+      <ellipse cx="610" cy="106" rx="5"   ry="2.4" opacity=".24" transform="rotate(28 610 106)"/>
+      <ellipse cx="132" cy="440" rx="5.2" ry="2.5" opacity=".15" transform="rotate(-18 132 440)"/>
+    </g></g></g>
   </g>
 
-  <!-- ===================================================================
-       5. THE WHITE DEER — pressed against the healer's side
-       =================================================================== -->
-  <g>
-    <!-- backlight leaking round the silhouette -->
-    <g filter="url(#k_f-bloom-wide)" opacity=".55" transform="translate(-9 -5)">
-      <path class="f-glow-deep" d="M 632 352 C 629 335 641 323 659 320 C 681 317 699 326 707 340 C 713 353 713 371 708 389 C 702 405 692 415 676 417 C 654 419 636 410 630 395 C 625 381 630 364 632 352 Z"/>
-      <path class="f-glow-deep" d="M 638 346 C 630 328 626 308 624 290 L 644 283 C 648 302 653 320 661 334 Z"/>
-      <path class="f-glow-deep" d="M 637 277 C 624 277 611 286 605 295 C 600 302 605 309 614 308 C 627 306 639 296 644 286 C 646 280 643 276 637 277 Z"/>
+  <!-- ====================================================================
+       5. THE DEER MID-BOUND, AND THE GIRL RIDING IT
+          The whole unit rides one 1.5s bound; legs, head, hair and sleeves
+          each take their own beat off it.  The outer transform brings the
+          pair up the diagonal, close enough to him that they read as one.
+       ==================================================================== -->
+  <g transform="translate(48 -14) translate(236 390) scale(1.14) translate(-236 -390)">
+  <g transform="translate(240 384)"><g class="px a-bound"><g transform="translate(-240 -384)">
+
+    <!-- backlight leaking around the whole silhouette -->
+    <g filter="url(#k_f-bloom-wide)" opacity=".34" transform="translate(9 -6)">
+      <path class="f-deep" d="M 146 366 C 146 352 158 343 178 339 C 204 334 240 332 268 334 C 286 335 300 340 310 350 C 318 358 321 368 317 376 C 305 384 280 387 250 386 C 220 385 190 382 172 378 C 154 374 146 374 146 366 Z"/>
+      <path class="f-deep" d="M 262 338 C 272 320 286 304 304 292 C 318 283 332 278 342 280 C 352 283 354 293 346 300 C 335 310 321 320 311 331 C 301 342 295 352 293 360 Z"/>
+      <path class="f-deep" d="M 336 286 C 332 272 342 261 356 260 C 366 259 375 263 381 270 C 388 275 397 280 405 284 C 410 286 412 289 410 291 C 406 293 398 293 390 292 C 380 291 368 292 358 294 C 348 296 338 294 336 286 Z"/>
     </g>
 
-    <!-- far legs first -->
-    <g fill="url(#k_g-deer-leg)" opacity=".62">
-      <path d="M 654 398 L 663 397 C 662 418 660 434 660 446 C 664 462 665 480 664 500 L 655 500 C 655 480 653 463 650 448 C 652 434 653 416 654 398 Z"/>
-      <path d="M 678 402 L 686 401 C 684 418 680 430 677 440 C 682 456 685 476 684 498 L 676 498 C 677 476 673 459 669 446 C 673 432 676 418 678 402 Z"/>
-    </g>
-    <!-- near legs -->
-    <g fill="url(#k_g-deer-leg)">
-      <path d="M 636 396 L 649 395 C 647 416 645 432 644 444 C 649 462 651 480 649 502 L 636 502 C 638 480 636 462 631 446 C 633 432 634 414 636 396 Z"/>
-      <path d="M 690 399 L 703 397 C 701 416 695 430 691 442 C 697 459 701 478 700 501 L 687 501 C 688 478 684 460 679 446 C 684 432 688 416 690 399 Z"/>
-    </g>
-    <g class="f-deer-deep">
-      <ellipse cx="642" cy="503" rx="7" ry="3.4"/>
-      <ellipse cx="694" cy="502" rx="7" ry="3.4"/>
-    </g>
-
-    <!-- body, neck, head -->
-    <path fill="url(#k_g-deer)" d="M 632 352 C 629 335 641 323 659 320 C 681 317 699 326 707 340 C 713 353 713 371 708 389 C 702 405 692 415 676 417 C 654 419 636 410 630 395 C 625 381 630 364 632 352 Z"/>
-    <path fill="url(#k_g-deer)" d="M 638 346 C 630 328 626 308 624 290 L 644 283 C 648 302 653 320 661 334 Z"/>
-    <path fill="url(#k_g-deer)" d="M 637 277 C 624 277 611 286 605 295 C 600 302 605 309 614 308 C 627 306 639 296 644 286 C 646 280 643 276 637 277 Z"/>
-    <path fill="url(#k_g-deer)" d="M 641 272 C 649 265 659 265 664 271 C 659 280 648 282 641 279 Z"/>
-    <!-- tail -->
-    <path fill="url(#k_g-deer)" d="M 706 344 C 715 341 719 350 717 358 C 713 365 706 364 701 358 Z"/>
-    <!-- underside shade -->
-    <g class="f-deer-deep" opacity=".5" filter="url(#k_f-soft)">
-      <ellipse cx="668" cy="404" rx="40" ry="13"/>
-    </g>
-    <!-- gentle antlers -->
-    <g class="s-deer" stroke-width="3.4" opacity=".92">
-      <path d="M 633 271 C 627 257 621 242 623 226"/>
-      <path d="M 625 248 C 617 242 609 240 602 242"/>
-      <path d="M 623 234 C 617 226 613 218 612 210"/>
-      <path d="M 645 271 C 649 257 653 244 659 232"/>
-      <path d="M 650 250 C 658 244 666 242 673 244"/>
-      <path d="M 656 240 C 660 232 663 224 664 216"/>
-    </g>
-    <g class="s-deer" stroke-width="7" opacity=".16" filter="url(#k_f-bloom)">
-      <path d="M 633 271 C 627 257 621 242 623 226"/>
-      <path d="M 645 271 C 649 257 653 244 659 232"/>
+    <!-- ========== far pair of legs, held down in value ========== -->
+    <g opacity=".58">
+      <g transform="translate(158 374)"><g class="px a-hind"><g transform="translate(-158 -374)">
+        <g stroke="var(--rs-deer-deep)" fill="none" stroke-linecap="round">
+          <path d="M 158 372 C 144 384 130 396 116 410" stroke-width="9"/>
+          <path d="M 116 410 C 108 422 98 434 86 448" stroke-width="5.5"/>
+        </g>
+        <path class="f-deer-deep" d="M 88 444 C 93 446 95 452 91 456 C 86 460 80 459 78 454 C 77 449 83 443 88 444 Z"/>
+        <g mask="url(#k_m-rimL)"><path class="s-deer" stroke-width="1.5" opacity=".45" d="M 162 369 C 148 381 134 393 120 407 C 112 419 102 431 90 445"/></g>
+      </g></g></g>
+      <g transform="translate(288 354)"><g class="px a-fore"><g transform="translate(-288 -354)">
+        <g stroke="var(--rs-deer-deep)" fill="none" stroke-linecap="round">
+          <path d="M 288 350 C 300 364 312 376 322 384" stroke-width="8.5"/>
+          <path d="M 322 384 C 314 394 300 399 288 397" stroke-width="5.5"/>
+        </g>
+        <g mask="url(#k_m-rimL)"><path class="s-deer" stroke-width="1.5" opacity=".45" d="M 290 346 C 302 360 314 373 325 381 C 317 391 303 396 290 394"/></g>
+      </g></g></g>
     </g>
 
-    <!-- blossoms dusted along its back -->
+    <!-- ========== the animal: a shallow body carried on long legs ===== -->
+    <path fill="url(#k_g-deer)" d="M 146 366 C 146 352 158 343 178 339 C 204 334 240 332 268 334 C 286 335 300 340 310 350 C 318 358 321 368 317 376 C 305 384 280 387 250 386 C 220 385 190 382 172 378 C 154 374 146 374 146 366 Z"/>
+    <path fill="url(#k_g-girl-warm)" opacity=".55" d="M 146 366 C 146 352 158 343 178 339 C 204 334 240 332 268 334 C 286 335 300 340 310 350 C 318 358 321 368 317 376 C 305 384 280 387 250 386 C 220 385 190 382 172 378 C 154 374 146 374 146 366 Z"/>
+
+    <!-- the internal lines that turn a shape into an animal -->
+    <g filter="url(#k_f-soft)">
+      <ellipse cx="172" cy="356" rx="24" ry="15" class="f-deer-lit" opacity=".24"/>
+      <ellipse cx="236" cy="384" rx="68" ry="8"  class="f-deer-deep" opacity=".60"/>
+      <ellipse cx="312" cy="368" rx="17" ry="18" class="f-deer-deep" opacity=".45"/>
+      <ellipse cx="212" cy="372" rx="42" ry="11" class="f-deer-deep" opacity=".28"/>
+      <ellipse cx="238" cy="342" rx="52" ry="7"  class="f-deer-lit" opacity=".18"/>
+    </g>
+    <g class="f-deer-deep" opacity=".48">
+      <path d="M 284 339 C 292 352 297 366 299 380 L 291 381 C 289 366 285 352 278 340 Z"/>
+      <path d="M 176 341 C 180 356 182 370 183 382 L 176 381 C 174 368 171 355 168 343 Z"/>
+    </g>
+    <path class="s-deer" stroke-width="1.6" opacity=".22" d="M 312 378 C 298 385 274 389 246 389 C 214 389 186 386 166 381"/>
+
+    <!-- tail, flicked up -->
+    <path fill="url(#k_g-deer)" d="M 150 350 C 142 340 142 328 150 324 C 158 329 160 342 156 353 Z"/>
+
+    <!-- ========== neck + head, dipping and lifting on the bound ======= -->
+    <g transform="translate(284 348)"><g class="px a-dhead"><g transform="translate(-284 -348)">
+      <path fill="url(#k_g-deer-neck)" d="M 262 338 C 272 320 286 304 304 292 C 318 283 332 278 342 280 C 352 283 354 293 346 300 C 335 310 321 320 311 331 C 301 342 295 352 293 360 Z"/>
+      <path fill="url(#k_g-deer-neck)" d="M 336 286 C 332 272 342 261 356 260 C 366 259 375 263 381 270 C 388 275 397 280 405 284 C 410 286 412 289 410 291 C 406 293 398 293 390 292 C 380 291 368 292 358 294 C 348 296 338 294 336 286 Z"/>
+      <!-- ear, laid back by the speed -->
+      <path fill="url(#k_g-deer-neck)" d="M 338 276 C 332 265 340 257 349 258 C 350 268 346 276 339 278 Z"/>
+      <!-- antlers: thick enough to survive a glance -->
+      <g class="s-deer" stroke-width="7" opacity=".15" filter="url(#k_f-bloom)">
+        <path d="M 347 267 C 342 262 340 258 344 254"/>
+        <path d="M 363 264 C 364 258 368 253 375 251"/>
+      </g>
+      <g class="s-deer" stroke-width="3.2" opacity=".92">
+        <path d="M 347 267 C 342 262 340 258 344 254"/>
+        <path d="M 363 264 C 364 258 368 253 375 251"/>
+      </g>
+      <g class="s-deer" stroke-width="2.3" opacity=".68">
+        <path d="M 343 259 C 337 255 330 253 324 254"/>
+        <path d="M 366 256 C 372 251 379 249 385 250"/>
+      </g>
+      <!-- rim: the top of the neck, the brow, the bridge of the nose -->
+      <g mask="url(#k_m-rimL)">
+        <path class="s-glow" stroke-width="11" opacity=".38" filter="url(#k_f-bloom)" d="M 262 338 C 272 320 286 304 304 292 C 318 283 332 278 342 280 C 352 283 354 293 346 300"/>
+        <g class="s-deer">
+          <path d="M 262 338 C 272 320 286 304 304 292 C 318 283 332 278 342 280 C 352 283 354 293 346 300" stroke-width="3.2"/>
+          <path d="M 336 286 C 332 272 342 261 356 260 C 366 259 375 263 381 270 C 388 275 397 280 405 284 C 410 286 412 289 410 291" stroke-width="2.9"/>
+          <path d="M 410 291 C 406 293 398 293 390 292" stroke-width="1.8" opacity=".6"/>
+          <path d="M 338 276 C 332 265 340 257 349 258" stroke-width="1.8" opacity=".6"/>
+          <path d="M 293 360 C 295 352 301 342 311 331 C 321 320 335 310 346 300" stroke-width="1.8" opacity=".4"/>
+        </g>
+        <circle cx="406" cy="287" r="1.7" class="f-deer-lit" opacity=".55"/>
+      </g>
+    </g></g></g>
+
+    <!-- ========== near pair of legs: long, thin, hooves well clear ==== -->
+    <g transform="translate(164 368)"><g class="px a-hind"><g transform="translate(-164 -368)">
+      <g stroke="var(--rs-deer)" fill="none" stroke-linecap="round">
+        <path d="M 164 366 C 150 378 136 390 122 404" stroke-width="10.5"/>
+        <path d="M 122 404 C 114 416 104 430 92 444" stroke-width="6.5"/>
+      </g>
+      <g stroke="var(--rs-deer-deep)" fill="none" stroke-linecap="round" opacity=".7">
+        <path d="M 162 371 C 148 383 134 395 120 409" stroke-width="4"/>
+        <path d="M 120 409 C 112 420 102 433 90 447" stroke-width="2.8"/>
+      </g>
+      <path class="f-deer-deep" d="M 93 441 C 99 443 101 449 97 454 C 92 458 85 457 83 452 C 82 447 88 440 93 441 Z"/>
+      <g mask="url(#k_m-rimL)">
+        <path class="s-glow" stroke-width="7" opacity=".24" filter="url(#k_f-bloom)" d="M 168 362 C 154 374 140 386 126 400"/>
+        <g class="s-deer" stroke-width="2.2" opacity=".9">
+          <path d="M 168 362 C 154 374 140 386 126 400"/>
+          <path d="M 125 401 C 117 413 107 427 95 441"/>
+        </g>
+      </g>
+    </g></g></g>
+    <g transform="translate(298 350)"><g class="px a-fore"><g transform="translate(-298 -350)">
+      <g stroke="var(--rs-deer)" fill="none" stroke-linecap="round">
+        <path d="M 298 348 C 310 362 322 374 332 383" stroke-width="10"/>
+        <path d="M 332 383 C 324 393 310 399 297 397" stroke-width="6.5"/>
+      </g>
+      <g stroke="var(--rs-deer-deep)" fill="none" stroke-linecap="round" opacity=".7">
+        <path d="M 296 353 C 308 366 320 377 330 386" stroke-width="4"/>
+        <path d="M 330 386 C 323 395 310 401 297 400" stroke-width="2.8"/>
+      </g>
+      <path class="f-deer-deep" d="M 296 392 C 301 391 305 395 303 400 C 300 404 293 404 290 400 C 289 396 292 392 296 392 Z"/>
+      <g mask="url(#k_m-rimL)">
+        <path class="s-glow" stroke-width="7" opacity=".24" filter="url(#k_f-bloom)" d="M 300 343 C 312 357 324 370 335 380"/>
+        <g class="s-deer" stroke-width="2.2" opacity=".9">
+          <path d="M 300 343 C 312 357 324 370 335 380"/>
+          <path d="M 335 380 C 327 391 312 397 299 395"/>
+        </g>
+      </g>
+    </g></g></g>
+
+    <!-- blossom dusted along its back -->
     <g class="f-pearl">
-      <g opacity=".92"><circle cx="639" cy="325" r="2.6"/><circle cx="643" cy="322" r="2.6"/><circle cx="644" cy="327" r="2.6"/><circle cx="640" cy="330" r="2.4"/><circle cx="637" cy="323" r="2.2"/></g>
-      <g opacity=".85"><circle cx="657" cy="319" r="2.6"/><circle cx="661" cy="317" r="2.5"/><circle cx="662" cy="322" r="2.5"/><circle cx="658" cy="324" r="2.3"/></g>
-      <g opacity=".8"><circle cx="676" cy="321" r="2.5"/><circle cx="680" cy="319" r="2.4"/><circle cx="681" cy="324" r="2.4"/><circle cx="677" cy="326" r="2.2"/></g>
-      <g opacity=".6"><circle cx="696" cy="331" r="2.3"/><circle cx="700" cy="330" r="2.2"/><circle cx="699" cy="335" r="2.1"/></g>
-      <g opacity=".5"><circle cx="667" cy="336" r="2"/><circle cx="687" cy="340" r="1.8"/><circle cx="650" cy="336" r="1.8"/></g>
+      <g opacity=".5"><circle cx="190" cy="341" r="2.2"/><circle cx="195" cy="339" r="2.1"/><circle cx="195" cy="344" r="2"/><circle cx="190" cy="346" r="1.9"/></g>
+      <g opacity=".42"><circle cx="220" cy="336" r="2.1"/><circle cx="225" cy="335" r="2"/><circle cx="224" cy="340" r="2"/><circle cx="219" cy="341" r="1.8"/></g>
+      <g opacity=".26"><circle cx="206" cy="341" r="1.5"/><circle cx="168" cy="348" r="1.4"/></g>
     </g>
 
-    <!-- rim: the sun-ward edge of a white animal -->
-    <g mask="url(#k_m-rim-deer)">
-      <g class="s-glow" stroke-width="7" opacity=".3" filter="url(#k_f-bloom)">
-        <path d="M 630 352 C 627 334 641 322 659 319 C 681 316 700 326 708 341"/>
-        <path d="M 624 290 C 626 309 632 330 640 345"/>
-        <path d="M 637 277 C 624 277 611 286 605 295"/>
+    <!-- rim: the whole topline in one unbroken stroke, croup to chest -->
+    <g mask="url(#k_m-rimL)">
+      <path class="s-glow" stroke-width="10" opacity=".32" filter="url(#k_f-bloom)" d="M 146 366 C 146 352 158 343 178 339 C 204 334 240 332 268 334 C 286 335 300 340 310 350 C 318 358 321 368 317 376"/>
+      <g class="s-deer">
+        <path d="M 146 366 C 146 352 158 343 178 339 C 204 334 240 332 268 334 C 286 335 300 340 310 350 C 318 358 321 368 317 376" stroke-width="3"/>
+        <path d="M 317 376 C 305 384 280 387 250 386" stroke-width="2" opacity=".42"/>
+        <path d="M 150 350 C 142 340 142 328 150 324" stroke-width="2" opacity=".66"/>
+        <path d="M 146 366 C 146 374 154 374 172 378" stroke-width="1.8" opacity=".42"/>
       </g>
-      <g class="s-deer" stroke-width="2.6">
-        <path d="M 630 352 C 627 334 641 322 659 319 C 681 316 700 326 708 341"/>
-        <path d="M 624 290 C 626 309 632 330 640 345"/>
-        <path d="M 637 277 C 624 277 611 286 605 295" stroke-width="2"/>
-        <path d="M 641 272 C 649 265 659 265 664 271" stroke-width="1.7" opacity=".8"/>
-        <path d="M 636 396 C 634 414 633 432 631 446" stroke-width="1.8" opacity=".55"/>
-        <path d="M 690 399 C 688 416 684 432 679 446" stroke-width="1.6" opacity=".4"/>
-        <path d="M 707 345 C 712 356 713 372 708 389" stroke-width="1.6" opacity=".3"/>
-      </g>
-      <!-- eye-line kept to a single soft catchlight, no detail to go to mush -->
-      <circle cx="623" cy="291" r="1.6" class="f-deer-lit" opacity=".5"/>
     </g>
+
+    <!-- ================================================================
+         THE DEER-GIRL — thrown forward by the bound, one arm flung out
+         ================================================================ -->
+    <g transform="translate(2 -14)">
+      <!-- her hair and her skirt lag one beat behind the body -->
+      <g transform="translate(268 300)"><g class="px a-glag"><g transform="translate(-268 -300)">
+
+        <!-- skirt, pulled back off the deer's topline -->
+        <g transform="translate(262 330)"><g class="px a-gskirt"><g transform="translate(-262 -330)">
+          <path fill="url(#k_g-girl)" d="M 280 326 C 274 342 266 358 256 372 C 246 384 236 392 226 397 C 216 402 208 404 202 405 C 208 413 222 412 236 405 C 250 397 262 385 272 371 C 282 357 288 343 290 332 Z"/>
+          <g mask="url(#k_m-rimL)">
+            <path class="s-sage" stroke-width="2.4" opacity=".68" d="M 280 326 C 274 342 266 358 256 372 C 246 384 236 392 226 397 C 216 402 208 404 202 405"/>
+            <path class="s-pearl" stroke-width="1.3" opacity=".32" d="M 208 411 C 222 406 238 393 250 378"/>
+          </g>
+        </g></g></g>
+
+        <!-- very long loose hair, whipping back and down -->
+        <g transform="translate(290 268)"><g class="px a-ghair"><g transform="translate(-290 -268)">
+          <path fill="url(#k_g-hair-g)" d="M 294 258 C 280 257 262 261 244 269 C 222 279 200 289 180 297 C 164 303 150 307 142 309 C 146 320 164 320 184 313 C 206 305 230 295 252 285 C 272 276 288 269 298 265 Z"/>
+          <path fill="url(#k_g-hair-g)" opacity=".66" d="M 290 272 C 276 274 258 281 240 290 C 220 300 202 310 188 317 C 176 323 166 326 160 328 C 164 339 182 336 202 328 C 222 319 242 308 258 298 C 272 290 284 283 292 277 Z"/>
+          <g mask="url(#k_m-rimL)">
+            <path class="s-rim" stroke-width="2.8" opacity=".62" filter="url(#k_f-bloom)" d="M 294 258 C 280 257 262 261 244 269 C 222 279 200 289 180 297 C 164 303 150 307 142 309"/>
+            <g class="s-rim" stroke-width="1.1" opacity=".24">
+              <path d="M 288 266 C 266 274 240 285 214 296"/>
+              <path d="M 280 280 C 258 289 234 299 212 308"/>
+            </g>
+          </g>
+        </g></g></g>
+
+        <!-- wide sleeve streaming back off the outstretched arm -->
+        <g transform="translate(286 290)"><g class="px a-gslv"><g transform="translate(-286 -290)">
+          <path fill="url(#k_g-girl)" d="M 290 284 C 274 284 256 288 238 296 C 222 303 208 310 198 316 C 204 327 222 328 240 321 C 258 314 272 306 282 298 C 291 291 294 286 292 282 Z"/>
+                    <g mask="url(#k_m-rimL)">
+            <path class="s-sage" stroke-width="2.3" opacity=".62" d="M 292 282 C 294 286 291 291 282 298 C 272 306 258 314 240 321 C 222 328 204 327 198 316"/>
+          </g>
+        </g></g></g>
+
+      </g></g></g>
+
+      <!-- a leg over the near side, one bare foot -->
+      <g>
+        <path fill="url(#k_g-skin-g)" opacity=".8" d="M 252 348 C 254 360 256 372 258 382 C 260 390 262 396 264 402 L 276 398 C 273 391 271 384 270 376 C 268 366 267 356 266 346 Z"/>
+        <path fill="url(#k_g-skin-g)" opacity=".5" d="M 262 396 C 270 394 280 398 282 404 C 283 410 276 413 268 411 C 260 409 256 404 257 400 Z"/>
+        <path class="s-skin" stroke-width="1.5" opacity=".6" d="M 257 400 C 258 395 264 393 270 395 C 277 397 281 401 282 405"/>
+        <g mask="url(#k_m-rimL)"><path class="s-rim" stroke-width="1.8" opacity=".45" d="M 266 346 C 267 356 268 366 270 376 C 271 384 273 391 276 398"/></g>
+      </g>
+
+      <!-- the body: hips planted on his back, torso thrown forward -->
+      <path fill="url(#k_g-girl)" d="M 272 276 C 256 286 244 302 238 320 C 233 334 231 348 232 360 C 244 368 264 368 280 360 C 290 354 296 344 298 332 C 296 318 292 302 288 292 C 284 282 280 273 272 276 Z"/>
+      <path fill="url(#k_g-girl-warm)" d="M 272 276 C 256 286 244 302 238 320 C 233 334 231 348 232 360 C 244 368 264 368 280 360 C 290 354 296 344 298 332 C 296 318 292 302 288 292 C 284 282 280 273 272 276 Z"/>
+      <path class="f-sage-lit" opacity=".30" d="M 281 284 C 277 297 275 312 275 326 C 275 339 277 351 281 361 C 291 355 296 345 297 332 C 295 317 291 301 287 290 Z"/>
+      <path class="f-sage-lit" opacity=".16" d="M 266 282 C 258 296 252 312 249 328 C 247 342 247 354 249 364 C 256 366 263 366 269 364 C 266 352 265 338 267 322 C 269 306 273 292 278 280 Z"/>
+
+      <!-- head, turned toward him; no features, only a lit jaw -->
+      <path fill="url(#k_g-hair-g)" d="M 272 262 C 268 250 275 240 286 239 C 298 238 306 246 304 258 C 303 267 298 275 290 279 C 281 281 274 274 272 266 Z"/>
+      <path fill="url(#k_g-skin-g)" d="M 291 247 C 299 246 305 252 304 260 C 302 269 296 276 289 278 C 284 278 281 273 282 265 C 283 255 286 248 291 247 Z"/>
+      <path class="s-skin" stroke-width="1.2" opacity=".34" d="M 302 252 C 305 259 303 268 296 275"/>
+      <path fill="url(#k_g-skin-g)" opacity=".75" d="M 284 274 C 286 280 288 284 290 287 L 280 292 C 278 287 277 282 277 277 Z"/>
+
+      <!-- crown of small flowers -->
+      <g>
+        <g class="f-pearl" opacity=".84"><circle cx="274" cy="252" r="2.5"/><circle cx="278" cy="248" r="2.5"/><circle cx="280" cy="253" r="2.4"/><circle cx="275" cy="256" r="2.3"/></g>
+        <circle cx="277" cy="252" r="1.2" class="f-gold" opacity=".8"/>
+        <g class="f-pearl" opacity=".8"><circle cx="286" cy="240" r="2.6"/><circle cx="291" cy="238" r="2.5"/><circle cx="292" cy="244" r="2.4"/><circle cx="287" cy="246" r="2.3"/></g>
+        <circle cx="289" cy="242" r="1.3" class="f-gold" opacity=".8"/>
+        <g class="f-pearl" opacity=".72"><circle cx="299" cy="244" r="2.4"/><circle cx="304" cy="244" r="2.3"/><circle cx="303" cy="250" r="2.2"/><circle cx="298" cy="250" r="2"/></g>
+        <g class="f-pearl" opacity=".34"><circle cx="268" cy="262" r="1.7"/><circle cx="306" cy="258" r="1.6"/></g>
+        <g filter="url(#k_f-bloom)" opacity=".16"><ellipse cx="288" cy="248" rx="26" ry="12" class="f-glow"/></g>
+      </g>
+
+      <!-- the bracing arm, down on the deer's neck: this is how she rides -->
+      <path fill="url(#k_g-girl)" d="M 270 300 C 278 310 288 322 298 332 C 304 338 308 342 312 344 L 318 334 C 314 331 309 326 304 320 C 296 310 288 300 282 292 Z"/>
+      <g mask="url(#k_m-rimL)">
+        <path class="s-sage" stroke-width="2" opacity=".55" d="M 282 292 C 288 300 296 310 304 320 C 309 326 314 331 318 334"/>
+      </g>
+      <path fill="url(#k_g-skin-g)" opacity=".8" d="M 314 330 C 322 330 327 336 325 343 C 322 349 314 351 308 347 C 303 343 304 335 308 332 Z"/>
+      <g class="s-skin" stroke-width="1.3" opacity=".55">
+        <path d="M 308 333 C 313 329 320 330 324 335"/>
+        <path d="M 310 348 C 316 346 320 341 321 336"/>
+      </g>
+
+      <!-- THE OUTSTRETCHED ARM — the gesture the whole picture turns on -->
+      <path fill="url(#k_g-arm)" d="M 272 296 C 288 284 306 272 324 264 C 334 260 342 257 348 256 L 352 270 C 346 271 338 273 328 277 C 312 284 294 294 280 304 Z"/>
+      <!-- the open hand, light pouring out of it -->
+      <path fill="url(#k_g-skin-g)" d="M 346 250 C 356 246 365 251 367 259 C 369 268 362 274 353 272 C 345 270 341 263 343 256 Z"/>
+      <g class="s-skin" stroke-width="1.4" opacity=".62">
+        <path d="M 354 247 C 361 248 367 253 368 259"/>
+        <path d="M 357 272 C 363 269 367 264 368 259"/>
+        <path d="M 347 274 C 352 271 356 266 356 261"/>
+      </g>
+      <g mask="url(#k_m-rimL)">
+        <path class="s-sage" stroke-width="2.5" opacity=".72" d="M 272 296 C 288 284 306 272 324 264 C 334 260 342 257 348 256"/>
+      </g>
+
+      <!-- rim down her whole lit front -->
+      <g mask="url(#k_m-rimL)">
+        <g class="s-glow" stroke-width="8" opacity=".32" filter="url(#k_f-bloom)">
+          <path d="M 291 247 C 299 246 305 252 304 260 C 302 269 296 276 289 278"/>
+          <path d="M 288 292 C 292 302 296 318 298 332 C 296 344 290 354 280 360"/>
+        </g>
+        <g class="s-rim" stroke-width="2.7">
+          <path d="M 272 262 C 268 250 275 240 286 239 C 298 238 306 246 304 258 C 303 267 298 275 290 279"/>
+          <path d="M 288 292 C 292 302 296 318 298 332 C 296 344 290 354 280 360" opacity=".9"/>
+          <path d="M 232 360 C 244 368 264 368 280 360" stroke-width="1.6" opacity=".4"/>
+        </g>
+      </g>
+    </g>
+
+    <!-- blossoms spinning off the deer and off her sleeves -->
+    <g class="f-pearl">
+      <g transform="translate(208 334)"><g class="px a-bl1"><g transform="translate(-208 -334)">
+        <g opacity=".8"><circle cx="208" cy="332" r="2.7"/><circle cx="213" cy="330" r="2.6"/><circle cx="214" cy="336" r="2.5"/><circle cx="208" cy="338" r="2.4"/><circle cx="204" cy="333" r="2.2"/><circle cx="209" cy="334" r="1.2" class="f-gold"/></g>
+      </g></g></g>
+      <g transform="translate(168 372)"><g class="px a-bl2"><g transform="translate(-168 -372)">
+        <g opacity=".6"><circle cx="168" cy="370" r="2.5"/><circle cx="173" cy="369" r="2.4"/><circle cx="173" cy="375" r="2.3"/><circle cx="167" cy="376" r="2.2"/></g>
+      </g></g></g>
+      <g transform="translate(230 310)"><g class="px a-bl3"><g transform="translate(-230 -310)">
+        <g opacity=".68"><circle cx="230" cy="308" r="2.6"/><circle cx="235" cy="307" r="2.5"/><circle cx="235" cy="313" r="2.4"/><circle cx="229" cy="314" r="2.3"/><circle cx="226" cy="309" r="2"/></g>
+      </g></g></g>
+      <g transform="translate(142 348)"><g class="px a-bl4"><g transform="translate(-142 -348)">
+        <g opacity=".48"><circle cx="142" cy="346" r="2.4"/><circle cx="147" cy="345" r="2.3"/><circle cx="147" cy="351" r="2.2"/><circle cx="141" cy="352" r="2.1"/></g>
+      </g></g></g>
+      <g transform="translate(194 294)"><g class="px a-bl5"><g transform="translate(-194 -294)">
+        <g opacity=".45"><circle cx="194" cy="292" r="2.3"/><circle cx="199" cy="291" r="2.2"/><circle cx="199" cy="297" r="2.1"/><circle cx="193" cy="298" r="2"/></g>
+      </g></g></g>
+      <g transform="translate(124 400)"><g class="px a-bl6"><g transform="translate(-124 -400)">
+        <g opacity=".38"><circle cx="124" cy="398" r="2.3"/><circle cx="129" cy="397" r="2.2"/><circle cx="129" cy="403" r="2.1"/><circle cx="123" cy="404" r="2"/></g>
+      </g></g></g>
+      <g transform="translate(302 266)"><g class="px a-bl7"><g transform="translate(-302 -266)">
+        <g opacity=".54"><circle cx="302" cy="264" r="2.4"/><circle cx="307" cy="263" r="2.3"/><circle cx="307" cy="269" r="2.2"/><circle cx="301" cy="270" r="2.1"/></g>
+      </g></g></g>
+      <g transform="translate(252 424)"><g class="px a-bl8"><g transform="translate(-252 -424)">
+        <g opacity=".4"><circle cx="252" cy="422" r="2.3"/><circle cx="257" cy="421" r="2.2"/><circle cx="257" cy="427" r="2.1"/><circle cx="251" cy="428" r="2"/></g>
+      </g></g></g>
+    </g>
+
+  </g></g></g>
   </g>
 
-  <!-- ===================================================================
-       6. THE HEALER — long loose hair, flower crown, pale layered robes
-       =================================================================== -->
+  <!-- ====================================================================
+       6. THE LINK — the ribbon of green-gold light running from her hand
+          to him. Two passes: the long run goes behind him, the coils that
+          wrap his shoulder come back over the top in section 8.
+       ==================================================================== -->
+
+  <!-- ====================================================================
+       7. THE ARCHER — mid-shot, front foot braced, the string already gone
+       ==================================================================== -->
   <g>
-    <!-- backlight bloom behind her -->
-    <g filter="url(#k_f-bloom-wide)" opacity=".6" transform="translate(-10 -4)">
-      <path class="f-glow-deep" d="M 524 206 C 517 220 515 236 518 252 C 520 264 525 269 531 275 C 524 289 521 297 522 310 C 518 340 512 372 506 408 C 500 444 496 472 494 494 C 512 503 540 505 566 501 C 588 498 601 493 607 487 C 601 452 593 410 587 370 C 581 336 577 320 576 308 C 576 296 572 288 567 275 C 572 266 576 258 578 246 C 581 230 579 218 574 206 C 560 199 538 199 524 206 Z"/>
-      <path class="f-glow-deep" d="M 531 158 C 526 146 538 137 549 137 C 562 137 573 146 569 158 C 578 172 584 196 586 222 C 589 256 589 290 586 320 C 583 352 579 382 573 412 C 569 428 565 440 560 450 C 554 436 550 418 548 398 C 545 418 541 436 535 450 C 528 438 523 422 519 402 C 513 372 510 338 511 306 C 512 268 516 228 524 194 Z"/>
+    <!-- backlight leaking around her silhouette -->
+    <g filter="url(#k_f-bloom-wide)" opacity=".46" transform="translate(9 -4)">
+      <path class="f-deep" d="M 558 236 C 544 250 536 272 538 296 C 540 318 546 336 554 348 C 542 370 524 396 502 420 C 480 446 456 468 432 484 C 444 494 468 492 492 480 C 520 466 548 444 570 420 C 586 402 598 384 606 368 C 616 376 628 382 640 386 C 648 374 648 358 642 344 C 634 330 620 320 608 316 C 612 298 614 276 610 256 C 606 240 596 230 584 228 C 572 226 562 230 558 236 Z"/>
+      <path class="f-deep" d="M 568 196 C 562 180 572 166 588 166 C 604 166 614 180 608 196 C 604 208 594 216 586 216 C 576 216 570 208 568 196 Z"/>
     </g>
 
-    <!-- robe mass -->
-    <path fill="url(#k_g-heal)" d="M 524 206 C 517 220 515 236 518 252 C 520 264 525 269 531 275 C 524 289 521 297 522 310 C 518 340 512 372 506 408 C 500 444 496 472 494 494 C 512 503 540 505 566 501 C 588 498 601 493 607 487 C 601 452 593 410 587 370 C 581 336 577 320 576 308 C 576 296 572 288 567 275 C 572 266 576 258 578 246 C 581 230 579 218 574 206 C 560 199 538 199 524 206 Z"/>
-    <path fill="url(#k_g-heal-warm)" d="M 524 206 C 517 220 515 236 518 252 C 520 264 525 269 531 275 C 524 289 521 297 522 310 C 518 340 512 372 506 408 C 500 444 496 472 494 494 C 512 503 540 505 566 501 C 588 498 601 493 607 487 C 601 452 593 410 587 370 C 581 336 577 320 576 308 C 576 296 572 288 567 275 C 572 266 576 258 578 246 C 581 230 579 218 574 206 C 560 199 538 199 524 206 Z"/>
-
-    <!-- pale sheer under-layer at the hem, so the robes read as layered -->
-    <path fill="url(#k_g-underskirt)" d="M 500 470 C 528 481 566 479 600 466 C 599 478 597 486 594 492 C 560 503 524 502 496 493 C 497 485 498 477 500 470 Z"/>
-    <path class="f-pearl" opacity=".14" d="M 504 440 C 530 450 566 449 594 438 C 594 446 594 452 595 458 C 564 470 528 470 502 459 C 503 452 503 446 504 440 Z"/>
-
-    <!-- bare feet stepping out from under the hem -->
+    <!-- ========== back leg, extended back-left ========== -->
     <g>
-      <path class="f-skin" d="M 560 489 C 568 489 574 493 575 498 C 576 503 571 506 564 505 C 557 504 553 499 554 494 C 555 490 557 489 560 489 Z" opacity=".75"/>
-      <path class="f-skin" d="M 528 487 C 535 486 541 491 542 497 C 543 503 538 507 530 506 C 522 505 518 500 519 494 C 520 489 523 487 528 487 Z"/>
-      <path class="s-skin" stroke-width="1.5" opacity=".75" d="M 519 494 C 521 489 525 486 530 487"/>
+      <path fill="url(#k_g-arch)" d="M 562 336 C 548 354 532 382 514 408 C 500 430 480 454 458 474 L 476 488 C 498 468 518 444 532 420 C 550 392 566 364 580 344 Z"/>
+      <path class="f-ink" opacity=".5" d="M 568 348 C 554 366 540 390 524 414 C 512 432 496 452 478 470 L 472 464 C 492 446 508 426 520 408 C 536 384 550 360 562 344 Z"/>
+      <path class="f-ink" d="M 460 468 C 452 476 442 482 432 484 C 426 485 424 480 428 475 C 436 466 448 458 458 454 Z"/>
+      <path class="s-rim" stroke-width="1.6" opacity=".3" d="M 458 454 C 448 458 436 466 428 475"/>
+      <g mask="url(#k_m-rimA)">
+        <path class="s-rim" stroke-width="2.3" opacity=".55" d="M 580 344 C 566 364 550 392 532 420 C 518 444 498 468 476 488"/>
+      </g>
     </g>
 
-    <!-- knee pushing the fabric: the robe has a body under it -->
-    <g class="f-sage-lit" opacity=".10" filter="url(#k_f-soft)">
-      <ellipse cx="528" cy="398" rx="15" ry="34" transform="rotate(6 528 398)"/>
-      <ellipse cx="562" cy="372" rx="12" ry="30" transform="rotate(-5 562 372)"/>
-    </g>
-    <!-- vertical folds -->
-    <g class="f-sage-lit" opacity=".13">
-      <path d="M 540 300 C 534 358 528 424 522 494 L 530 496 C 536 424 542 358 548 300 Z"/>
-      <path d="M 566 300 C 568 356 572 420 578 490 L 570 492 C 564 420 560 356 558 300 Z"/>
-    </g>
-    <g class="f-ink" opacity=".3">
-      <path d="M 552 302 C 550 360 548 424 548 492 L 556 492 C 556 424 558 360 560 302 Z"/>
-      <path d="M 524 316 C 518 370 512 428 506 486 L 512 490 C 518 430 524 372 530 318 Z"/>
-    </g>
+    <!-- ========== the robe streaming back: three separate streamers,
+                    each on its own beat, so it reads as cloth not wings -->
+    <g transform="translate(574 344)"><g class="px a-hem"><g transform="translate(-574 -344)">
+      <path fill="url(#k_g-cloth)" d="M 588 326 C 574 348 556 372 534 396 C 510 422 482 446 454 466 C 436 479 422 488 412 494 C 424 502 444 498 466 486 C 494 471 524 450 548 428 C 570 408 586 388 596 372 C 600 356 598 340 592 328 Z"/>
+      <path class="f-crim-lit" opacity=".10" d="M 584 338 C 570 358 552 380 532 400 C 510 422 486 442 464 456 C 452 464 442 470 436 474 C 444 480 458 476 474 466 C 498 452 522 434 544 414 C 564 396 578 378 588 364 Z"/>
+      <g mask="url(#k_m-rimA)">
+        <path class="s-rim" stroke-width="2.6" opacity=".48" d="M 592 328 C 598 340 600 356 596 372 C 586 388 570 408 548 428 C 524 450 494 471 466 486 C 444 498 424 502 412 494"/>
+      </g>
+    </g></g></g>
 
-    <!-- hair: the biggest shape she owns -->
-    <path fill="url(#k_g-hair)" d="M 531 158 C 526 146 538 137 549 137 C 562 137 573 146 569 158 C 578 172 584 196 586 222 C 589 256 589 290 586 320 C 583 352 579 382 573 412 C 569 428 565 440 560 450 C 554 436 550 418 548 398 C 545 418 541 436 535 450 C 528 438 523 422 519 402 C 513 372 510 338 511 306 C 512 268 516 228 524 194 Z"/>
-    <!-- loose locks lifting on the still air -->
-    <g fill="url(#k_g-hair)" opacity=".9">
-      <path d="M 584 230 C 598 254 606 282 606 310 C 606 334 601 354 594 370 C 596 346 595 320 590 294 C 586 272 582 250 580 234 Z"/>
-      <path d="M 514 236 C 503 262 498 290 500 316 C 502 338 508 356 516 370 C 512 346 510 320 512 296 C 514 274 516 254 518 240 Z"/>
-    </g>
-    <g class="f-hair-deep" opacity=".55">
-      <path d="M 549 190 C 546 250 545 320 548 392 L 556 392 C 553 320 554 250 557 190 Z"/>
-    </g>
+    <g transform="translate(568 352)"><g class="px a-hem2"><g transform="translate(-568 -352)">
+      <path fill="url(#k_g-cloth)" opacity=".85" d="M 578 346 C 564 366 546 388 524 410 C 502 432 478 452 456 466 C 442 475 430 481 422 485 C 432 493 450 489 470 478 C 494 465 518 447 538 428 C 556 410 568 393 576 378 Z"/>
+      <g mask="url(#k_m-rimA)">
+        <path class="s-glow" stroke-width="1.9" opacity=".32" d="M 576 378 C 568 393 556 410 538 428 C 518 447 494 465 470 478 C 450 489 432 493 422 485"/>
+      </g>
+    </g></g></g>
 
-    <!-- a sliver of cheek and jaw, turned down toward the deer -->
-    <path class="f-skin" d="M 566 166 C 575 169 580 178 578 188 C 576 196 568 199 563 194 C 559 188 560 172 566 166 Z"/>
-    <path class="s-skin" stroke-width="1.5" opacity=".42" d="M 575 170 C 580 177 580 185 577 191 C 574 196 568 198 564 195"/>
+    <g transform="translate(560 362)"><g class="px a-hem3"><g transform="translate(-560 -362)">
+      <path fill="url(#k_g-cloth)" opacity=".7" d="M 566 358 C 552 378 534 400 512 420 C 492 438 472 454 454 464 C 442 471 432 476 426 479 C 434 486 448 482 464 472 C 484 460 504 444 522 426 C 538 410 550 394 558 380 Z"/>
+      <g mask="url(#k_m-rimA)">
+        <path class="s-glow" stroke-width="1.7" opacity=".26" d="M 558 380 C 550 394 538 410 522 426 C 504 444 484 460 464 472 C 448 482 434 486 426 479"/>
+      </g>
+    </g></g></g>
 
-    <!-- arms -->
-    <!-- inner arm, nearest the archer: the lit one -->
-    <path fill="url(#k_g-heal)" d="M 526 208 C 513 222 507 248 507 274 C 507 292 511 306 517 317 L 531 313 C 525 301 521 287 521 268 C 521 244 527 222 535 210 Z"/>
-    <path fill="url(#k_g-heal-warm)" d="M 526 208 C 513 222 507 248 507 274 C 507 292 511 306 517 317 L 531 313 C 525 301 521 287 521 268 C 521 244 527 222 535 210 Z"/>
-    <path class="f-skin" d="M 517 314 C 524 314 529 320 529 328 C 529 338 524 345 516 345 C 509 345 505 338 506 330 C 507 320 511 314 517 314 Z"/>
-    <g class="s-skin" stroke-width="1.3" opacity=".5">
-      <path d="M 508 330 C 507 322 511 315 517 314"/>
-      <path d="M 513 344 C 517 341 519 336 519 331"/>
-      <path d="M 520 343 C 524 339 526 334 526 329"/>
-    </g>
+    <!-- ========== the rear sleeve, thrown back by the release ========== -->
+    <g transform="translate(530 238)"><g class="px a-sleeve1"><g transform="translate(-530 -238)">
+      <path fill="url(#k_g-cloth)" d="M 538 226 C 530 238 522 254 514 270 C 507 283 503 294 502 302 C 512 309 526 302 534 288 C 542 274 548 258 550 244 C 551 234 548 228 544 224 Z"/>
+      <g mask="url(#k_m-rimA)">
+        <path class="s-rim" stroke-width="2.2" opacity=".44" d="M 544 224 C 548 228 551 234 550 244 C 548 258 542 274 534 288 C 526 302 512 309 502 302"/>
+      </g>
+    </g></g></g>
 
-    <!-- outer arm, lowered to the deer -->
-    <path fill="url(#k_g-heal)" d="M 572 208 C 584 222 592 243 595 264 C 597 275 599 282 602 289 L 587 296 C 583 283 581 270 579 256 C 575 236 569 220 563 210 Z"/>
-    <!-- her hand, open, meeting the deer's muzzle -->
-    <path class="f-skin" d="M 600 283 C 606 283 610 288 609 295 C 608 302 601 307 594 305 C 588 303 585 297 588 291 C 591 286 595 283 600 283 Z"/>
-    <g class="s-skin" stroke-width="1.4" opacity=".6">
-      <path d="M 588 291 C 591 286 596 283 601 284"/>
-      <path d="M 594 304 C 598 301 601 297 602 292"/>
-      <path d="M 601 305 C 605 301 608 297 608 292"/>
-    </g>
+    <!-- ========== her hair, a slow lagging wave ========== -->
+    <g transform="translate(580 200)"><g class="px a-hair"><g transform="translate(-580 -200)">
+      <path fill="url(#k_g-hair-a)" d="M 582 192 C 566 192 548 198 530 208 C 512 218 498 227 488 234 C 494 246 512 246 532 238 C 552 230 568 220 578 211 C 585 205 589 198 587 192 Z"/>
+      <path fill="url(#k_g-hair-a)" opacity=".7" d="M 578 204 C 564 208 548 216 534 224 C 522 231 512 237 504 241 C 510 251 524 249 538 243 C 554 236 568 227 577 219 Z"/>
+      <g mask="url(#k_m-rimA)">
+        <path class="s-rim" stroke-width="2.3" opacity=".5" filter="url(#k_f-bloom)" d="M 587 192 C 589 198 585 205 578 211 C 568 220 552 230 532 238 C 512 246 494 246 488 234"/>
+        <g class="s-rim" stroke-width="1" opacity=".2">
+          <path d="M 574 205 C 558 213 540 223 524 230"/>
+          <path d="M 570 216 C 556 224 542 231 530 236"/>
+        </g>
+      </g>
+    </g></g></g>
 
-    <!-- crown of small flowers -->
+    <!-- ========== three topknot ribbons, narrow and whipping ========== -->
+    <g transform="translate(576 166)"><g class="px a-rib1"><g transform="translate(-576 -166)">
+      <path fill="url(#k_g-ribbon)" d="M 576 162 C 554 146 528 132 500 124 C 478 118 460 117 450 121 C 457 128 472 133 492 139 C 518 147 542 157 560 167 Z"/>
+      <g mask="url(#k_m-rimA)">
+        <path class="s-rim" stroke-width="2.1" opacity=".58" d="M 576 162 C 554 146 528 132 500 124 C 478 118 460 117 450 121"/>
+      </g>
+    </g></g></g>
+    <g transform="translate(574 176)"><g class="px a-rib2"><g transform="translate(-574 -176)">
+      <path fill="url(#k_g-ribbon)" d="M 574 172 C 552 174 524 180 496 190 C 474 198 458 206 450 213 C 459 220 476 217 496 208 C 520 198 546 186 564 180 Z"/>
+      <g mask="url(#k_m-rimA)">
+        <path class="s-rim" stroke-width="1.9" opacity=".5" d="M 574 172 C 552 174 524 180 496 190 C 474 198 458 206 450 213"/>
+      </g>
+    </g></g></g>
+    <g transform="translate(572 184)"><g class="px a-rib3"><g transform="translate(-572 -184)">
+      <path fill="url(#k_g-ribbon)" opacity=".7" d="M 572 182 C 556 180 536 180 514 184 C 496 187 482 192 476 197 C 482 204 496 204 512 200 C 532 195 554 190 566 189 Z"/>
+      <g mask="url(#k_m-rimA)">
+        <path class="s-rim" stroke-width="1.6" opacity=".38" d="M 572 182 C 556 180 536 180 514 184 C 496 187 482 192 476 197"/>
+      </g>
+    </g></g></g>
+
+    <!-- ========== the skirt mass over the thighs ========== -->
+    <path fill="url(#k_g-arch)" d="M 544 314 C 534 332 524 354 514 374 C 528 388 550 396 574 396 C 598 396 618 390 630 380 C 626 358 620 336 612 318 C 598 310 580 306 564 306 Z"/>
+    <path fill="url(#k_g-arch-warm)" d="M 544 314 C 534 332 524 354 514 374 C 528 388 550 396 574 396 C 598 396 618 390 630 380 C 626 358 620 336 612 318 C 598 310 580 306 564 306 Z"/>
+    <path class="f-ink" opacity=".4" d="M 568 314 C 562 336 558 358 556 380 L 564 384 C 566 360 570 336 576 314 Z"/>
+
+    <!-- ========== front leg, planted and braced ========== -->
     <g>
-      <g class="f-pearl" opacity=".97"><circle cx="524" cy="166" r="3.3"/><circle cx="530" cy="162" r="3.3"/><circle cx="531" cy="169" r="3.2"/><circle cx="525" cy="173" r="3"/><circle cx="521" cy="161" r="2.8"/></g>
-      <circle cx="527" cy="167" r="1.5" class="f-gold"/>
-      <g class="f-pearl" opacity=".95"><circle cx="534" cy="150" r="3.4"/><circle cx="541" cy="146" r="3.4"/><circle cx="543" cy="153" r="3.3"/><circle cx="536" cy="157" r="3.1"/><circle cx="531" cy="145" r="2.8"/></g>
-      <circle cx="538" cy="151" r="1.6" class="f-gold"/>
-      <g class="f-pearl" opacity=".93"><circle cx="551" cy="142" r="3.4"/><circle cx="558" cy="140" r="3.3"/><circle cx="559" cy="147" r="3.2"/><circle cx="552" cy="150" r="3"/></g>
-      <circle cx="555" cy="145" r="1.5" class="f-gold"/>
-      <g class="f-pearl" opacity=".82"><circle cx="567" cy="150" r="3.1"/><circle cx="573" cy="149" r="2.9"/><circle cx="573" cy="156" r="2.9"/><circle cx="567" cy="157" r="2.7"/></g>
-      <circle cx="570" cy="153" r="1.4" class="f-gold" opacity=".8"/>
-      <g class="f-pearl" opacity=".66"><circle cx="578" cy="166" r="2.6"/><circle cx="583" cy="165" r="2.4"/><circle cx="582" cy="171" r="2.4"/><circle cx="577" cy="172" r="2.2"/></g>
-      <g class="f-pearl" opacity=".55"><circle cx="517" cy="180" r="2.3"/><circle cx="521" cy="182" r="2"/><circle cx="586" cy="184" r="2"/></g>
-      <g filter="url(#k_f-bloom)" opacity=".4">
-        <ellipse cx="548" cy="156" rx="40" ry="18" class="f-glow"/>
+      <path fill="url(#k_g-arch)" d="M 570 336 C 592 354 614 374 628 396 C 640 416 646 432 648 450 L 670 446 C 668 426 660 406 646 386 C 630 360 606 338 584 322 Z"/>
+      <path fill="url(#k_g-arch-warm)" d="M 570 336 C 592 354 614 374 628 396 C 640 416 646 432 648 450 L 670 446 C 668 426 660 406 646 386 C 630 360 606 338 584 322 Z"/>
+      <path class="f-ink" d="M 644 442 C 654 440 668 444 676 451 C 680 457 673 461 662 460 C 650 458 642 453 642 448 Z"/>
+      <path class="s-rim" stroke-width="1.7" opacity=".5" d="M 642 448 C 642 443 650 440 660 442 C 670 444 676 448 677 452"/>
+      <g mask="url(#k_m-rimA)">
+        <path class="s-glow" stroke-width="7" opacity=".28" filter="url(#k_f-bloom)" d="M 584 322 C 606 338 630 360 646 386 C 660 406 668 426 670 446"/>
+        <path class="s-rim" stroke-width="2.7" d="M 584 322 C 606 338 630 360 646 386 C 660 406 668 426 670 446"/>
       </g>
     </g>
 
-    <!-- rim: light grazing the edge that faces the glow -->
-    <g mask="url(#k_m-rim-heal)">
-      <g class="s-glow" stroke-width="8" opacity=".3" filter="url(#k_f-bloom)">
-        <path d="M 531 158 C 526 146 538 137 549 137 C 562 137 573 146 569 158"/>
-        <path d="M 524 194 C 516 228 512 268 511 306 C 510 338 513 372 519 402 C 523 422 528 438 535 450"/>
-        <path d="M 526 208 C 513 222 507 248 507 274 C 507 292 511 306 517 317"/>
-        <path d="M 522 310 C 518 340 512 372 506 408 C 500 444 496 472 494 494"/>
+    <!-- ========== the torso, coiled and turned ========== -->
+    <path fill="url(#k_g-arch)" d="M 558 236 C 546 250 540 272 540 296 C 540 316 544 334 550 348 C 566 358 588 358 604 350 C 612 334 614 312 612 290 C 610 266 602 246 592 234 C 580 228 566 228 558 236 Z"/>
+    <path fill="url(#k_g-arch-warm)" d="M 558 236 C 546 250 540 272 540 296 C 540 316 544 334 550 348 C 566 358 588 358 604 350 C 612 334 614 312 612 290 C 610 266 602 246 592 234 C 580 228 566 228 558 236 Z"/>
+    <path class="f-gold" opacity=".5" d="M 588 234 C 580 256 576 282 576 308 C 576 328 578 342 582 354 L 592 352 C 588 340 586 326 586 308 C 586 282 590 256 598 236 Z"/>
+    <path class="f-crim-lit" opacity=".14" d="M 594 240 C 602 258 608 282 608 306 C 608 326 606 340 602 350 L 594 352 C 598 340 600 326 600 306 C 600 282 596 258 590 242 Z"/>
+
+    <!-- ========== the wide sash, and its two streaming ends ========== -->
+    <path fill="url(#k_g-sash)" d="M 542 298 C 556 310 578 314 600 308 C 608 306 614 302 618 298 L 616 328 C 610 334 598 339 582 341 C 564 343 548 338 540 330 Z"/>
+    <path class="s-gold" stroke-width="1.7" opacity=".55" d="M 542 300 C 556 312 578 316 600 310 C 608 308 614 304 618 300"/>
+    <path class="s-gold" stroke-width="1.4" opacity=".35" d="M 540 328 C 550 336 566 341 582 339 C 598 337 610 332 616 326"/>
+
+    <g transform="translate(550 324)"><g class="px a-sash1"><g transform="translate(-550 -324)">
+      <path fill="url(#k_g-sash)" d="M 550 318 C 524 330 494 346 464 362 C 442 374 424 384 410 392 C 418 402 434 403 452 395 C 478 385 508 368 532 352 C 548 341 556 331 558 324 Z"/>
+      <g mask="url(#k_m-rimA)">
+        <path class="s-rim" stroke-width="2.1" opacity=".45" d="M 558 324 C 556 331 548 341 532 352 C 508 368 478 385 452 395 C 434 403 418 402 410 392"/>
       </g>
-      <g class="s-rim" stroke-width="2.4">
-        <path d="M 531 158 C 526 146 538 137 549 137 C 562 137 573 146 569 158"/>
-        <path d="M 524 194 C 516 228 512 268 511 306 C 510 338 513 372 519 402 C 523 422 528 438 535 450"/>
-        <path d="M 526 208 C 513 222 507 248 507 274 C 507 292 511 306 517 317" stroke-width="2"/>
-        <path d="M 522 310 C 518 340 512 372 506 408 C 500 444 496 472 494 494" stroke-width="1.8" opacity=".7"/>
-        <path d="M 494 494 C 512 503 540 505 566 501 C 588 498 601 493 607 487" stroke-width="1.6" opacity=".55"/>
-        <path d="M 524 206 C 538 199 560 199 574 206" stroke-width="1.7" opacity=".6"/>
-        <path d="M 514 236 C 503 262 498 290 500 316 C 502 338 508 356 516 370" stroke-width="1.5" opacity=".5"/>
+      <path class="s-gold" stroke-width="1.2" opacity=".3" d="M 552 328 C 528 342 498 360 470 374 C 450 384 432 391 418 395"/>
+    </g></g></g>
+    <g transform="translate(548 334)"><g class="px a-sash2"><g transform="translate(-548 -334)">
+      <path fill="url(#k_g-sash)" opacity=".9" d="M 548 330 C 526 348 502 370 478 392 C 460 410 444 424 434 436 C 442 444 458 442 472 430 C 494 412 518 388 536 366 C 550 352 556 342 558 336 Z"/>
+      <g mask="url(#k_m-rimA)">
+        <path class="s-rim" stroke-width="1.8" opacity=".36" d="M 558 336 C 556 342 550 352 536 366 C 518 388 494 412 472 430 C 458 442 442 444 434 436"/>
       </g>
-      <!-- light coming through the outer hair strands -->
-      <g class="s-hot" stroke-width="1.1" opacity=".55">
-        <path d="M 521 200 C 514 236 511 278 512 318"/>
-        <path d="M 517 254 C 513 286 513 320 517 352"/>
+    </g></g></g>
+
+    <!-- ========== the quiver, one arrow gone ========== -->
+    <g>
+      <path class="f-ink" d="M 545 254 C 552 252 558 257 559 264 L 544 314 C 542 322 535 325 529 322 C 523 319 520 312 522 306 L 538 260 C 540 256 542 255 545 254 Z"/>
+      <path class="s-rim" stroke-width="1.6" opacity=".42" d="M 559 264 L 544 314"/>
+      <ellipse cx="552" cy="259" rx="8.5" ry="4.2" class="f-shadow" transform="rotate(-20 552 259)"/>
+      <!-- three arrows left in it -->
+      <g class="s-gold" stroke-width="2.1" opacity=".8">
+        <path d="M 546 256 L 516 228"/>
+        <path d="M 552 256 L 526 224"/>
+        <path d="M 557 258 L 535 226"/>
       </g>
+      <g class="f-crim-lit" opacity=".85">
+        <path d="M 516 228 C 508 226 500 220 497 215 C 503 213 512 216 519 222 Z"/>
+        <path d="M 526 224 C 518 220 512 213 510 207 C 517 207 525 212 530 219 Z"/>
+        <path d="M 535 226 C 530 219 527 211 528 205 C 534 208 539 216 540 223 Z"/>
+      </g>
+      <!-- and the empty slot where the fourth was -->
+      <ellipse cx="546" cy="259" rx="3.2" ry="2.1" class="f-shadow" transform="rotate(-20 546 259)"/>
+    </g>
+
+    <!-- ========== the draw arm: just released, open beside her cheek ==== -->
+    <g>
+      <path fill="url(#k_g-arch)" d="M 568 238 C 550 234 530 228 514 228 C 508 228 504 230 502 234 L 508 246 C 512 244 518 244 524 245 C 538 247 554 252 566 258 Z"/>
+      <path fill="url(#k_g-arch)" d="M 510 228 C 522 220 538 212 552 206 L 560 220 C 546 226 530 234 516 244 Z"/>
+      <g mask="url(#k_m-rimA)">
+        <path class="s-rim" stroke-width="2.1" opacity=".5" d="M 502 234 C 504 230 508 228 514 228 C 530 228 550 234 568 238"/>
+        <path class="s-rim" stroke-width="2.1" opacity=".6" d="M 552 206 C 538 212 522 220 510 228"/>
+      </g>
+      <!-- the hand, still open: a clear dark palm with three fat fingers -->
+      <path class="f-ink" d="M 552 202 C 562 198 571 203 572 212 C 573 222 566 228 556 227 C 546 226 542 218 545 210 Z"/>
+      <g class="s-skin" stroke-width="2.6" opacity=".55" stroke-linecap="round">
+        <path d="M 552 205 C 545 200 538 197 531 196"/>
+        <path d="M 548 212 C 540 210 533 209 527 209"/>
+        <path d="M 549 220 C 542 221 536 223 531 226"/>
+      </g>
+      <path class="s-skin" stroke-width="1.5" opacity=".6" d="M 560 200 C 568 202 573 208 573 215"/>
+      <g class="s-skin" stroke-width="5" opacity=".10" filter="url(#k_f-bloom)">
+        <path d="M 552 205 C 545 200 538 197 531 196"/>
+        <path d="M 548 212 C 540 210 533 209 527 209"/>
+      </g>
+    </g>
+
+    <!-- ========== the head, profile right, topknot above ========== -->
+    <g>
+      <path fill="url(#k_g-hair-a)" d="M 568 200 C 562 184 572 168 588 167 C 602 166 612 176 612 190 C 612 202 606 214 596 220 C 584 224 572 216 568 204 Z"/>
+      <path fill="url(#k_g-skin-a)" d="M 594 174 C 606 174 613 184 611 196 C 609 210 600 221 590 223 C 583 223 579 217 580 207 C 581 191 586 176 594 174 Z"/>
+      <path class="s-skin" stroke-width="1.3" opacity=".3" d="M 608 180 C 613 188 612 200 606 210"/>
+      <path fill="url(#k_g-skin-a)" opacity=".8" d="M 582 218 C 584 226 586 232 588 236 L 572 240 C 570 234 569 228 569 222 Z"/>
+      <!-- topknot and its gold band -->
+      <path fill="url(#k_g-knot)" d="M 574 170 C 568 158 574 146 586 144 C 598 142 607 150 606 162 C 605 170 599 176 591 178 C 583 179 576 176 574 170 Z"/>
+      <path class="s-gold" stroke-width="3.4" opacity=".72" d="M 572 174 C 580 180 594 180 602 174"/>
+      <g mask="url(#k_m-rimA)">
+        <g class="s-glow" stroke-width="8" opacity=".32" filter="url(#k_f-bloom)">
+          <path d="M 594 174 C 606 174 613 184 611 196 C 609 210 600 221 590 223"/>
+          <path d="M 586 144 C 598 142 607 150 606 162 C 605 170 599 176 591 178"/>
+        </g>
+        <g class="s-rim" stroke-width="2.7">
+          <path d="M 574 170 C 568 158 574 146 586 144 C 598 142 607 150 606 162 C 605 170 599 176 591 178"/>
+          <path d="M 591 170 C 603 171 613 182 611 196 C 609 210 600 221 590 223"/>
+        </g>
+      </g>
+    </g>
+
+    <!-- ========== the bow arm, thrust forward at full extension ========== -->
+    <g>
+      <path fill="url(#k_g-arch)" d="M 592 240 C 614 242 640 250 664 260 C 672 264 678 268 683 272 L 673 286 C 668 282 660 277 650 273 C 630 265 608 260 590 260 Z"/>
+      <path fill="url(#k_g-arch-warm)" d="M 592 240 C 614 242 640 250 664 260 C 672 264 678 268 683 272 L 673 286 C 668 282 660 277 650 273 C 630 265 608 260 590 260 Z"/>
+      <!-- the sleeve of the bow arm, dragged back by the speed -->
+      <g transform="translate(608 256)"><g class="px a-sleeve2"><g transform="translate(-608 -256)">
+        <path fill="url(#k_g-cloth)" d="M 610 250 C 602 264 594 282 588 300 C 584 312 582 322 582 330 C 594 334 608 328 616 316 C 624 304 630 288 632 274 C 632 264 628 256 622 252 Z"/>
+        <g mask="url(#k_m-rimA)">
+          <path class="s-rim" stroke-width="2" opacity=".42" d="M 622 252 C 628 256 632 264 632 274 C 630 288 624 304 616 316 C 608 328 594 334 582 330"/>
+        </g>
+      </g></g></g>
+      <g mask="url(#k_m-rimA)">
+        <path class="s-glow" stroke-width="7" opacity=".3" filter="url(#k_f-bloom)" d="M 592 240 C 614 242 640 250 664 260 C 672 264 678 268 683 272"/>
+        <path class="s-rim" stroke-width="2.7" d="M 592 240 C 614 242 640 250 664 260 C 672 264 678 268 683 272"/>
+        <path class="s-rim" stroke-width="1.8" opacity=".45" d="M 590 260 C 608 260 630 265 650 273 C 660 277 668 282 673 286"/>
+      </g>
+      <!-- the bow hand -->
+      <path fill="url(#k_g-hand-a)" d="M 668 262 C 680 260 690 266 690 276 C 690 287 681 293 671 290 C 662 287 659 278 662 270 Z"/>
+      <g class="s-skin" stroke-width="1.5" opacity=".6">
+        <path d="M 676 260 C 684 261 690 267 690 275"/>
+        <path d="M 678 291 C 685 288 690 282 690 275"/>
+      </g>
+    </g>
+
+    <!-- ========== the bow, and the string snapped past straight ========== -->
+    <g transform="translate(680 276)"><g class="px a-limb"><g transform="translate(-680 -276)">
+      <path fill="none" stroke="var(--rs-gold)" stroke-width="4.6" stroke-linecap="round" opacity=".92"
+            d="M 660 182 C 676 212 688 246 688 276 C 688 306 678 340 662 370"/>
+      <path fill="none" stroke="var(--rs-glow)" stroke-width="11" stroke-linecap="round" opacity=".16" filter="url(#k_f-bloom)"
+            d="M 660 182 C 676 212 688 246 688 276 C 688 306 678 340 662 370"/>
+      <!-- recurved tips, hooking away from the archer -->
+      <path fill="none" stroke="var(--rs-gold)" stroke-width="3.4" stroke-linecap="round" opacity=".85"
+            d="M 660 182 C 662 177 664 174 667 173"/>
+      <path fill="none" stroke="var(--rs-gold)" stroke-width="3.4" stroke-linecap="round" opacity=".85"
+            d="M 662 370 C 664 375 665 377 667 379"/>
+      <!-- the riser -->
+      <path class="f-ink" d="M 684 262 C 690 260 695 264 695 272 L 695 282 C 695 290 690 294 684 292 Z"/>
+
+      <!-- THE STRING.  The nocks sit on one vertical, x = 667, so scaling
+           X about that line is an exact string: 1 = the full forward
+           overshoot of the loose (the authored still), 0 = at rest. -->
+      <!-- a ghost of the string one beat ahead: the smear of the snap -->
+      <g transform="translate(667 276)"><g class="px a-string-ghost"><g transform="translate(-667 -276)">
+        <path fill="none" stroke="var(--rs-hot)" stroke-width="5" stroke-linecap="round" opacity=".26" filter="url(#k_f-bloom)"
+              d="M 667 173 C 681 210 684 244 684 276 C 684 308 681 342 667 379"/>
+      </g></g></g>
+      <g transform="translate(667 276)"><g class="px a-string"><g transform="translate(-667 -276)">
+        <path fill="none" stroke="var(--rs-hot)" stroke-width="11" stroke-linecap="round" opacity=".34" filter="url(#k_f-bloom)"
+              d="M 667 173 C 681 210 684 244 684 276 C 684 308 681 342 667 379"/>
+        <path fill="none" stroke="var(--rs-ink)" stroke-width="4.6" stroke-linecap="round" opacity=".5"
+              d="M 667 173 C 681 210 684 244 684 276 C 684 308 681 342 667 379"/>
+        <path fill="none" stroke="var(--rs-hot)" stroke-width="3" stroke-linecap="round" opacity=".98"
+              d="M 667 173 C 681 210 684 244 684 276 C 684 308 681 342 667 379"/>
+        <circle cx="684" cy="276" r="3.4" class="f-hot" opacity=".92"/>
+      </g></g></g>
+    </g></g></g>
+
+    <!-- the flash of the loose, on the same 1.1s beat -->
+    <g transform="translate(688 276)"><g class="px a-flash"><g transform="translate(-688 -276)">
+      <g filter="url(#k_f-bloom)">
+        <ellipse cx="694" cy="276" rx="26" ry="13" class="f-hot" opacity=".5"/>
+        <ellipse cx="702" cy="277" rx="46" ry="7" class="f-core" opacity=".4"/>
+      </g>
+    </g></g></g>
+  </g>
+
+  <!-- ====================================================================
+       8. THE LINK, SECOND PASS — the coils that wrap over his shoulder,
+          drawn on top of him so the two of them read as one unit
+       ==================================================================== -->
+  <g class="a-link">
+    <!-- the long run: her hand, up over the deer's antlers, down to him -->
+    <path class="s-link" stroke-width="24" opacity=".17" filter="url(#k_f-bloom-wide)"
+          d="M 420 207 C 454 198 492 202 528 216 C 552 226 568 234 578 242"/>
+    <path stroke="url(#k_g-link)" fill="none" stroke-linecap="round" stroke-width="11" opacity=".46"
+          d="M 420 207 C 454 198 492 202 528 216 C 552 226 568 234 578 242"/>
+    <path stroke="url(#k_g-link)" fill="none" stroke-linecap="round" stroke-width="3.6" opacity=".95"
+          d="M 420 207 C 454 198 492 202 528 216 C 552 226 568 234 578 242"/>
+    <!-- a second, thinner strand so it reads as a RIBBON, not a rod -->
+    <path stroke="url(#k_g-link)" fill="none" stroke-linecap="round" stroke-width="1.9" opacity=".55"
+          d="M 421 217 C 456 209 492 213 526 227 C 548 236 563 243 572 250"/>
+    <path class="s-linkhot a-shim" stroke-width="7.5" opacity=".95" filter="url(#k_f-bloom)"
+          d="M 420 207 C 454 198 492 202 528 216 C 552 226 568 234 578 242"/>
+
+    <!-- and the coils that take hold of his shoulder -->
+    <g>
+      <path class="s-link" stroke-width="18" opacity=".20" filter="url(#k_f-bloom-wide)"
+            d="M 552 230 C 574 224 600 232 612 248 C 621 260 615 274 600 275 C 585 276 572 268 566 256"/>
+      <path stroke="url(#k_g-link)" fill="none" stroke-linecap="round" stroke-width="9" opacity=".48"
+            d="M 552 230 C 574 224 600 232 612 248 C 621 260 615 274 600 275 C 585 276 572 268 566 256"/>
+      <path stroke="url(#k_g-link)" fill="none" stroke-linecap="round" stroke-width="3.2" opacity=".95"
+            d="M 552 230 C 574 224 600 232 612 248 C 621 260 615 274 600 275 C 585 276 572 268 566 256"/>
+      <path class="s-linkhot a-shim2" stroke-width="6.4" opacity=".92" filter="url(#k_f-bloom)"
+            d="M 552 230 C 574 224 600 232 612 248 C 621 260 615 274 600 275 C 585 276 572 268 566 256"/>
+    </g>
+    <g opacity=".8">
+      <path class="s-link" stroke-width="12" opacity=".16" filter="url(#k_f-bloom-wide)"
+            d="M 570 266 C 592 258 614 264 622 278 C 627 287 619 295 609 291"/>
+      <path stroke="url(#k_g-link)" fill="none" stroke-linecap="round" stroke-width="6.5" opacity=".44"
+            d="M 570 266 C 592 258 614 264 622 278 C 627 287 619 295 609 291"/>
+      <path stroke="url(#k_g-link)" fill="none" stroke-linecap="round" stroke-width="2.5" opacity=".9"
+            d="M 570 266 C 592 258 614 264 622 278 C 627 287 619 295 609 291"/>
+    </g>
+    <!-- a few sparks carried along it, her end to his -->
+    <path class="s-linkhot a-shim3" stroke-width="3" opacity=".8" filter="url(#k_f-bloom)"
+          d="M 420 207 C 454 198 492 202 528 216 C 552 226 568 234 578 242"/>
+    <!-- where it leaves her hand, a knot of light -->
+    <g filter="url(#k_f-bloom)">
+      <circle cx="420" cy="207" r="12" class="f-link" opacity=".34"/>
+      <circle cx="420" cy="207" r="5" class="f-pearl" opacity=".75"/>
     </g>
   </g>
 
-  <!-- a sheer scarf drifting into the gap, catching the light between them -->
-  <path fill="url(#k_g-veil)" d="M 528 212 C 500 222 470 240 450 266 C 432 290 424 316 426 342 C 434 316 446 291 464 271 C 484 249 510 231 536 223 Z"/>
-  <path class="s-rim" stroke-width="1.3" opacity=".3" d="M 528 212 C 500 222 470 240 450 266 C 432 290 424 316 426 342"/>
+  <!-- ====================================================================
+       9. THE ARROW — already gone, streaking out of frame to the right
+       ==================================================================== -->
+  <g transform="translate(792 300)"><g class="px a-arrow"><g transform="translate(-792 -300)">
+    <!-- the trail, stretching as it goes -->
+    <g transform="translate(792 300)"><g class="px a-trail"><g transform="translate(-792 -300)">
+      <path fill="url(#k_g-trail)" d="M 792 296.5 C 740 288 680 278 620 268 C 596 264 578 261 568 260 C 578 263 596 268 620 274 C 680 287 740 299 792 303.5 Z"/>
+      <path fill="url(#k_g-trail)" opacity=".45" filter="url(#k_f-bloom)" d="M 792 292 C 736 284 672 274 612 264 C 590 260 574 258 566 258 C 574 262 590 268 612 274 C 672 290 736 302 792 308 Z"/>
+    </g></g></g>
+    <!-- the shaft -->
+    <path fill="none" stroke="var(--rs-hot)" stroke-width="2.6" stroke-linecap="round" opacity=".95" d="M 744 292 L 790 300"/>
+    <path fill="none" stroke="var(--rs-core)" stroke-width="7" stroke-linecap="round" opacity=".3" filter="url(#k_f-bloom)" d="M 744 292 L 790 300"/>
+    <!-- the head -->
+    <path class="f-hot" d="M 788 294 L 806 301 L 787 306 Z"/>
+    <!-- the fletching -->
+    <path class="f-rim" opacity=".8" d="M 746 291 L 734 283 L 736 292 L 730 296 L 744 294 Z"/>
+    <g filter="url(#k_f-bloom)"><circle cx="802" cy="301" r="5" class="f-hot" opacity=".55"/></g>
+  </g></g></g>
 
-  <!-- ===================================================================
-       7. THE ARCHER — crimson and gold, bow in hand, glancing across
-       =================================================================== -->
-  <g>
-    <!-- backlight bloom -->
-    <g filter="url(#k_f-bloom-wide)" opacity=".5" transform="translate(8 -5)">
-      <path class="f-glow-deep" d="M 326 204 C 316 216 314 230 317 244 C 320 258 325 266 330 275 C 323 289 319 298 320 312 C 313 336 306 352 302 374 C 294 422 288 466 284 505 C 301 515 321 519 343 517 C 367 515 395 507 415 494 C 411 452 407 410 403 373 C 399 347 395 328 392 312 C 393 299 388 290 381 275 C 386 266 391 258 393 244 C 396 230 394 216 384 204 C 370 197 340 197 326 204 Z"/>
-    </g>
-
-    <!-- trailing train, sweeping off behind her -->
-    <path fill="url(#k_g-train)" d="M 294 424 C 270 452 242 480 216 514 C 208 524 210 531 220 529 C 248 524 278 522 302 525 C 296 500 292 462 294 424 Z"/>
-    <!-- sash tails -->
-    <path fill="url(#k_g-train)" d="M 324 282 C 300 310 272 342 252 378 C 238 404 230 430 228 453 C 238 430 252 404 270 380 C 292 350 318 318 334 295 Z"/>
-    <path fill="url(#k_g-train)" opacity=".85" d="M 334 292 C 318 326 300 362 290 396 C 283 420 280 440 280 456 C 287 434 296 410 307 388 C 322 356 338 324 346 302 Z"/>
-
-    <!-- quiver on her back, over the right shoulder -->
-    <g>
-      <g class="s-gold-deep" stroke-width="2.2" opacity=".9">
-        <path d="M 388 192 C 394 176 400 160 404 148"/>
-        <path d="M 388 193 C 396 180 404 168 412 158"/>
-        <path d="M 387 193 C 390 177 392 160 392 146"/>
-      </g>
-      <g class="f-gold">
-        <path d="M 404 148 C 408 139 414 132 421 129 C 420 139 415 148 409 155 Z" opacity=".95"/>
-        <path d="M 412 158 C 419 151 427 147 434 147 C 430 156 423 163 415 166 Z" opacity=".85"/>
-        <path d="M 392 146 C 392 136 395 127 400 121 C 403 131 402 141 399 150 Z" opacity=".9"/>
-      </g>
-      <path fill="url(#k_g-arch)" d="M 336 268 L 378 190 L 396 199 L 353 277 Z"/>
-      <ellipse cx="387" cy="195" rx="10" ry="5" class="f-crim-deep" transform="rotate(-27 387 195)"/>
-      <ellipse cx="387" cy="195" rx="10" ry="5" fill="none" stroke="var(--mem-gold)" stroke-width="1.6" opacity=".75" transform="rotate(-27 387 195)"/>
-      <path class="s-gold" stroke-width="1.8" opacity=".7" d="M 379 191 L 396 200"/>
-      <path class="s-gold" stroke-width="1.5" opacity=".45" d="M 360 230 L 377 239"/>
-    </g>
-
-    <!-- robe mass -->
-    <path fill="url(#k_g-arch)" d="M 326 204 C 316 216 314 230 317 244 C 320 258 325 266 330 275 C 323 289 319 298 320 312 C 313 336 306 352 302 374 C 294 422 288 466 284 505 C 301 515 321 519 343 517 C 367 515 395 507 415 494 C 411 452 407 410 403 373 C 399 347 395 328 392 312 C 393 299 388 290 381 275 C 386 266 391 258 393 244 C 396 230 394 216 384 204 C 370 197 340 197 326 204 Z"/>
-    <path fill="url(#k_g-arch-warm)" d="M 326 204 C 316 216 314 230 317 244 C 320 258 325 266 330 275 C 323 289 319 298 320 312 C 313 336 306 352 302 374 C 294 422 288 466 284 505 C 301 515 321 519 343 517 C 367 515 395 507 415 494 C 411 452 407 410 403 373 C 399 347 395 328 392 312 C 393 299 388 290 381 275 C 386 266 391 258 393 244 C 396 230 394 216 384 204 C 370 197 340 197 326 204 Z"/>
-
-    <!-- skirt folds: form, not decoration -->
-    <g class="f-crim-lit" opacity=".2">
-      <path d="M 344 296 C 336 360 326 436 320 514 L 331 515 C 333 436 342 360 350 296 Z"/>
-      <path d="M 388 298 C 392 356 398 430 406 498 L 396 503 C 390 432 382 358 379 298 Z"/>
-    </g>
-    <g class="f-ink" opacity=".38">
-      <path d="M 366 298 C 364 362 362 436 362 516 L 372 514 C 374 436 374 362 372 298 Z"/>
-      <path d="M 326 300 C 318 362 308 436 300 506 L 308 510 C 314 438 322 364 330 302 Z"/>
-    </g>
-    <!-- lifted hem on the forward leg -->
-    <path class="f-ink" opacity=".4" d="M 380 500 C 392 500 404 497 415 494 C 413 486 412 480 411 474 C 400 482 390 489 380 492 Z"/>
-
-    <!-- forward leg and boot stepping out from under the hem -->
-    <path fill="url(#k_g-arch)" d="M 398 492 C 400 503 404 512 409 517 C 418 522 430 522 437 518 L 436 527 C 424 531 408 528 401 521 C 394 512 391 501 390 492 Z"/>
-    <path class="s-rim" stroke-width="1.6" opacity=".6" d="M 409 517 C 418 522 430 522 437 518"/>
-    <path fill="url(#k_g-arch)" d="M 320 512 C 318 521 322 528 331 528 C 340 528 346 523 344 514 Z"/>
-
-    <!-- high waist sash -->
-    <path class="f-gold-deep" d="M 320 263 C 338 272 374 272 392 261 L 390 292 C 372 301 338 301 322 293 Z"/>
-    <path class="f-ink" opacity=".35" d="M 321 278 C 338 287 374 287 391 277 L 390 292 C 372 301 338 301 322 293 Z"/>
-    <path class="s-gold" stroke-width="2" opacity=".85" d="M 320 263 C 338 272 374 272 392 261"/>
-    <path class="s-gold" stroke-width="1.5" opacity=".5" d="M 322 293 C 338 301 372 301 390 292"/>
-    <!-- knot -->
-    <path class="f-gold-deep" d="M 330 272 C 338 268 346 270 348 276 C 350 283 344 289 336 288 C 329 287 326 278 330 272 Z"/>
-    <path class="s-gold" stroke-width="1.4" opacity=".6" d="M 330 272 C 338 268 346 270 348 277"/>
-
-    <!-- crossed collar -->
-    <path class="f-gold-deep" d="M 334 205 C 344 223 378 223 388 204 L 393 211 C 382 232 342 232 330 212 Z"/>
-    <path class="s-gold" stroke-width="1.8" opacity=".8" d="M 330 212 C 342 232 382 232 393 211"/>
-
-    <!-- outer arm: wide flowing sleeve -->
-    <path fill="url(#k_g-arch-sleeve)" d="M 330 203 C 312 215 300 243 296 270 C 293 292 296 310 302 325 L 321 320 C 315 302 313 285 316 263 C 320 239 329 218 340 207 Z"/>
-    <path class="f-ink" opacity=".3" d="M 310 228 C 302 252 299 282 303 312 L 310 312 C 306 282 308 252 316 230 Z"/>
-    <path class="s-gold" stroke-width="1.6" opacity=".45" d="M 302 325 C 308 327 316 324 321 320"/>
-    <!-- palm, behind the bow -->
-    <path class="f-skin" d="M 306 313 C 298 313 290 318 287 326 C 284 334 288 342 296 343 C 303 344 309 339 311 331 C 313 323 312 315 306 313 Z"/>
-
-    <!-- inner arm, swinging forward -->
-    <path fill="url(#k_g-arch-sleeve)" d="M 384 203 C 400 216 409 242 411 268 C 413 290 409 306 403 318 L 385 313 C 391 297 395 282 393 260 C 391 236 383 216 374 206 Z"/>
-    <path fill="url(#k_g-arch-warm)" opacity=".8" d="M 384 203 C 400 216 409 242 411 268 C 413 290 409 306 403 318 L 385 313 C 391 297 395 282 393 260 C 391 236 383 216 374 206 Z"/>
-    <path class="f-skin" d="M 404 314 C 412 316 418 324 418 333 C 418 343 411 349 403 347 C 396 345 392 336 394 328 C 396 319 399 313 404 314 Z"/>
-    <g class="s-skin" stroke-width="1.4" opacity=".65">
-      <path d="M 404 314 C 412 316 418 324 418 333"/>
-      <path d="M 405 346 C 410 343 413 338 414 332"/>
-      <path d="M 398 344 C 403 341 406 336 407 330"/>
-    </g>
-
-    <!-- head, bound hair, streaming ribbon -->
-    <g>
-      <!-- ribbons first, they live behind the knot -->
-      <path fill="url(#k_g-ribbon)" d="M 348 114 C 320 100 284 102 254 116 C 226 129 204 146 188 164 C 200 160 216 152 236 144 C 268 131 310 124 342 128 Z"/>
-      <path class="s-gold" stroke-width="1.5" opacity=".65" d="M 188 164 C 200 160 216 152 236 144 C 268 131 310 124 342 128"/>
-      <path fill="url(#k_g-ribbon)" opacity=".9" d="M 344 124 C 316 122 286 132 262 148 C 240 162 224 178 214 194 C 226 184 242 172 262 162 C 288 149 318 140 342 138 Z"/>
-      <path class="s-gold" stroke-width="1.2" opacity=".45" d="M 214 194 C 226 184 242 172 262 162 C 288 149 318 140 342 138"/>
-
-      <!-- neck -->
-      <path class="f-skin" d="M 352 174 C 350 184 350 194 352 202 L 374 200 C 370 192 369 182 370 174 Z"/>
-      <path class="f-ink" opacity=".45" d="M 352 174 C 350 184 350 194 352 202 L 360 201 C 357 192 356 182 358 174 Z"/>
-      <!-- skull -->
-      <path class="f-hair" d="M 361 136 C 374 136 384 147 384 161 C 384 174 377 184 367 188 C 356 191 346 184 343 172 C 340 158 348 136 361 136 Z"/>
-      <!-- a face read entirely by its lit profile -->
-      <path class="f-skin" d="M 372 142 C 380 147 384 156 384 164 C 384 176 378 185 368 188 C 371 176 374 158 372 142 Z"/>
-      <path class="s-hot" stroke-width="1.7" opacity=".9" d="M 373 143 C 379 148 382 155 383 162 C 383 166 380 168 378 170 C 381 173 380 177 376 179 C 373 183 369 186 364 188"/>
-      <!-- bound topknot -->
-      <path class="f-hair" d="M 342 140 C 334 126 338 110 351 103 C 364 96 380 102 384 116 C 387 128 381 140 370 144 C 358 148 348 150 342 140 Z"/>
-      <path class="f-hair-deep" opacity=".6" d="M 346 138 C 342 126 346 114 356 108 C 350 118 348 128 350 140 Z"/>
-      <path class="s-gold" stroke-width="2.2" opacity=".8" d="M 344 130 C 356 136 374 134 382 124"/>
-      <path class="s-gold" stroke-width="1.6" opacity=".55" d="M 366 102 C 374 106 380 114 381 122"/>
-      <!-- nape -->
-      <path class="f-hair" d="M 352 180 C 348 190 348 198 352 204 L 370 200 C 366 194 364 186 366 178 Z"/>
-    </g>
-
-    <!-- the longbow: one big clear arc, string toward the light -->
-    <g>
-      <path class="s-glow" stroke-width="11" opacity=".2" filter="url(#k_f-bloom)" d="M 302 170 C 282 238 280 402 306 464"/>
-      <path class="s-ink" stroke-width="7" d="M 302 170 C 282 238 280 402 306 464"/>
-      <path class="s-gold-deep" stroke-width="2.6" opacity=".9" d="M 305 176 C 287 240 285 398 309 458"/>
-      <path class="s-gold" stroke-width="1.3" opacity=".6" d="M 306 196 C 292 250 291 388 310 440"/>
-      <path class="s-ink" stroke-width="4.6" d="M 302 170 C 302 162 307 156 314 155"/>
-      <path class="s-ink" stroke-width="4.6" d="M 306 464 C 306 472 311 478 318 479"/>
-      <path class="s-rim" stroke-width="1.3" opacity=".75" d="M 314 156 L 318 478"/>
-      <path class="s-glow" stroke-width="4" opacity=".16" filter="url(#k_f-bloom)" d="M 314 156 L 318 478"/>
-    </g>
-    <!-- fingers closing over the grip -->
-    <g class="f-skin">
-      <path d="M 288 318 C 282 319 279 324 281 328 C 284 331 290 330 293 327 C 295 323 292 317 288 318 Z"/>
-      <path d="M 285 328 C 279 329 276 334 278 338 C 281 341 287 340 290 337 C 292 333 289 327 285 328 Z"/>
-      <path d="M 286 337 C 281 338 278 343 280 347 C 283 350 289 349 292 346 C 294 342 290 336 286 337 Z"/>
-    </g>
-    <g class="s-skin" stroke-width="1.2" opacity=".7">
-      <path d="M 281 327 C 284 330 290 330 293 327"/>
-      <path d="M 278 337 C 281 340 287 340 290 337"/>
-      <path d="M 280 346 C 283 349 289 349 292 346"/>
-    </g>
-
-    <!-- rim: the edge of her turned to the glow -->
-    <g mask="url(#k_m-rim-arch)">
-      <g class="s-glow" stroke-width="8" opacity=".3" filter="url(#k_f-bloom)">
-        <path d="M 384 204 C 394 216 396 230 393 244 C 391 258 386 266 381 275 C 388 290 393 299 392 312 C 395 328 399 347 403 373 C 407 410 411 452 415 494"/>
-        <path d="M 384 203 C 400 216 409 242 411 268 C 413 290 409 306 403 318"/>
-        <path d="M 378 190 L 396 199 L 353 277"/>
-      </g>
-      <g class="s-rim" stroke-width="2.6">
-        <path d="M 384 204 C 394 216 396 230 393 244 C 391 258 386 266 381 275 C 388 290 393 299 392 312 C 395 328 399 347 403 373 C 407 410 411 452 415 494"/>
-        <path d="M 384 203 C 400 216 409 242 411 268 C 413 290 409 306 403 318" stroke-width="2.2"/>
-        <path d="M 326 204 C 340 197 370 197 384 204" stroke-width="1.9" opacity=".7"/>
-        <path d="M 415 494 C 395 507 367 515 343 517 C 321 519 301 515 284 505" stroke-width="1.7" opacity=".55"/>
-        <path d="M 379 191 L 396 200 L 354 277" stroke-width="1.6" opacity=".7"/>
-        <path d="M 384 116 C 387 128 381 140 370 144" stroke-width="1.8" opacity=".85"/>
-        <path d="M 330 203 C 316 213 305 236 300 260" stroke-width="1.6" opacity=".35"/>
-        <path d="M 302 325 C 296 310 293 292 296 270" stroke-width="1.4" opacity=".3"/>
-        <path d="M 294 424 C 292 462 296 500 302 525" stroke-width="1.5" opacity=".3"/>
-        <path d="M 334 295 C 318 318 292 350 270 380 C 252 404 238 430 228 453" stroke-width="1.4" opacity=".3"/>
-      </g>
-    </g>
+  <!-- =============== 10. FOREGROUND MOTES =============== -->
+  <g class="f-core">
+    <g transform="translate(646 420)"><g class="px a-mt1"><g transform="translate(-646 -420)"><circle cx="646" cy="420" r="2.1" opacity=".8"/></g></g></g>
+    <g transform="translate(486 390)"><g class="px a-mt2"><g transform="translate(-486 -390)"><circle cx="486" cy="390" r="1.7" opacity=".7"/></g></g></g>
+    <g transform="translate(732 400)"><g class="px a-mt3"><g transform="translate(-732 -400)"><circle cx="732" cy="400" r="2.3" opacity=".75"/></g></g></g>
+    <g transform="translate(386 444)"><g class="px a-mt4"><g transform="translate(-386 -444)"><circle cx="386" cy="444" r="1.9" opacity=".6"/></g></g></g>
+    <g transform="translate(566 452)"><g class="px a-mt5"><g transform="translate(-566 -452)"><circle cx="566" cy="452" r="1.6" opacity=".65"/></g></g></g>
+    <g transform="translate(236 452)"><g class="px a-mt6"><g transform="translate(-236 -452)"><circle cx="236" cy="452" r="1.8" opacity=".5"/></g></g></g>
   </g>
 
-  <!-- ========== 8. air in front: haze, petals, motes ========== -->
-  <ellipse cx="462" cy="516" rx="360" ry="34" fill="url(#k_g-haze-front)" opacity=".8"/>
-
-  <!-- out-of-focus petals close to the lens -->
-  <g filter="url(#k_f-soft)" class="f-petal">
-    <ellipse cx="148" cy="548" rx="15" ry="7.5" opacity=".20" transform="rotate(-22 148 548)"/>
-    <ellipse cx="318" cy="582" rx="13" ry="6.5" opacity=".16" transform="rotate(34 318 582)"/>
-    <ellipse cx="612" cy="566" rx="14" ry="7"   opacity=".18" transform="rotate(-14 612 566)"/>
-    <ellipse cx="784" cy="534" rx="12" ry="6"   opacity=".14" transform="rotate(46 784 534)"/>
-    <ellipse cx="72"  cy="430" rx="11" ry="5.5" opacity=".12" transform="rotate(12 72 430)"/>
-    <ellipse cx="860" cy="430" rx="12" ry="6"   opacity=".11" transform="rotate(-38 860 430)"/>
+  <!-- =============== 11. FILM PASS =============== -->
+  <g mask="url(#k_m-grain)" opacity=".16">
+    <rect class="grain" x="0" y="0" width="900" height="600" filter="url(#k_f-grain)"/>
   </g>
+  <ellipse cx="556" cy="470" rx="350" ry="34" fill="url(#k_g-haze)" opacity=".5"/>
 
-  <!-- petals in the plane of the figures -->
-  <g class="f-petal">
-    <ellipse cx="466" cy="462" rx="7"   ry="3.4" opacity=".6"  transform="rotate(-28 466 462)"/>
-    <ellipse cx="506" cy="378" rx="6"   ry="2.9" opacity=".5"  transform="rotate(18 506 378)"/>
-    <ellipse cx="444" cy="286" rx="6.4" ry="3.1" opacity=".58" transform="rotate(-50 444 286)"/>
-    <ellipse cx="612" cy="430" rx="6.8" ry="3.3" opacity=".34" transform="rotate(24 612 430)"/>
-    <ellipse cx="726" cy="470" rx="6"   ry="2.9" opacity=".22" transform="rotate(-10 726 470)"/>
-    <ellipse cx="256" cy="452" rx="6.2" ry="3"   opacity=".24" transform="rotate(40 256 452)"/>
-    <ellipse cx="412" cy="424" rx="5.4" ry="2.6" opacity=".38" transform="rotate(-34 412 424)"/>
-  </g>
-
-  <!-- motes of light -->
-  <g class="f-hot" filter="url(#k_f-dot)">
-    <circle cx="430" cy="268" r="1.9" opacity=".9"/>
-    <circle cx="482" cy="226" r="1.5" opacity=".75"/>
-    <circle cx="452" cy="340" r="2.1" opacity=".95"/>
-    <circle cx="502" cy="412" r="1.6" opacity=".7"/>
-    <circle cx="418" cy="352" r="1.4" opacity=".65"/>
-    <circle cx="470" cy="166" r="1.3" opacity=".5"/>
-    <circle cx="398" cy="212" r="1.2" opacity=".45"/>
-    <circle cx="528" cy="330" r="1.5" opacity=".6"/>
-    <circle cx="610" cy="354" r="1.4" opacity=".45"/>
-    <circle cx="636" cy="268" r="1.2" opacity=".35"/>
-    <circle cx="300" cy="300" r="1.3" opacity=".3"/>
-    <circle cx="246" cy="222" r="1.1" opacity=".26"/>
-    <circle cx="698" cy="414" r="1.3" opacity=".28"/>
-    <circle cx="756" cy="246" r="1.1" opacity=".22"/>
-    <circle cx="186" cy="420" r="1.2" opacity=".2"/>
-    <circle cx="560" cy="186" r="1.2" opacity=".4"/>
-    <circle cx="488" cy="494" r="1.7" opacity=".55"/>
-    <circle cx="378" cy="470" r="1.4" opacity=".4"/>
-    <circle cx="582" cy="446" r="1.5" opacity=".38"/>
-    <circle cx="344" cy="150" r="1.1" opacity=".3"/>
-    <circle cx="658" cy="188" r="1.1" opacity=".26"/>
-    <circle cx="794" cy="366" r="1.1" opacity=".18"/>
-  </g>
-
-  <!-- final unifying bloom, so the whole memory glows from inside -->
-  <ellipse cx="461" cy="352" rx="150" ry="150" fill="url(#k_g-core)" opacity=".22" filter="url(#k_f-haze)"/>
+</g>
 </g>
 </svg>
 </div>
@@ -3921,7 +4453,9 @@
       else if (d > 2000)  o = (4600 - d) / 2600;      // swimming up out of the dark ahead
       else if (d > -700)  o = 1;                      // right beside you
       else                o = (d + 1900) / 1200;      // falling away behind
-      v.el.style.opacity = Math.max(0, Math.min(1, o)).toFixed(3);
+      o = Math.max(0, Math.min(1, o));
+      v.el.style.opacity = o.toFixed(3);
+      v.el.classList.toggle("lit", o > .02);
     }
 
     drawTube(st, t);
