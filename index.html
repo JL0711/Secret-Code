@@ -55,6 +55,20 @@
   }
 
   /* ---------- the print ---------- */
+  /* lifted blacks, warm highlights, cool shadows — the curve, not the content */
+  #grade{
+    position:fixed;inset:0;z-index:398;pointer-events:none;
+    background:radial-gradient(130% 110% at 50% 46%, rgb(30 38 76 / .035), rgb(16 19 46 / .05) 70%, rgb(11 13 32 / .07));
+    mix-blend-mode:screen;
+  }
+  #grade::after{
+    content:"";position:absolute;inset:0;
+    background:
+      linear-gradient(to bottom, rgb(255 198 140 / .06), rgb(255 198 140 / 0) 42%),
+      radial-gradient(90% 80% at 50% 44%, rgb(255 186 120 / .07), rgb(255 186 120 / 0) 62%);
+    mix-blend-mode:soft-light;
+  }
+
   #grain{
     position:fixed;inset:-120px;z-index:400;pointer-events:none;
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.86' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.52'/%3E%3C/svg%3E");
@@ -384,6 +398,7 @@
 </style>
 
 <div id="halo"></div>
+<div id="grade" aria-hidden="true"></div>
 <div id="grain" aria-hidden="true"></div>
 <div id="bars" aria-hidden="true"><b class="t"></b><b class="b"></b></div>
 <canvas id="dust" aria-hidden="true"></canvas>
@@ -1803,6 +1818,7 @@
 </g>
 </svg>
 </div>
+    <div class="memory stub" id="v-sun">夕阳</div>
   </div>
 </div>
 
@@ -2344,9 +2360,9 @@
     scene = "letters";
     var flying = LINES.slice(0, LINES.length - 1);
     flying.forEach(function(t, i){
-      setTimeout(function(){ spawnLetter(t, i); }, i * 1150);
+      setTimeout(function(){ spawnLetter(t, i); }, i * 950);
     });
-    setTimeout(toFinal, (flying.length - 1) * 1150 + 7400);
+    setTimeout(toFinal, (flying.length - 1) * 950 + 7400);
   }
 
   function spawnLetter(text, i){
@@ -2484,9 +2500,12 @@
     { t:20.0,  yaw:  64, pitch: -3, roll:   6, sp: 1250 },   // 向右 — 相拥
     { t:23.8,  yaw:  60, pitch:  0, roll:   5, sp: 1250 },
     { t:25.1,  yaw:   0, pitch:  0, roll:   0, sp: 1900 },
-    { t:26.3,  yaw:   7, pitch: 36, roll: -27, sp: 5200 },   // 被一阵风拽起来
-    { t:27.7,  yaw:  -5, pitch: 11, roll:   9, sp: 7200 },
-    { t:28.8,  yaw:   0, pitch:  0, roll:   0, sp: 9400 }
+    { t:26.4,  yaw: -64, pitch: -3, roll:  -6, sp: 1150 },   // 向左 — 夕阳，这段是个长镜头
+    { t:32.2,  yaw: -60, pitch:  0, roll:  -5, sp: 1150 },
+    { t:33.5,  yaw:   0, pitch:  0, roll:   0, sp: 1900 },
+    { t:34.7,  yaw:   7, pitch: 36, roll: -27, sp: 5200 },   // 被一阵风拽起来
+    { t:36.1,  yaw:  -5, pitch: 11, roll:   9, sp: 7200 },
+    { t:37.2,  yaw:   0, pitch:  0, roll:   0, sp: 9400 }
   ];
   if (reduced){
     for (var si = 0; si < SHOT.length; si++){
@@ -2553,7 +2572,8 @@
     visions = [
       { el: document.getElementById("v-duel"), z: zAt( 8.6) + 277, x:  520, rot: -62 },
       { el: document.getElementById("v-hold"), z: zAt(15.5) + 277, x: -520, rot:  62 },
-      { el: document.getElementById("v-car"),  z: zAt(21.9) + 287, x:  540, rot: -64 }
+      { el: document.getElementById("v-car"),  z: zAt(21.9) + 287, x:  540, rot: -64 },
+      { el: document.getElementById("v-sun"),  z: zAt(29.3) + 290, x: -545, rot:  64 }
     ];
     visions.forEach(function(v){
       v.el.style.transform = "translateZ(" + (-v.z) + "px) translateX(" + v.x + "px) rotateY(" + v.rot + "deg)";
@@ -2668,6 +2688,10 @@
       o = Math.max(0, Math.min(1, o));
       v.el.style.opacity = o.toFixed(3);
       v.el.classList.toggle("lit", o > .02);
+      /* a lens finds focus as the subject arrives: soft while it is still
+         coming, sharp at the moment it crosses the centre of frame */
+      var foc = Math.min(7, Math.abs(d - 300) / 420);
+      v.el.style.filter = foc > .12 ? "blur(" + foc.toFixed(2) + "px)" : "none";
     }
 
     drawTube(st, t);
@@ -2749,10 +2773,20 @@
         sctx.lineWidth = (.7 + q[2] * 4.2) * m.w;
         var back = proj(warpX(pz, t) + Math.cos(m.th) * rr2, warpY(pz, t) + Math.sin(m.th) * rr2,
                         -pz, st, f, cx, cy, camZ - blur);
+        var bx = back ? back[0] : q[0], by = back ? back[1] : q[1];
         sctx.beginPath();
-        sctx.moveTo(back ? back[0] : q[0], back ? back[1] : q[1]);
+        sctx.moveTo(bx, by);
         sctx.lineTo(q[0], q[1]);
         sctx.stroke();
+        if (q[2] > .46){                                   // close enough for the lens to split it
+          var ca = (q[2] - .46) * 2.4, lw = sctx.lineWidth;
+          sctx.lineWidth = lw * .62;
+          sctx.strokeStyle = "rgba(120,170,255," + (a * .3).toFixed(3) + ")";
+          sctx.beginPath(); sctx.moveTo(bx - ca, by); sctx.lineTo(q[0] - ca, q[1]); sctx.stroke();
+          sctx.strokeStyle = "rgba(255,130,90," + (a * .26).toFixed(3) + ")";
+          sctx.beginPath(); sctx.moveTo(bx + ca, by); sctx.lineTo(q[0] + ca, q[1]); sctx.stroke();
+          sctx.lineWidth = lw;
+        }
       }
     }
 
