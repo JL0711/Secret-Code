@@ -87,7 +87,7 @@
   /* ---------- the hand ---------- */
   #handwrap{
     position:relative;
-    width:min(92vw,452px);
+    width:min(92vw, max(430px, 48vh));
     flex:0 0 auto;
     touch-action:none;
     transform:translateY(var(--jolt-y,0)) rotate(var(--jolt-r,0deg)) scale(var(--push,1));
@@ -100,8 +100,6 @@
   }
   #handwrap.grabbable{cursor:grab}
   #handwrap.grabbing{cursor:grabbing}
-
-  #hand.cheap *{filter:none !important}
 
   .ink{
     font-family:var(--brush);
@@ -310,7 +308,7 @@
   }
   #arrival.show{opacity:1;pointer-events:auto}
   #car{
-    width:auto;max-width:94vw;height:min(48vh,470px);flex:0 0 auto;
+    width:auto;max-width:94vw;height:min(52vh,620px);flex:0 0 auto;
     filter:drop-shadow(0 0 70px rgb(255 180 120 / .22));
     opacity:0;transform:translateY(16px) scale(.985);
     transition:opacity 1.6s ease, transform 1.8s cubic-bezier(.22,1,.36,1);
@@ -1698,17 +1696,11 @@
     }
   }
 
-  /* every blurred layer re-rasterises when the geometry under it changes, which
-     costs ~9x. drop them while the hand is in motion, restore the moment it settles. */
-  var lodTimer = null;
-  function lod(){
-    hand.classList.add("cheap");
-    clearTimeout(lodTimer);
-    lodTimer = setTimeout(function(){ hand.classList.remove("cheap"); }, 140);
-  }
-
-  function setOpen(v){ open = v; hand.style.setProperty("--open", v.toFixed(4)); lod(); paintHalo(); }
-  function setThumb(v){ thumb = v; hand.style.setProperty("--thumb", v.toFixed(4)); lod(); }
+  /* no level-of-detail switching: measured on real hardware the 711 blurred
+     groups cost nothing — 25ms a frame with them and 25ms without. The 13fps
+     that suggested otherwise was a hidden pane falling back to software. */
+  function setOpen(v){ open = v; hand.style.setProperty("--open", v.toFixed(4)); paintHalo(); }
+  function setThumb(v){ thumb = v; hand.style.setProperty("--thumb", v.toFixed(4)); }
 
   /* the light swells as the hand opens */
   function paintHalo(){
