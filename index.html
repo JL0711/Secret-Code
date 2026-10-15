@@ -101,7 +101,12 @@
   /* ---------- the hand ---------- */
   #handwrap{
     position:relative;
-    width:min(94vw, max(480px, 56vh));
+    /* the last term stops the hand ever growing so tall that it pushes the
+       hint and the two choices below the fold: the art is 400x560, so a
+       width of h*.714 renders h tall, and 184px is what the rows beneath
+       need. Bounding it up front also avoids a reflow at the moment the
+       choices appear. */
+    width:min(94vw, max(480px, 56vh), calc((100vh - 184px) * .714));
     flex:0 0 auto;
     touch-action:none;
     transform:translateY(var(--jolt-y,0)) rotate(var(--jolt-r,0deg)) scale(var(--push,1));
@@ -111,6 +116,11 @@
     filter:drop-shadow(0 0 54px rgb(255 196 132 / .15)) drop-shadow(0 16px 32px rgb(0 0 0 / .34));
     -webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 72%,rgb(0 0 0 / .62) 86%,transparent 99%);
     mask-image:linear-gradient(to bottom,#000 0%,#000 72%,rgb(0 0 0 / .62) 86%,transparent 99%);
+  }
+  @supports (height:100svh){
+    /* phones: svh is the viewport with the browser chrome still showing, so
+       the choices stay reachable before the address bar collapses */
+    #handwrap{ width:min(94vw, max(480px, 56vh), calc((100svh - 184px) * .714)) }
   }
   #handwrap.grabbable{cursor:grab}
   #handwrap.grabbing{cursor:grabbing}
@@ -281,7 +291,12 @@
     will-change:transform,opacity;
   }
   .memory svg{display:block;width:100%;height:100%;overflow:visible}
-  .memory:not(.lit) *{animation-play-state:paused !important}
+  /* a memory holds its first frame until the camera is close enough that
+     she is actually looking at it. .lit turns on the moment the panel starts
+     swimming up out of the dark, some 4300px of travel before it reaches the
+     centre of frame - long enough that a four second exchange would be over
+     before she ever turned her head. */
+  .memory:not(.playing) *{animation-play-state:paused !important}
 
   /* this one is painted on a full-bleed backdrop rather than dissolved, so the
      panel itself has to fall off or it reads as a picture hung in the dark */
@@ -4286,8 +4301,12 @@
   /* the last line holds alone for a beat, then the camera falls into the hole */
   function toFinal(){
     scene = "lastword";
-    finalEl.querySelector(".sig").style.display = "none";
-    finalEl.querySelector("#again").style.display = "none";
+    /* both of these are optional furniture - the piece must still fall into
+       the hole if either one has been taken out of the markup */
+    ["#again", ".sig"].forEach(function(sel){
+      var e = finalEl.querySelector(sel);
+      if (e) e.style.display = "none";
+    });
     finalEl.classList.add("show");
     setTimeout(function(){
       finalEl.style.transition = "opacity 1.1s ease";
@@ -4601,6 +4620,10 @@
       o = Math.max(0, Math.min(1, o));
       v.el.style.opacity = o.toFixed(3);
       v.el.classList.toggle("lit", o > .02);
+      /* d 2000 is where the panel stops swimming up and is simply there beside
+         you; from there it is about two seconds to the centre of frame, so a
+         memory that talks starts talking as she turns towards it. */
+      v.el.classList.toggle("playing", d < 2000 && d > -1900);
       /* a lens finds focus as the subject arrives: soft while it is still
          coming, sharp at the moment it crosses the centre of frame */
       var foc = Math.min(7, Math.abs(d - 300) / 420);
@@ -4885,7 +4908,7 @@
     if (jump === "arrived") setTimeout(function(){          // end state, no transitions
       sizeStreaks(); toArrival();
       var ar = document.getElementById("arrival"), car = document.getElementById("car");
-      [car, document.getElementById("question"), null].forEach(function(e){
+      [car, document.getElementById("question")].forEach(function(e){
         e.style.transition = "none"; e.style.opacity = "1"; e.style.transform = "none";
       });
       car.classList.add("in");
