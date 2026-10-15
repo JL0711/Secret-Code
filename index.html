@@ -4494,13 +4494,38 @@
     hoops = [];
     for (i = 0; i < HOOPS; i++) hoops.push({ z: i * HOOP_GAP });
 
-    /* parked where each crosses the centre of frame at the middle of its
-       head-turn; a left-hand memory mirrors in both x and rotation */
+    placeVisions();
+  }
+
+  /* Where each memory hangs. Turning the camera by th brings a panel at
+     (x, d) to the centre of frame when x = d*tan(th), and its distance
+     along the line of sight is then d/cos(th). So the honest way round is
+     to choose that distance from how big the memory should read, and
+     derive x and d from it. Hard-coding d instead lands the panel dead
+     centre but about half again as wide as the screen, so only its middle
+     is ever seen - which is what used to happen to 相拥 and 夕阳. */
+  var PANEL_W = 1120, PANEL_H = 747;
+
+  function placeVisions(){
+    var P  = Math.max(400, Math.min(1120, window.innerWidth * .82));  // as sizeLens
+    /* fit by height, but never let a narrow screen cut the sides off */
+    var k  = Math.min(window.innerHeight * .76 / PANEL_H,
+                      window.innerWidth  * .92 / PANEL_W);
+    var los = P / k;                       // distance along the line of sight
+
+    function park(el, t, deg){
+      var th = deg * Math.PI / 180;
+      return { el: el, rot: -deg,
+               d0: los * Math.cos(th),                 // where it is sharp
+               z:  zAt(t) + los * Math.cos(th),
+               x:  los * Math.sin(th) };
+    }
+
     visions = [
-      { el: document.getElementById("v-duel"), z: zAt( 8.6) + 277, x:  520, rot: -62 },
-      { el: document.getElementById("v-hold"), z: zAt(15.5) + 277, x: -520, rot:  62 },
-      { el: document.getElementById("v-car"),  z: zAt(21.9) + 287, x:  540, rot: -64 },
-      { el: document.getElementById("v-sun"),  z: zAt(29.3) + 290, x: -545, rot:  64 }
+      park(document.getElementById("v-duel"),  8.6,  62),   // 右 — 单挑
+      park(document.getElementById("v-hold"), 15.5, -62),   // 左 — 相拥
+      park(document.getElementById("v-car"),  21.9,  64),   // 右 — 车里
+      park(document.getElementById("v-sun"),  29.3, -64)    // 左 — 夕阳
     ].filter(function(v){
       /* a memory still carrying .stub has no artwork in it yet; show nothing
          rather than a placeholder hanging in the dark */
@@ -4508,7 +4533,8 @@
       return true;
     });
     visions.forEach(function(v){
-      v.el.style.transform = "translateZ(" + (-v.z) + "px) translateX(" + v.x + "px) rotateY(" + v.rot + "deg)";
+      v.el.style.transform = "translateZ(" + (-v.z).toFixed(1) + "px) translateX(" +
+                             v.x.toFixed(1) + "px) rotateY(" + v.rot + "deg)";
     });
   }
 
@@ -4623,10 +4649,10 @@
       /* d 2000 is where the panel stops swimming up and is simply there beside
          you; from there it is about two seconds to the centre of frame, so a
          memory that talks starts talking as she turns towards it. */
-      v.el.classList.toggle("playing", d < 2000 && d > -1900);
+      v.el.classList.toggle("playing", d < v.d0 + 1700 && d > -1900);
       /* a lens finds focus as the subject arrives: soft while it is still
          coming, sharp at the moment it crosses the centre of frame */
-      var foc = Math.min(7, Math.abs(d - 300) / 420);
+      var foc = Math.min(7, Math.abs(d - v.d0) / 420);
       v.el.style.filter = foc > .12 ? "blur(" + foc.toFixed(2) + "px)" : "none";
     }
 
@@ -4860,6 +4886,7 @@
   sizeDust(); seedDust(); drawDust(false); sizeBurst(); sizeLens();
   window.addEventListener("resize", function(){
     sizeDust(); seedDust(); drawDust(false); sizeBurst(); sizeStreaks(); sizeLens();
+    if (visions.length) placeVisions();
   });
 
   setOpen(0); setThumb(0);
@@ -4893,6 +4920,9 @@
     var base = performance.now();          // one clock for the whole still, or
     fly0 = base - at * 1000;               // rendering cost drifts the moment
     for (var sf = 7; sf >= 0; sf--) flightFrame(base - sf * 16);
+    /* hold that frame. without this the main loop keeps flying from here, so
+       a still pulled a second later is of a quite different moment. */
+    flying = false;
   } else if (jump === "pose0" || jump === "pose1" || jump === "pose5" || jump === "pose6"){
     barsEl.classList.add("on");
     stage.classList.add("lit");
