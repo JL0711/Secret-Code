@@ -415,10 +415,26 @@
     transition:opacity .9s ease;
   }
   #film.on{opacity:1}
+  /* two reels stacked: the next clip is already decoded and holding its first
+     frame underneath while the current one plays, so a join is a short
+     crossfade rather than the black gap you get from swapping .src */
   #film video{
-    width:100%;height:100%;display:block;background:#000;
+    position:absolute;inset:0;width:100%;height:100%;display:block;background:#000;
     object-fit:cover;                 /* FILM_FIT overrides this at runtime */
+    opacity:0;transition:opacity .3s linear;
   }
+  #film video.live{opacity:1}
+  /* When a film has played, its last frame stays as the backdrop for the
+     question. Cutting from fifty seconds of photographic footage to the drawn
+     car reads as a mistake, and the Tesla clip ends on him looking down the
+     lens - which is the better thing to ask the question over anyway. */
+  #film.held{opacity:1}
+  #film.held::after{
+    content:"";position:absolute;inset:0;pointer-events:none;
+    background:radial-gradient(72% 72% at 50% 42%, rgb(0 0 0 / .20), rgb(0 0 0 / .78) 88%);
+  }
+  #arrival.overfilm{z-index:10}
+  #arrival.overfilm #car{display:none}
   /* the join: the embers bloom to white and the first frame is already
      underneath when the light goes, so there is never a visible seam */
   #bloom{
@@ -3733,7 +3749,10 @@
 
 <button id="skip" type="button">跳过</button>
 
-<div id="film" aria-hidden="true"><video id="reel" playsinline webkit-playsinline preload="auto"></video></div>
+<div id="film" aria-hidden="true">
+  <video id="reelA" playsinline webkit-playsinline preload="auto"></video>
+  <video id="reelB" playsinline webkit-playsinline preload="auto"></video>
+</div>
 <div id="bloom" aria-hidden="true"></div>
 <div id="ouch">疼</div>
 
@@ -4069,101 +4088,135 @@
   }
 
   /* ============================================================
-     the cut into the film
+     the film
      ============================================================
-     Name a file next to index.html below, or pass ?film=<url> to try one
-     without editing. If it is missing or will not load, the piece plays its
-     own ending instead - so this is safe to leave pointing at nothing. */
-  var FILM_SRC = (function(){
-    try { return new URLSearchParams(location.search).get("film") || "film.mp4"; }
-    catch (e) { return "film.mp4"; }
+     The five memories are five separate files played back to back. Two video
+     elements take turns: while one plays, the next clip is already decoded in
+     the other holding its first frame, so each join is a short crossfade
+     instead of the black gap you get from swapping .src on one element.
+
+     Pass ?film=<url> to try a single file instead. With no files at all the
+     piece plays its own ending, so this is safe to leave pointing at nothing. */
+  var FILM = (function(){
+    try {
+      var one = new URLSearchParams(location.search).get("film");
+      if (one) return [one];
+    } catch (e) {}
+    return [
+      "film/01-duel.mp4",     // 单挑
+      "film/02-hold.mp4",     // 相拥
+      "film/03-car.mp4",      // 车里
+      "film/04-sunset.mp4",   // 夕阳
+      "film/05-tesla.mp4"     // 特斯拉
+    ];
   })();
   var FILM_FIT = "cover";        // "cover" fills the frame; "contain" keeps every edge
   var FILM_VOL = 1;
 
-  var filmEl = document.getElementById("film");
-  var reel   = document.getElementById("reel");
+  var filmEl  = document.getElementById("film");
   var bloomEl = document.getElementById("bloom");
-  var filmOk = false, filmBad = !FILM_SRC, filmPrimed = false;
+  var reels   = [document.getElementById("reelA"), document.getElementById("reelB")];
+  var reel    = reels[0];        /* the one currently on screen */
+  var filmBad = !FILM.length, filmPrimed = false, filmIdx = 0, filmCur = 0;
 
+  function loadReel(r, i){
+    if (i >= FILM.length) return;
+    r.src = FILM[i];
+    try { r.load(); } catch (e) {}
+  }
   if (!filmBad){
-    reel.style.objectFit = FILM_FIT;
-    /* loadeddata is enough to paint a first frame without a black pop.
-       canplaythrough is the better signal but never fires on some phones. */
-    reel.addEventListener("loadeddata",     function(){ filmOk = true; });
-    reel.addEventListener("canplaythrough", function(){ filmOk = true; });
-    reel.addEventListener("error",          function(){ filmBad = true; });
-    reel.src = FILM_SRC;
-    try { reel.load(); } catch (e) { filmBad = true; }
+    reels.forEach(function(r){
+      r.style.objectFit = FILM_FIT;
+      r.addEventListener("error", function(){ r.dataset.bad = "1"; });
+    });
+    loadReel(reels[0], 0);
+    loadReel(reels[1], 1);
   }
 
-  /* The clap is the one real gesture we get before the film has to play, and
-     a browser will only let a video start with its sound on from inside one.
-     Start and stop it here, and the later play() keeps its audio. */
+  /* The clap is the one real gesture we get before the film has to play, and a
+     browser will only let a video start with its sound on from inside one.
+     Start and stop both reels there, and the later play() keeps its audio. */
   function primeFilm(){
     if (filmPrimed || filmBad) return;
     filmPrimed = true;
-    try {
-      reel.muted = false;
-      reel.volume = 0;
-      var pr = reel.play();
-      if (pr && pr.then) pr.then(function(){
-        try { reel.pause(); reel.currentTime = 0; } catch (e) {}
-      })["catch"](function(){ reel.muted = true; });
-    } catch (e) { reel.muted = true; }
+    reels.forEach(function(r){
+      try {
+        r.muted = false; r.volume = 0;
+        var pr = r.play();
+        if (pr && pr.then) pr.then(function(){
+          try { r.pause(); r.currentTime = 0; } catch (e) {}
+        })["catch"](function(){ r.muted = true; });
+      } catch (e) { r.muted = true; }
+    });
   }
 
-  function playOwnEnding(){            /* no film: the piece as it was */
-    toVortex();
-    later(runLetters, 800);
+  function stopFilm(){
+    filmEl.classList.remove("on");
+    filmEl.classList.remove("held");
+    document.getElementById("arrival").classList.remove("overfilm");
+    bloomEl.classList.remove("on");
+    reels.forEach(function(r){
+      r.onended = null;
+      try { r.pause(); } catch (e) {}
+      r.classList.remove("live");
+    });
   }
 
+  /* hold on whatever is on screen until there is a frame to cut to, so the
+     join is never a black flash - but never hold her hostage to a file that
+     is not coming */
   function toFilm(){
-    if (filmBad){ playOwnEnding(); return; }
+    if (filmBad){ toArrival(); return; }
     scene = "film";
-    /* hold on the drifting embers until there is a frame to cut to, so the
-       join is never a black flash - but never hold her hostage to a file
-       that is not coming */
     var waited = 0;
     (function ready(){
-      if (filmBad){ playOwnEnding(); return; }
-      if (filmOk || reel.readyState >= 2 || waited > 5000){ bloomToFilm(); return; }
+      var r = reels[0];
+      if (r.dataset.bad){ filmBad = true; toArrival(); return; }
+      if (r.readyState >= 2 || waited > 5000){ runFilm(); return; }
       waited += 120;
       later(ready, 120);
     })();
   }
 
-  function bloomToFilm(){
-    bloomEl.classList.add("on");
-    tween({ tag:"bloom", from:0, to:1, dur:760, ease:easeInOut,
-      step:function(v){ bloomEl.style.opacity = v.toFixed(3); } });
+  function runFilm(){
+    filmEl.classList.add("on");
+    filmIdx = 0; filmCur = 0;
+    playReel();
+    tween({ tag:"filmvol", from:0, to:FILM_VOL, dur:1400, ease:easeOut,
+      step:function(v){
+        v = Math.max(0, Math.min(1, v));
+        reels.forEach(function(r){ try { r.volume = v; } catch (e) {} });
+      }});
+  }
 
-    /* the picture arrives while the light is still at its brightest, so she
-       sees the glow resolve into a frame rather than a cut */
-    later(function(){
-      filmEl.classList.add("on");
-      try { reel.currentTime = 0; } catch (e) {}
-      reel.volume = 0;
-      var pr = reel.play();
-      if (pr && pr["catch"]) pr["catch"](function(){
-        reel.muted = true;                       // sound refused: silent beats not at all
-        try { reel.play(); } catch (e) {}
-      });
-      tween({ tag:"filmvol", from:0, to:FILM_VOL, dur:1400, ease:easeOut,
-        step:function(v){ try { reel.volume = Math.max(0, Math.min(1, v)); } catch (e) {} } });
-      tween({ tag:"bloom", from:1, to:0, dur:1100, ease:easeInOut,
-        step:function(v){ bloomEl.style.opacity = v.toFixed(3); },
-        done:function(){ bloomEl.classList.remove("on"); pmode = "idle"; parts = []; } });
-    }, 620);
-
-    reel.addEventListener("ended", filmDone, { once:true });
+  function playReel(){
+    var r = reels[filmCur], other = reels[1 - filmCur];
+    reel = r;
+    r.classList.add("live");
+    other.classList.remove("live");
+    try { r.currentTime = 0; } catch (e) {}
+    var pr = r.play();
+    if (pr && pr["catch"]) pr["catch"](function(){
+      r.muted = true;                        // sound refused: silent beats not at all
+      try { r.play(); } catch (e) {}
+    });
+    /* decode the next clip now, while this one is on screen */
+    if (filmIdx + 1 < FILM.length) loadReel(other, filmIdx + 1);
+    r.onended = function(){
+      r.onended = null;
+      if (filmIdx + 1 >= FILM.length){ filmDone(); return; }
+      filmIdx++; filmCur = 1 - filmCur;
+      playReel();
+    };
   }
 
   function filmDone(){
     if (scene === "arrive" || scene === "arrived") return;
     scene = "arrive";
-    filmEl.classList.remove("on");
-    later(function(){ try { reel.pause(); } catch (e) {} }, 1000);
+    /* freeze on the last frame and ask the question over it */
+    reels.forEach(function(r){ r.onended = null; try { r.pause(); } catch (e) {} });
+    filmEl.classList.add("held");
+    document.getElementById("arrival").classList.add("overfilm");
     sizeStreaks();
     toArrival();
   }
@@ -4178,8 +4231,7 @@
     var pts = sampleHand();
     if (!pts.length){                       // nothing to sample: go straight on
       stage.style.opacity = "0";
-      if (!filmBad) later(toFilm, 420);
-      else later(runLetters, 700);
+      later(runLetters, 700);
       return;
     }
 
@@ -4200,9 +4252,8 @@
     stage.style.transition = "opacity .34s ease";
     stage.style.opacity = "0";
 
-    /* the hand becomes light, and the light becomes the film */
-    if (!filmBad) later(toFilm, 900);
-    else { later(toVortex, 900); later(runLetters, 1700); }
+    later(toVortex, 900);
+    later(runLetters, 1700);
   }
 
   /* Gargantua: a black sphere, a bright disk around it, and the far half of that
@@ -4497,9 +4548,7 @@
     pmode = "idle"; parts = [];
     flash = 0;
     flight.classList.remove("on");
-    filmEl.classList.remove("on");
-    bloomEl.classList.remove("on");
-    try { reel.pause(); } catch (e) {}
+    stopFilm();
     letters.innerHTML = "";
     letters.style.opacity = "0";
     stage.style.opacity = "0";
@@ -4649,9 +4698,13 @@
       park(document.getElementById("v-car"),  21.9,  64),   // 右 — 车里
       park(document.getElementById("v-sun"),  29.3, -64)    // 左 — 夕阳
     ].filter(function(v){
-      /* a memory still carrying .stub has no artwork in it yet; show nothing
-         rather than a placeholder hanging in the dark */
-      if (!v.el || v.el.classList.contains("stub")){ if (v.el) v.el.style.display = "none"; return false; }
+      /* a memory still carrying .stub has no artwork in it yet; and when a film
+         is going to tell these four stories properly, the drawn panels would
+         only be saying the same thing twice on the way past */
+      if (!v.el || v.el.classList.contains("stub") || !filmBad){
+        if (v.el) v.el.style.display = "none";
+        return false;
+      }
       return true;
     });
     visions.forEach(function(v){
@@ -4910,7 +4963,9 @@
       done:function(){
         flying = false;
         flight.classList.remove("on");
-        toArrival();
+        /* the flight already ends on a white flash - the film comes up
+           underneath it before it fades, so the cut happens inside the light */
+        if (!filmBad) toFilm(); else toArrival();
         tween({ tag:"flash", from:1, to:0, dur:1500, ease:easeInOut, step:function(v){
           flash = v;
           sctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
@@ -5018,7 +5073,7 @@
   requestAnimationFrame(frame);
   if (!reduced) dustLoop();
 
-  /* jump straight to a scene for previewing: #words / #fly / #arrive */
+  /* jump straight to a scene for previewing: #words / #fly / #film / #arrive */
   var jump = (location.hash || "").slice(1);
   /* #shot8.1 renders exactly one frame of the flight at t = 8.1s, synchronously,
      so a still of any moment can be pulled without waiting on the animation clock */
@@ -5055,6 +5110,12 @@
     if (jump === "pose5"){ setOpen(1); hand.style.setProperty("--palm-ink","0"); hand.style.setProperty("--clap-ink","1"); }
     if (jump === "pose6"){ setOpen(1); setThumb(1); }
     if (jump !== "pose0") wrap.classList.add("thumb-live");
+  } else if (jump === "film"){
+    /* straight to the film, to check the clips and their joins without
+       sitting through the flight. Sound will be muted here - the browser
+       only grants it from inside the clap. */
+    stage.style.opacity = "0";
+    later(function(){ primeFilm(); toFilm(); }, 300);
   } else if (jump === "words" || jump === "fly" || jump === "arrive" || jump === "arrived"){
     stage.style.opacity = "0";
     if (jump === "words") setTimeout(runLetters, 400);
