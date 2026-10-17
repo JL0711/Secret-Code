@@ -408,8 +408,40 @@
   }
   #next .tbc.show{opacity:.75}
 
+  /* ---------- the film, and the light the piece turns into to reach it ---------- */
+  #film{
+    position:fixed;inset:0;z-index:9;
+    background:#000;opacity:0;pointer-events:none;
+    transition:opacity .9s ease;
+  }
+  #film.on{opacity:1}
+  #film video{
+    width:100%;height:100%;display:block;background:#000;
+    object-fit:cover;                 /* FILM_FIT overrides this at runtime */
+  }
+  /* the join: the embers bloom to white and the first frame is already
+     underneath when the light goes, so there is never a visible seam */
+  #bloom{
+    position:fixed;inset:-10%;z-index:11;
+    pointer-events:none;opacity:0;display:none;
+    background:radial-gradient(44% 44% at 50% 46%,
+      rgb(255 247 232 / .98),
+      rgb(255 233 200 / .74) 40%,
+      rgb(255 205 148 / .30) 68%,
+      transparent 88%);
+  }
+  #bloom.on{display:block}
+
   @media (prefers-reduced-motion:reduce){
+    /* Calm the ambient decoration - drifting dust, breathing glows, flicker -
+       but not the animations that ARE the story. Blanket-killing everything
+       made the 疼 brush flash for a thousandth of a second, so 用力的按 read
+       as a dead button, and made all seventeen love-lines invisible, turning
+       the middle of the piece into twenty silent seconds of nothing. These
+       few are shortened instead, which is what the setting actually asks for. */
     *,*::before,*::after{animation-duration:.001ms !important;animation-iteration-count:1 !important}
+    #ouch.show{animation-duration:1.1s !important}
+    .letter{animation-duration:4.2s !important}
   }
 </style>
 
@@ -3701,6 +3733,8 @@
 
 <button id="skip" type="button">跳过</button>
 
+<div id="film" aria-hidden="true"><video id="reel" playsinline webkit-playsinline preload="auto"></video></div>
+<div id="bloom" aria-hidden="true"></div>
 <div id="ouch">疼</div>
 
 <section id="arrival">
@@ -3772,11 +3806,22 @@
   var PULL = 230;              // px of upward drag for a full unfurl
   var scene = "fist";
   var open = 0, thumb = 0;
-  var dragging = false, grabY = 0, grabOpen = 0;
+  var dragging = false, grabY = 0, grabOpen = 0, dragId = null;
   var idleTimer = null;
 
   /* ---------- tiny tween engine ---------- */
   var tweens = [];
+  /* Every timer that advances the story goes through later(), so 跳过 can
+     cancel the lot. Without this, clearTimers() was simply undefined and the
+     button threw on its first statement - it looked alive and did nothing. */
+  var timers = [];
+  function later(fn, ms){ var h = setTimeout(fn, ms); timers.push(h); return h; }
+  function clearTimers(){
+    for (var i = 0; i < timers.length; i++) clearTimeout(timers[i]);
+    timers = [];
+    clearTimeout(idleTimer);
+    clearTimeout(sayTimer);
+  }
   function tween(o){
     var t = {
       from: o.from, to: o.to,
@@ -3814,10 +3859,14 @@
     halo.style.setProperty("--halo-s", (.9 + open * .16).toFixed(3));
   }
 
+  var sayTimer = null;
   function say(text){
     if (hintEl.textContent === text) return;
+    /* cancel the swap already in flight, or a quick tap leaves the previous
+       line stuck on screen underneath the new one */
+    clearTimeout(sayTimer);
     hintEl.classList.remove("show");
-    setTimeout(function(){
+    sayTimer = setTimeout(function(){
       hintEl.textContent = text;
       if (text) hintEl.classList.add("show");
     }, text ? 420 : 0);
@@ -3836,6 +3885,12 @@
 
   wrap.addEventListener("pointerdown", function(e){
     if (scene !== "fist") return;
+    /* one finger owns the pull. A second pointerdown used to re-seat the grab
+       origin, so a second finger teleported the hand open or shut. */
+    if (dragId !== null) return;
+    if (e.pointerType === "mouse" && e.button !== 0) return;   // right-click is not a pull
+    e.preventDefault();                                        // no text selection over the ink
+    dragId = e.pointerId;
     dragging = true;
     grabY = e.clientY;
     grabOpen = open;
@@ -3847,16 +3902,21 @@
   });
 
   wrap.addEventListener("pointermove", function(e){
-    if (!dragging) return;
+    if (!dragging || e.pointerId !== dragId) return;
     var v = grabOpen + (grabY - e.clientY) / PULL;
     setOpen(Math.max(0, Math.min(1, v)));
   });
 
   function releasePull(e){
-    if (!dragging) return;
+    if (!dragging || (e && e.pointerId !== dragId)) return;
     dragging = false;
+    dragId = null;
     wrap.classList.remove("grabbing");
     try { wrap.releasePointerCapture(e.pointerId); } catch (err) {}
+
+    /* the keyboard may have opened the hand while this drag was still live;
+       settling it back to a fist here would rewind the piece */
+    if (scene !== "fist") return;
 
     if (open > .5){
       wrap.classList.remove("grabbable");
@@ -3869,10 +3929,11 @@
   }
   wrap.addEventListener("pointerup", releasePull);
   wrap.addEventListener("pointercancel", releasePull);
+  wrap.addEventListener("lostpointercapture", releasePull);   // gesture stolen by the browser
 
   /* keyboard path, so the surprise is never a dead end */
   document.addEventListener("keydown", function(e){
-    if (scene !== "fist") return;
+    if (scene !== "fist" || dragging) return;
     if (e.key === "ArrowUp" || e.key === "Enter" || e.key === " "){
       e.preventDefault();
       wrap.classList.remove("grabbable");
@@ -3900,6 +3961,7 @@
         say("拍手掌");
         return;
       }
+      primeFilm();                 // inside the gesture, so the film keeps its sound
       dissolve(e.clientX, e.clientY);
     }
   });
@@ -4006,6 +4068,106 @@
     return out;
   }
 
+  /* ============================================================
+     the cut into the film
+     ============================================================
+     Name a file next to index.html below, or pass ?film=<url> to try one
+     without editing. If it is missing or will not load, the piece plays its
+     own ending instead - so this is safe to leave pointing at nothing. */
+  var FILM_SRC = (function(){
+    try { return new URLSearchParams(location.search).get("film") || "film.mp4"; }
+    catch (e) { return "film.mp4"; }
+  })();
+  var FILM_FIT = "cover";        // "cover" fills the frame; "contain" keeps every edge
+  var FILM_VOL = 1;
+
+  var filmEl = document.getElementById("film");
+  var reel   = document.getElementById("reel");
+  var bloomEl = document.getElementById("bloom");
+  var filmOk = false, filmBad = !FILM_SRC, filmPrimed = false;
+
+  if (!filmBad){
+    reel.style.objectFit = FILM_FIT;
+    /* loadeddata is enough to paint a first frame without a black pop.
+       canplaythrough is the better signal but never fires on some phones. */
+    reel.addEventListener("loadeddata",     function(){ filmOk = true; });
+    reel.addEventListener("canplaythrough", function(){ filmOk = true; });
+    reel.addEventListener("error",          function(){ filmBad = true; });
+    reel.src = FILM_SRC;
+    try { reel.load(); } catch (e) { filmBad = true; }
+  }
+
+  /* The clap is the one real gesture we get before the film has to play, and
+     a browser will only let a video start with its sound on from inside one.
+     Start and stop it here, and the later play() keeps its audio. */
+  function primeFilm(){
+    if (filmPrimed || filmBad) return;
+    filmPrimed = true;
+    try {
+      reel.muted = false;
+      reel.volume = 0;
+      var pr = reel.play();
+      if (pr && pr.then) pr.then(function(){
+        try { reel.pause(); reel.currentTime = 0; } catch (e) {}
+      })["catch"](function(){ reel.muted = true; });
+    } catch (e) { reel.muted = true; }
+  }
+
+  function playOwnEnding(){            /* no film: the piece as it was */
+    toVortex();
+    later(runLetters, 800);
+  }
+
+  function toFilm(){
+    if (filmBad){ playOwnEnding(); return; }
+    scene = "film";
+    /* hold on the drifting embers until there is a frame to cut to, so the
+       join is never a black flash - but never hold her hostage to a file
+       that is not coming */
+    var waited = 0;
+    (function ready(){
+      if (filmBad){ playOwnEnding(); return; }
+      if (filmOk || reel.readyState >= 2 || waited > 5000){ bloomToFilm(); return; }
+      waited += 120;
+      later(ready, 120);
+    })();
+  }
+
+  function bloomToFilm(){
+    bloomEl.classList.add("on");
+    tween({ tag:"bloom", from:0, to:1, dur:760, ease:easeInOut,
+      step:function(v){ bloomEl.style.opacity = v.toFixed(3); } });
+
+    /* the picture arrives while the light is still at its brightest, so she
+       sees the glow resolve into a frame rather than a cut */
+    later(function(){
+      filmEl.classList.add("on");
+      try { reel.currentTime = 0; } catch (e) {}
+      reel.volume = 0;
+      var pr = reel.play();
+      if (pr && pr["catch"]) pr["catch"](function(){
+        reel.muted = true;                       // sound refused: silent beats not at all
+        try { reel.play(); } catch (e) {}
+      });
+      tween({ tag:"filmvol", from:0, to:FILM_VOL, dur:1400, ease:easeOut,
+        step:function(v){ try { reel.volume = Math.max(0, Math.min(1, v)); } catch (e) {} } });
+      tween({ tag:"bloom", from:1, to:0, dur:1100, ease:easeInOut,
+        step:function(v){ bloomEl.style.opacity = v.toFixed(3); },
+        done:function(){ bloomEl.classList.remove("on"); pmode = "idle"; parts = []; } });
+    }, 620);
+
+    reel.addEventListener("ended", filmDone, { once:true });
+  }
+
+  function filmDone(){
+    if (scene === "arrive" || scene === "arrived") return;
+    scene = "arrive";
+    filmEl.classList.remove("on");
+    later(function(){ try { reel.pause(); } catch (e) {} }, 1000);
+    sizeStreaks();
+    toArrival();
+  }
+
   function dissolve(cx0, cy0){
     scene = "dissolve";
     document.getElementById("skip").classList.add("on");
@@ -4014,9 +4176,10 @@
     wrap.style.cursor = "";
 
     var pts = sampleHand();
-    if (!pts.length){                       // nothing to sample: skip straight to the words
+    if (!pts.length){                       // nothing to sample: go straight on
       stage.style.opacity = "0";
-      setTimeout(runLetters, 700);
+      if (!filmBad) later(toFilm, 420);
+      else later(runLetters, 700);
       return;
     }
 
@@ -4037,8 +4200,9 @@
     stage.style.transition = "opacity .34s ease";
     stage.style.opacity = "0";
 
-    setTimeout(toVortex, 900);
-    setTimeout(runLetters, 1700);
+    /* the hand becomes light, and the light becomes the film */
+    if (!filmBad) later(toFilm, 900);
+    else { later(toVortex, 900); later(runLetters, 1700); }
   }
 
   /* Gargantua: a black sphere, a bright disk around it, and the far half of that
@@ -4232,9 +4396,9 @@
     scene = "letters";
     var flying = LINES.slice(0, LINES.length - 1);
     flying.forEach(function(t, i){
-      setTimeout(function(){ spawnLetter(t, i); }, i * 950);
+      later(function(){ spawnLetter(t, i); }, i * 950);
     });
-    setTimeout(toFinal, (flying.length - 1) * 950 + 7400);
+    later(toFinal, (flying.length - 1) * 950 + 7400);
   }
 
   function spawnLetter(text, i){
@@ -4243,7 +4407,7 @@
     el.textContent = text;
     el.style.setProperty("--a0", ((i * 137.5) % 360).toFixed(1) + "deg");
     letters.appendChild(el);
-    setTimeout(function(){ if (el.parentNode) el.parentNode.removeChild(el); }, 9600);
+    later(function(){ if (el.parentNode) el.parentNode.removeChild(el); }, 9600);
   }
 
   /* the last line holds alone for a beat, then the camera falls into the hole */
@@ -4256,14 +4420,16 @@
       if (e) e.style.display = "none";
     });
     finalEl.classList.add("show");
-    setTimeout(function(){
+    later(function(){
       finalEl.style.transition = "opacity 1.1s ease";
       finalEl.classList.remove("show");
-      setTimeout(diveIn, 700);
+      later(diveIn, 700);
     }, 3000);
   }
 
   function toArrival(){
+    /* however we got here, the skip button has nothing left to skip */
+    document.getElementById("skip").classList.remove("on");
     var ar  = document.getElementById("arrival");
     var car = document.getElementById("car");
     var q   = document.getElementById("question");
@@ -4320,7 +4486,7 @@
     }
 
     var qAt = (gate ? 6400 : 3800);
-    setTimeout(function(){ q.classList.add("in"); }, qAt);
+    later(function(){ q.classList.add("in"); }, qAt);
   }
 
   /* jump the rest of the ride and land on the question */
@@ -4331,6 +4497,9 @@
     pmode = "idle"; parts = [];
     flash = 0;
     flight.classList.remove("on");
+    filmEl.classList.remove("on");
+    bloomEl.classList.remove("on");
+    try { reel.pause(); } catch (e) {}
     letters.innerHTML = "";
     letters.style.opacity = "0";
     stage.style.opacity = "0";
