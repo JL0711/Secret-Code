@@ -424,6 +424,18 @@
   }
   #next .tbc.show{opacity:.75}
 
+  /* The black hole itself. The embers still swirl into it - that beat is the
+     hand becoming the thing - but what they settle into is real footage now
+     rather than 1700 dots arranged in ellipses. Sits under the love lines and
+     under the embers, so both still read on top of it. */
+  #holereel{
+    position:fixed;inset:0;z-index:3;
+    width:100%;height:100%;object-fit:cover;
+    opacity:0;pointer-events:none;background:#000;
+    transform-origin:50% 46%;
+    will-change:transform,opacity;
+  }
+
   /* ---------- the film, and the light the piece turns into to reach it ---------- */
   #film{
     position:fixed;inset:0;z-index:9;
@@ -1014,6 +1026,8 @@
 
 <button id="skip" type="button">跳过</button>
 
+<video id="holereel" aria-hidden="true" playsinline webkit-playsinline muted loop
+        preload="auto" src="film/00-hole.mp4"></video>
 <div id="film" aria-hidden="true">
   <video id="reelA" playsinline webkit-playsinline preload="auto"></video>
   <video id="reelB" playsinline webkit-playsinline preload="auto"></video>
@@ -1547,6 +1561,16 @@
                         : (p.h = R * (.03 + Math.random() * .3));
     }
     pmode = "vortex";
+
+    /* the real horizon comes up underneath the swirl, and the embers hand over
+       to it rather than pretending to be it */
+    var hr = document.getElementById("holereel");
+    try { hr.currentTime = 0; var hp = hr.play(); if (hp && hp["catch"]) hp["catch"](function(){}); }
+    catch (e) {}
+    tween({ tag:"holein", from:0, to:1, dur:1800, ease:easeOut,
+      step:function(v){ hr.style.opacity = v.toFixed(3); } });
+    tween({ tag:"emberfade", from:1, to:.18, dur:1800, ease:easeInOut,
+      step:function(v){ fade = v; } });
   }
 
   function stepParts(now){
@@ -1820,6 +1844,8 @@
     flash = 0;
     flight.classList.remove("on");
     stopFilm();
+    (function(hr){ hr.style.opacity = "0"; hr.style.transform = "none";
+      try { hr.pause(); } catch (e) {} })(document.getElementById("holereel"));
     letters.innerHTML = "";
     letters.style.opacity = "0";
     stage.style.opacity = "0";
@@ -2061,6 +2087,10 @@
     tween({ tag:"dive", from:1, to:11, dur:DIVE, ease:function(x){ return x * x * x; },
       step:function(v){
         holeZoom = v;
+        /* the horizon swells until it has swallowed the frame */
+        var hr = document.getElementById("holereel");
+        hr.style.transform = "scale(" + (1 + (v - 1) * .62).toFixed(3) + ")";
+        if (v > 4.2) hr.style.opacity = Math.max(0, (11 - v) / 6.8).toFixed(3);
         halo.style.setProperty("--halo-a", (1.3 / v + .1).toFixed(3));
         if (v > 3.4 && !flying){
           flight.classList.add("on");
@@ -2070,7 +2100,12 @@
       },
       done:function(){
         tween({ tag:"vfade", from:1, to:0, dur:420, ease:easeOut, step:function(v){ fade = v; },
-          done:function(){ pmode = "idle"; parts = []; holeZoom = 1; } });
+          done:function(){
+            pmode = "idle"; parts = []; holeZoom = 1;
+            var hr = document.getElementById("holereel");
+            hr.style.opacity = "0"; hr.style.transform = "none";
+            try { hr.pause(); } catch (e) {}
+          } });
       }});
   }
 
