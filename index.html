@@ -1055,8 +1055,12 @@
   var letters = document.getElementById("letters");
   var finalEl = document.getElementById("final");
   var reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
-  /* headless browsers report reduced motion by default; ?motion=full previews the real cut */
-  if (/[?&]motion=full/.test(location.search)) reduced = false;
+  /* headless browsers report reduced motion by default; ?motion=full previews
+     the real cut, and ?motion=reduced previews the calm one without having to
+     change a system setting - which is how the reduced cut went unchecked for
+     so long, since it is also the one headless was quietly showing all along */
+  if (/[?&]motion=full/.test(location.search))    reduced = false;
+  if (/[?&]motion=reduced/.test(location.search)) reduced = true;
 
   var LINES = [
     "Mandy 老婆要早点睡觉",
@@ -1852,12 +1856,17 @@
     { t:36.1,  yaw:  -5, pitch: 11, roll:   9, sp: 7200 },
     { t:37.2,  yaw:   0, pitch:  0, roll:   0, sp: 9400 }
   ];
+  /* Reduce Motion flies the same cut, shorter and with its turns narrower.
+     Both scales live here and nowhere else, because anything parked against
+     this timeline has to be scaled by the same pair - the moment they drift
+     apart, the camera turns to a stretch of wall with nothing on it. */
+  var T_K = reduced ? .62 : 1, YAW_K = reduced ? .9 : 1;
   if (reduced){
     for (var si = 0; si < SHOT.length; si++){
-      SHOT[si].t *= .62;
+      SHOT[si].t     *= T_K;
       SHOT[si].pitch *= .3;
       SHOT[si].roll  *= .25;
-      SHOT[si].yaw   *= .9;
+      SHOT[si].yaw   *= YAW_K;
     }
   }
   var SHOT_END = SHOT[SHOT.length - 1].t;
@@ -1937,6 +1946,8 @@
     var los = P * (1 - k) / k;             // distance along the line of sight
 
     function park(el, t, deg){
+      if (t > SHOT_END && window.console)
+        console.warn("memory parked past the end of the cut:", t.toFixed(2), ">", SHOT_END.toFixed(2));
       var th = deg * Math.PI / 180;
       return { el: el, vid: el ? el.querySelector("video") : null, rot: -deg,
                d0: los * Math.cos(th),                 // where it is sharp
@@ -1945,10 +1956,10 @@
     }
 
     visions = [
-      park(document.getElementById("v-duel"),  8.6,  62),   // 右 — 单挑
-      park(document.getElementById("v-hold"), 15.5, -62),   // 左 — 相拥
-      park(document.getElementById("v-car"),  21.9,  64),   // 右 — 车里
-      park(document.getElementById("v-sun"),  29.3, -64)    // 左 — 夕阳
+      park(document.getElementById("v-duel"),  8.6 * T_K,  62 * YAW_K),   // 右 — 单挑
+      park(document.getElementById("v-hold"), 15.5 * T_K, -62 * YAW_K),   // 左 — 相拥
+      park(document.getElementById("v-car"),  21.9 * T_K,  64 * YAW_K),   // 右 — 车里
+      park(document.getElementById("v-sun"),  29.3 * T_K, -64 * YAW_K)    // 左 — 夕阳
     ].filter(function(v){
       /* a memory still carrying .stub has no artwork in it yet; and when a film
          is going to tell these four stories properly, the drawn panels would
@@ -2247,7 +2258,7 @@
 
   /* ---------- dust in the light ---------- */
   var cv = document.getElementById("dust"), ctx = cv.getContext("2d");
-  var motes = [], W = 0, H = 0;
+  var dustMotes = [], W = 0, H = 0;   /* NOT `motes`: that is the tunnel's */
 
   function sizeDust(){
     var r = Math.min(window.devicePixelRatio || 1, 2);
@@ -2256,10 +2267,10 @@
     ctx.setTransform(r, 0, 0, r, 0, 0);
   }
   function seedDust(){
-    motes = [];
+    dustMotes = [];
     var n = Math.round(Math.min(46, Math.max(18, W / 34)));
     for (var i = 0; i < n; i++){
-      motes.push({
+      dustMotes.push({
         x: Math.random() * W,
         y: Math.random() * H,
         r: .6 + Math.random() * 1.9,
@@ -2273,8 +2284,8 @@
   function drawDust(move){
     ctx.clearRect(0, 0, W, H);
     var cx = W / 2, cy = H * .46, reach = Math.min(W, H) * .62;
-    for (var i = 0; i < motes.length; i++){
-      var m = motes[i];
+    for (var i = 0; i < dustMotes.length; i++){
+      var m = dustMotes[i];
       if (move){
         m.y -= m.v; m.p += m.w;
         if (m.y < -4){ m.y = H + 4; m.x = Math.random() * W; }
