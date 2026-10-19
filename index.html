@@ -120,7 +120,9 @@
   }
   #handwrap svg{
     display:block;width:100%;height:auto;overflow:visible;
-    filter:drop-shadow(0 0 54px rgb(255 196 132 / .15)) drop-shadow(0 16px 32px rgb(0 0 0 / .34));
+    /* the soft glow was sitting right on the silhouette and eating the edge,
+       so the fingers read as cut out rather than solid */
+    filter:drop-shadow(0 0 54px rgb(255 196 132 / .06)) drop-shadow(0 16px 32px rgb(0 0 0 / .44));
     -webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 72%,rgb(0 0 0 / .62) 86%,transparent 99%);
     mask-image:linear-gradient(to bottom,#000 0%,#000 72%,rgb(0 0 0 / .62) 86%,transparent 99%);
   }
@@ -1141,7 +1143,13 @@
 
   /* the light swells as the hand opens */
   function paintHalo(){
-    halo.style.setProperty("--halo-a", (.78 + open * .5).toFixed(3));
+    /* The halo used to run .78 at the fist up to 1.28 wide open, and it was
+       washing the hand out at both ends. #grade screen-blends over whatever is
+       behind, so the brighter this glow the flatter the modelling on top of it
+       - all the form shading, the subsurface, the knuckle structure was there
+       the whole time and simply could not be seen. Held low and nearly flat,
+       the skin gets its tone back and the inked characters read. */
+    halo.style.setProperty("--halo-a", (.55 + open * .07).toFixed(3));
     halo.style.setProperty("--halo-s", (.9 + open * .16).toFixed(3));
   }
 
