@@ -3,7 +3,14 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@300;400;600&display=swap">
+<!-- Loaded without blocking the first paint. fonts.googleapis.com is not
+     reachable from mainland China, and as a plain stylesheet this request
+     holds the whole page blank until it times out. media="print" takes it
+     off the critical path; onload promotes it once it actually arrives.
+     The stacks below fall back to STKaiti / Songti SC either way, so the
+     brush and serif faces are right even if this never loads at all. -->
+<link rel="stylesheet" media="print" onload="this.media='all';this.onload=null"
+      href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@300;400;600&display=swap">
 
 <style>
   :root{
