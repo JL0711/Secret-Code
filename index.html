@@ -1565,8 +1565,16 @@
     /* the real horizon comes up underneath the swirl, and the embers hand over
        to it rather than pretending to be it */
     var hr = document.getElementById("holereel");
-    try { hr.currentTime = 0; var hp = hr.play(); if (hp && hp["catch"]) hp["catch"](function(){}); }
-    catch (e) {}
+    try {
+      hr.currentTime = 0;
+      /* The horizon is on screen from here until the dive - about twenty-five
+         seconds, while the seventeen lines spiral out. The clip is ten, so at
+         normal speed it visibly restarts twice. Slowed to .4 it runs the whole
+         beat without ever looping, and a supermassive object turning this
+         slowly reads as far heavier than one at speed. */
+      hr.playbackRate = 0.4;
+      var hp = hr.play(); if (hp && hp["catch"]) hp["catch"](function(){});
+    } catch (e) {}
     tween({ tag:"holein", from:0, to:1, dur:1800, ease:easeOut,
       step:function(v){ hr.style.opacity = v.toFixed(3); } });
     tween({ tag:"emberfade", from:1, to:.18, dur:1800, ease:easeInOut,
